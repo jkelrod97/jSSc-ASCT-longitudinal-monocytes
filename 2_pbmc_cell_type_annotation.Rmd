@@ -314,117 +314,22 @@ Now we annotate each cluster based on canonical RNA and protein markers.
 # names(cell_type_vec) <- NULL
 # scler_pbmc$cell_type <- cell_type_vec
 # 
-# # Plot it
-# s <- DimPlot(scler_pbmc,
-#         reduction = "wnn.umap",
-#         group.by = "cell_type",
-#         pt.size = 2,
-#         alpha = 0.8,
-#         cols = my_colors,
-#         combine = F)[[1]]
-# # Adjust labels
-# t <- s + labs(title = "jSSc and healthy control annotated PBMC clusters") + xlab("UMAP coordinate 1") + ylab("UMAP coordinate 2")
-# # Take a look
-# t
-# 
-# # Look at cell type proportions:
-# 
-# # Total cells
-# total_cells <- ncol(scler_pbmc)
-# 
-# # Number of cells per type
-# num_cells_per_type <- table(scler_pbmc$cell_type)
-# 
-# # Pct of cells per type
-# pct_cells_per_type <- as.matrix(paste0((round((num_cells_per_type / total_cells), 3) * 100), " %"))
-# rownames(pct_cells_per_type) <- names(num_cells_per_type)
-# pct_cells_per_type
-# 
-# # Save as PNG
-# umap_path <- paste0(project_path, "figures/")
-# ggsave(paste0(umap_path, "pbmc_umap", Sys.Date(), ".png"), t, height = 7, width = 9, bg = "white")
-# 
 # # Save as H5
 # SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_10"))
 ```
 
-UMAP
+Ok, now we generate some manuscript figures. 
 
-```{r}
-scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_10.h5seurat"))
-
-Idents(scler_pbmc) <- scler_pbmc$cell_type
-all_umap <- 
-scler_pbmc %>% DimPlot(label = T, cols = brewer.pal(12, "Set3"), repel = T) + ggtitle("jSSc and healthy control annotated PBMC clusters")
-ggsave(paste0(project_path, "figures/all_umap.png"), all_umap, height = 6, width = 7)
-
-all_umap_by_health <-
-scler_pbmc %>% DimPlot(label = T, cols = brewer.pal(12, "Set3"), repel = T, split.by = "health") + ggtitle("Healthy control vs. jSSc annotated PBMC clusters")
-ggsave(paste0(project_path, "figures/all_umap_by_health.png"), all_umap_by_health, width = 9, height = 4.5)
-
-all_umap_by_group <-
-scler_pbmc %>% DimPlot(label = T, cols = brewer.pal(12, "Set3"), repel = T, split.by = "group") + ggtitle("Healthy control vs. jSSc over time since ASCT annotated PBMC clusters")
-ggsave(paste0(project_path, "figures/all_umap_by_group.png"), all_umap_by_group, width = 18, height = 4.5)
-
-scler_pbmc$LIBRARY <- factor(scler_pbmc$LIBRARY, levels = c("H", "515", "591", "594"))
-levels(scler_pbmc$LIBRARY)[levels(scler_pbmc$LIBRARY) == "H"] <- "HC"
-all_umap_by_library <-
-scler_pbmc %>% DimPlot(label = T, cols = brewer.pal(12, "Set3"), repel = T, split.by = "LIBRARY") + ggtitle("Healthy control vs. jSSc patient PBMC clusters")
-ggsave(paste0(project_path, "figures/all_umap_by_library.png"), all_umap_by_library, width = 10, height = 5.72)
-
-scler_pbmc$cell_type <- factor(scler_pbmc$cell_type,
-                               levels = c("monocyte",
-                                          "B cell",
-                                          "T/B biphenotypic",
-                                          "CD4+ T cell",
-                                          "CD8+ T cell",
-                                          "natural killer/T cell",
-                                          "natural killer",
-                                          "mDC",
-                                          "pDC",
-                                          "HSPC",
-                                          "platelet"))
-
-# Add a blank level between HC and SSc baseline
-scler_pbmc@meta.data$group_spaced <- factor(
-  scler_pbmc@meta.data$group,
-  levels = c(levels(scler_pbmc@meta.data$group)[1], "", 
-             levels(scler_pbmc@meta.data$group)[2:5])
-)
-
-# Plot it
-prop_by_group <- ggplot(scler_pbmc@meta.data, aes(y = group_spaced, fill = cell_type)) +
-    geom_bar(position = "fill", color = "black") +
-    scale_fill_brewer(palette = "Set3", name = "Cell type") +
-    scale_y_discrete(labels = c("HC", "", "SSc baseline", "SSc 6 mo.", "SSc 12 mo.", "SSc 24 mo."),
-                     drop = FALSE) +
-    coord_flip() +
-    theme_bw() +
-    labs(x = "Cell type proportion", y = "Group") +
-    geom_hline(yintercept = 2, col = "black", linewidth = 1, linetype = "dashed") +
-    ggtitle("HC vs. jSSc cell type proportions over time since ASCT") +
-    theme(
-        axis.text.x = element_text(size = 16, angle = 45, hjust = 1, color = "black"),
-        axis.text.y = element_text(size = 14),
-        axis.title.x = element_text(size = 18),
-        axis.title.y = element_text(size = 18),
-        plot.title = element_text(size = 18, face = "bold"),
-        legend.text = element_text(size = 14)
-    )
-ggsave(paste0(project_path, "figures/prop_by_group.png"), prop_by_group, height = 7, width = 8)
-
-```
-
-
-
-Heatmap showing the markers we used above
+We start with heatmaps and dot plots showing the RNA and ADT markers for each cell type
 
 ```{r}
 # Load Seurat objects with labeled cell types
 scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_10.h5seurat"))
 
-# FindAllMarkers by cell type
+# Set Idents to cell_type
 Idents(scler_pbmc) <- "cell_type"
+
+# FindAllMarkers by cell type
 cell_type_markers_RNA <- FindAllMarkers(scler_pbmc, assay = "RNA")
 cell_type_markers_ADT <- FindAllMarkers(scler_pbmc, assay = "DSB")
 
@@ -513,9 +418,10 @@ scler_pbmc$cell_type <- factor(scler_pbmc$cell_type,
                                           "HSPC",
                                           "platelet"))
 
-
+# Update idents to reflect re-ordering of cell_type variable
 Idents(scler_pbmc) <- scler_pbmc$cell_type
 
+# Heatmap showing RNA markers
 rna_marker_heatmap <- 
     DoHeatmap(subset(scler_pbmc, downsample = 100),
               features = rna_markers,
@@ -529,9 +435,12 @@ rna_marker_heatmap <-
           axis.text.y = element_text(size = 15, color = "black"),
           plot.title = element_text(size = 25, face = "bold")) +
     guides(color = "none")
+# Save as PNG
 ggsave(paste0(project_path, "figures/rna_marker_heatmap.png"), rna_marker_heatmap, width = 7, height = 9)
 
+# Map full length antibody names to shorted names (e.g., anti-human-CD3 -> CD3)
 label_map <- setNames(gsub("^anti-human-", "", adt_markers), adt_markers)
+# Heatmap showing ADT markers
 adt_marker_heatmap <- 
     DoHeatmap(subset(scler_pbmc, downsample = 100),
               features = adt_markers,
@@ -548,448 +457,126 @@ adt_marker_heatmap <-
           axis.text.y = element_text(size = 15, color = "black"),
           plot.title = element_text(size = 25, face = "bold")) +
     guides(color = "none")
+# Save as PNG
 ggsave(paste0(project_path, "figures/adt_marker_heatmap.png"), adt_marker_heatmap, width = 7, height = 9)
 
+# Dotplot showing RNA markers
 rna_marker_dotplot <- 
   DotPlot(scler_pbmc,
           features = rna_markers,
           group.by = "cell_type",
           assay = "RNA") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave(paste0(project_path, "figures/rna_marker_dotplot.png"), rna_marker_dotplot, width = 12, height = 8)
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          text = element_text(color = "black")) +
+  labs(x = "Gene", y = "Cell type")
+# Save as PNG
+ggsave(paste0(project_path, "figures/rna_marker_dotplot.png"), rna_marker_dotplot, width = 12, height = 8, bg = "white")
 
+# Dotplot showing ADT markers
 adt_marker_dotplot <- 
   DotPlot(scler_pbmc,
           features = adt_markers,
           group.by = "cell_type",
           assay = "DSB",
           cols = c("lightgrey", "darkred")) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          text = element_text(color = "black")) +
+  scale_x_discrete(labels = label_map) +
+  labs(x = "Protein", y = "Cell type")
+# Save as PNG
 ggsave(paste0(project_path, "figures/adt_marker_dotplot.png"), adt_marker_dotplot, width = 12, height = 8)
 
-
+# We also save the Seurat object to update the reordering of cell types
+SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_11.h5seurat"))
 ```
 
-
-Now, let's try clustering the HC separately, and each patient individually.
+Below we generate some UMAPs.
 
 ```{r}
-# # Load Seurat object
-# scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_8.h5seurat"))
-# 
-# # Default assay for clustering
-# DefaultAssay(scler_pbmc) <- "DSB_integrated"
-# 
-# # Now, we create separate objects for the HC, and each individual patient
-# healthy_pbmc <- scler_pbmc %>% subset(health == "healthy")
-# p515_pbmc <- scler_pbmc %>% subset(subject == "515")
-# p591_pbmc <- scler_pbmc %>% subset(subject == "591")
-# p594_pbmc <- scler_pbmc %>% subset(subject == "594")
-# 
-# # Store in a list
-# pbmc_list <- list(healthy_pbmc = healthy_pbmc,
-#                   p515_pbmc = p515_pbmc,
-#                   p591_pbmc = p591_pbmc,
-#                   p594_pbmc = p594_pbmc)
-# 
-# # Scale and run PCA on integrated DSB data
-# pbmc_list <- pbmc_list %>%
-#   lapply(function(x) {
-#     x %>%
-#       ScaleData() %>%
-#       RunPCA(reduction.name = "pca_dsb_int", verbose = FALSE) %>%
-#       FindMultiModalNeighbors(reduction.list = list("harmony", "pca_dsb_int"),
-#                               dims.list = list(1:30, 1:18),
-#                               verbose = FALSE,
-#                               k.nn = 20) %>%
-#       RunUMAP(nn.name = "weighted.nn",
-#               reduction.name = "wnn.umap",
-#               reduction.key = "wnnUMAP_") %>%
-#       FindClusters(graph.name = "wsnn",
-#                   algorithm = 3,
-#                   resolution = 0.3,
-#                   random.seed = 1990)
-#   })
-# 
-# 
-# # Save as h5seurat
-# lapply(names(pbmc_list), function(x){SaveH5Seurat(pbmc_list[[x]], paste0(project_path, "data/h5seurat/", x))})
+# Load in Seurat object
+scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_11.h5seurat"))
 
-# Read in
-pbmc_list <- lapply(c("healthy_pbmc",
-                      "p515_pbmc",
-                      "p591_pbmc",
-                      "p594_pbmc"),
-                    function(x){
-                      LoadH5Seurat(paste0(project_path, "data/h5seurat/", x, ".h5seurat"))
-                    }) %>% setNames(c("healthy_pbmc",
-                      "p515_pbmc",
-                      "p591_pbmc",
-                      "p594_pbmc"))
+# Set Idents of scler_pbmc to cell_type
+Idents(scler_pbmc) <- scler_pbmc$cell_type
 
-# Data frame to store cell types
-healthy_cell_types <-data.frame(seurat_clusters = levels(pbmc_list$healthy_pbmc$seurat_clusters),
-                         cell_type = NA)
-
-# Take a look at each group
-pbmc_list %>% lapply(function(x){DimPlot(x, label = T)})
-
-# Find markers for each group
-rna_marker_list <- pbmc_list %>% lapply(function(x){FindAllMarkers(x, assay = "RNA")})
-adt_marker_list <- pbmc_list %>% lapply(function(x){FindAllMarkers(x, assay = "DSB")})
-
-# Take a look at healthy markers
-
-# 0
-rna_marker_list$healthy_pbmc %>% display_top(0)
-rna_marker_list$healthy_pbmc %>% filter(gene == "CD14")
-healthy_cell_types <- update_cell_types(healthy_cell_types, 0, cell_type = "monocyte")
-
-# 1
-rna_marker_list$healthy_pbmc %>% display_top(1)
-healthy_cell_types <- update_cell_types(healthy_cell_types, 1, cell_type = "B cell")
-
-# 2
-rna_marker_list$healthy_pbmc %>% display_top(2)
-healthy_cell_types <- update_cell_types(healthy_cell_types, 2, cell_type = "T cell")
-
-# 3
-rna_marker_list$healthy_pbmc %>% display_top(3)
-healthy_cell_types <- update_cell_types(healthy_cell_types, 3, cell_type = "monocyte")
-
-# 4
-rna_marker_list$healthy_pbmc %>% display_top(4)
-adt_marker_list$healthy_pbmc %>% display_top(4)
-healthy_cell_types <- update_cell_types(healthy_cell_types, 4, cell_type = "B cell")
-
-# 5
-rna_marker_list$healthy_pbmc %>% display_top(5)
-adt_marker_list$healthy_pbmc %>% display_top(5)
-healthy_cell_types <- update_cell_types(healthy_cell_types, 5, cell_type = "natural killer")
-
-# 6
-rna_marker_list$healthy_pbmc %>% display_top(6)
-adt_marker_list$healthy_pbmc %>% display_top(6)
-healthy_cell_types <- update_cell_types(healthy_cell_types, 6, cell_type = "monocyte")
-
-# 7
-rna_marker_list$healthy_pbmc %>% display_top(7)
-adt_marker_list$healthy_pbmc %>% display_top(7)
-healthy_cell_types <- update_cell_types(healthy_cell_types, 7, cell_type = "mDC")
-
-# Add cell types to Seurat object
-healthy_cell_type_vec <-
-   setNames(as.character(healthy_cell_types$cell_type),
-          as.character(healthy_cell_types$seurat_clusters))[as.character(pbmc_list$healthy_pbmc$seurat_clusters)]
-names(healthy_cell_type_vec) <- NULL
-pbmc_list$healthy_pbmc$cell_type <- healthy_cell_type_vec
-
-# colors
-n_col <- healthy_cell_type_vec %>% unique() %>% length()
-COLORS <- my_colors[1:n_col]
-names(COLORS) <- healthy_cell_type_vec %>% unique()
-
-# Plot it
-s <- DimPlot(pbmc_list$healthy_pbmc,
-        reduction = "wnn.umap",
-        group.by = "cell_type",
-        pt.size = 2,
-        alpha = 0.8,
-        cols = COLORS, 
-        combine = F)[[1]]
-# Adjust labels
-t <- s + labs(title = "Healthy control annotated PBMC clusters") + xlab("UMAP coordinate 1") + ylab("UMAP coordinate 2")
-# Take a look
-t
-
+# UMAP for all jSSc and HC cells together
+all_umap <- 
+scler_pbmc %>% DimPlot(label = T, cols = brewer.pal(12, "Set3"), repel = T) + ggtitle("jSSc and healthy control annotated PBMC clusters")
 # Save as PNG
-umap_path <- paste0(project_path, "figures/")
-# ggsave(paste0(umap_path, "HEALTH_pbmc_umap", Sys.Date(), ".png"), t, height = 7, width = 9, bg = "white")
+ggsave(paste0(project_path, "figures/all_umap.png"), all_umap, height = 6, width = 7)
 
-# Data frame to store cell types
-p515_cell_types <-data.frame(seurat_clusters = levels(pbmc_list$p515_pbmc$seurat_clusters),
-                         cell_type = NA)
-
-# Take a look at 515 markers
-# 0
-rna_marker_list$p515_pbmc %>% display_top(0)
-rna_marker_list$p515_pbmc %>% filter(gene == "CD14")
-p515_cell_types <- update_cell_types(p515_cell_types, 0, cell_type = "monocyte")
-
-# 1
-rna_marker_list$p515_pbmc %>% display_top(1)
-p515_cell_types <- update_cell_types(p515_cell_types, 1, cell_type = "B cell")
-
-# 2
-rna_marker_list$p515_pbmc %>% display_top(2)
-p515_cell_types <- update_cell_types(p515_cell_types, 2, cell_type = "T cell")
-
-# 3
-rna_marker_list$p515_pbmc %>% display_top(3)
-adt_marker_list$p515_pbmc %>% display_top(3)
-rna_marker_list$p515_pbmc %>% filter(cluster == 3 & gene == "NCAM1")
-p515_cell_types <- update_cell_types(p515_cell_types, 3, cell_type = "natural killer")
-
-# 4
-rna_marker_list$p515_pbmc %>% display_top(4)
-p515_cell_types <- update_cell_types(p515_cell_types, 4, cell_type = "T cell")
-
-# 5
-rna_marker_list$p515_pbmc %>% display_top(5)
-p515_cell_types <- update_cell_types(p515_cell_types, 5, cell_type = "monocyte")
-
-# 6
-rna_marker_list$p515_pbmc %>% display_top(6)
-adt_marker_list$p515_pbmc %>% display_top(6)
-one_v_six <- FindMarkers(pbmc_list$p515_pbmc, ident.1 = 1, ident.2 = 6, assay = "RNA")
-p515_cell_types <- update_cell_types(p515_cell_types, 6, cell_type = "myeloid-like B cell")
-
-# 7
-rna_marker_list$p515_pbmc %>% display_top(7)
-adt_marker_list$p515_pbmc %>% display_top(7)
-# Compare to cluster 7
-three_v_seven <- FindMarkers(pbmc_list$p515_pbmc, ident.1 = 3, ident.2 = 7, assay = "RNA")
-p515_cell_types <- update_cell_types(p515_cell_types, 7, cell_type = "myeloid-like NK")
-
-# 8
-rna_marker_list$p515_pbmc %>% display_top(8)
-adt_marker_list$p515_pbmc %>% display_top(8)
-rna_marker_list$p515_pbmc %>% filter(cluster == 8 & gene == "CD1C")
-p515_cell_types <- update_cell_types(p515_cell_types, 8, cell_type = "mDC")
-
-# 9
-rna_marker_list$p515_pbmc %>% display_top(9)
-p515_cell_types <- update_cell_types(p515_cell_types, 9, cell_type = "T cell")
-
-# 10
-rna_marker_list$p515_pbmc %>% display_top(10)
-adt_marker_list$p515_pbmc %>% display_top(10)
-p515_cell_types <- update_cell_types(p515_cell_types, 10, cell_type = "T cell")
-
-# Add cell types to Seurat object
-p515_cell_type_vec <-
-   setNames(as.character(p515_cell_types$cell_type),
-          as.character(p515_cell_types$seurat_clusters))[as.character(pbmc_list$p515_pbmc$seurat_clusters)]
-names(p515_cell_type_vec) <- NULL
-pbmc_list$p515_pbmc$cell_type <- p515_cell_type_vec
-
-# Add to COLORS vector
-new_types <- p515_cell_type_vec %>% unique() %>% setdiff(names(COLORS))
-n_add <- new_types %>% length()
-COL_add <- my_colors[(length(COLORS) + 1): (length(COLORS) + n_add)]
-names(COL_add) <- new_types
-COLORS <- c(COLORS, COL_add)
-
-# Plot it
-s <- DimPlot(pbmc_list$p515_pbmc,
-        reduction = "wnn.umap",
-        group.by = "cell_type",
-        pt.size = 2,
-        alpha = 0.8,
-        cols = COLORS, 
-        combine = F)[[1]]
-# Adjust labels
-t <- s + labs(title = "Patient 515 annotated PBMC clusters") + xlab("UMAP coordinate 1") + ylab("UMAP coordinate 2")
-# Take a look
-t
-
+# UMAP split by health (jSSc vs. healthy)
+all_umap_by_health <-
+scler_pbmc %>% DimPlot(label = T, cols = brewer.pal(12, "Set3"), repel = T, split.by = "health") + ggtitle("Healthy control vs. jSSc annotated PBMC clusters")
 # Save as PNG
-umap_path <- paste0(project_path, "figures/")
-# ggsave(paste0(umap_path, "p515_pbmc_umap", Sys.Date(), ".png"), t, height = 7, width = 9, bg = "white")
+ggsave(paste0(project_path, "figures/all_umap_by_health.png"), all_umap_by_health, width = 9, height = 4.5)
 
-# Data frame to store cell types
-p591_cell_types <-data.frame(seurat_clusters = levels(pbmc_list$p591_pbmc$seurat_clusters),
-                         cell_type = NA)
-
-# Take a look at 591 markers
-# 0
-rna_marker_list$p591_pbmc %>% display_top(0)
-p591_cell_types <- update_cell_types(p591_cell_types, 0, cell_type = "monocyte")
-
-# 1
-rna_marker_list$p591_pbmc %>% display_top(1)
-adt_marker_list$p591_pbmc %>% display_top(1)
-FeaturePlot(pbmc_list$p591_pbmc, "CD14"); FeaturePlot(pbmc_list$p591_pbmc, "anti-human-CD14")
-zero_v_one <- FindMarkers(pbmc_list$p591_pbmc, ident.1 = 0, ident.2 = 1, assay = "RNA")
-# MNDA is a monocyte/M2 macrophage marker (in cluster 0, not 1)
-# GOS2 is also a monocyte marker (in cluster 1, not 0)
-# Given that they are all CD14+ and CD16-, they are classical monocytes
-p591_cell_types <- update_cell_types(p591_cell_types, 1, cell_type = "monocyte")
-
-# 2
-rna_marker_list$p591_pbmc %>% display_top(2)
-adt_marker_list$p591_pbmc %>% display_top(2)
-p591_cell_types <- update_cell_types(p591_cell_types, 2, cell_type = "T cell")
-
-# 3
-rna_marker_list$p591_pbmc %>% display_top(3)
-p591_cell_types <- update_cell_types(p591_cell_types, 3, cell_type = "B cell")
-
-# 4
-rna_marker_list$p591_pbmc %>% display_top(4)
-p591_cell_types <- update_cell_types(p591_cell_types, 4, cell_type = "monocyte")
-
-# 5
-rna_marker_list$p591_pbmc %>% display_top(5)
-adt_marker_list$p591_pbmc %>% display_top(5)
-p591_cell_types <- update_cell_types(p591_cell_types, 5, cell_type = "natural killer")
-
-# 6
-rna_marker_list$p591_pbmc %>% display_top(6)
-adt_marker_list$p591_pbmc %>% display_top(6)
-p591_cell_types <- update_cell_types(p591_cell_types, 6, cell_type = "B cell")
-
-# 7
-rna_marker_list$p591_pbmc %>% display_top(7)
-adt_marker_list$p591_pbmc %>% display_top(7)
-p591_cell_types <- update_cell_types(p591_cell_types, 7, cell_type = "T cell")
-
-# 8
-rna_marker_list$p591_pbmc %>% display_top(8)
-adt_marker_list$p591_pbmc %>% display_top(8)
-p591_cell_types <- update_cell_types(p591_cell_types, 8, cell_type = "B cell")
-
-# 9
-rna_marker_list$p591_pbmc %>% display_top(9)
-adt_marker_list$p591_pbmc %>% display_top(9)
-p591_cell_types <- update_cell_types(p591_cell_types, 9, cell_type = "monocyte")
-
-# 10
-rna_marker_list$p591_pbmc %>% display_top(10)
-adt_marker_list$p591_pbmc %>% display_top(10)
-p591_cell_types <- update_cell_types(p591_cell_types, 10, cell_type = "mDC")
-
-# 11
-# CD34, MYB
-rna_marker_list$p591_pbmc %>% display_top(11)
-adt_marker_list$p591_pbmc %>% display_top(11)
-rna_marker_list$p591_pbmc %>% filter(cluster == 11 & gene == "MYB")
-p591_cell_types <- update_cell_types(p591_cell_types, 11, cell_type = "HSPC")
-
-# 12
-rna_marker_list$p591_pbmc %>% display_top(12)
-p591_cell_types <- update_cell_types(p591_cell_types, 12, cell_type = "pDC")
-
-# 13
-rna_marker_list$p591_pbmc %>% display_top(13)
-p591_cell_types <- update_cell_types(p591_cell_types, 13, cell_type = "platelets")
-
-# Add cell types to Seurat object
-p591_cell_type_vec <-
-   setNames(as.character(p591_cell_types$cell_type),
-          as.character(p591_cell_types$seurat_clusters))[as.character(pbmc_list$p591_pbmc$seurat_clusters)]
-names(p591_cell_type_vec) <- NULL
-pbmc_list$p591_pbmc$cell_type <- p591_cell_type_vec
-
-# Add to COLORS vector
-new_types <- p591_cell_type_vec %>% unique() %>% setdiff(names(COLORS))
-n_add <- new_types %>% length()
-COL_add <- my_colors[(length(COLORS) + 1): (length(COLORS) + n_add)]
-names(COL_add) <- new_types
-COLORS <- c(COLORS, COL_add)
-
-# Plot it
-s <- DimPlot(pbmc_list$p591_pbmc,
-        reduction = "wnn.umap",
-        group.by = "cell_type",
-        pt.size = 2,
-        alpha = 0.8,
-        cols = COLORS, 
-        combine = F)[[1]]
-# Adjust labels
-t <- s + labs(title = "Patient 591 annotated PBMC clusters") + xlab("UMAP coordinate 1") + ylab("UMAP coordinate 2")
-# Take a look
-t
-
+# UMAP split by group (jSSc timepoints + HC)
+all_umap_by_group <-
+scler_pbmc %>% DimPlot(label = T, cols = brewer.pal(12, "Set3"), repel = T, split.by = "group") + ggtitle("Healthy control vs. jSSc over time since ASCT annotated PBMC clusters")
 # Save as PNG
-umap_path <- paste0(project_path, "figures/")
-ggsave(paste0(umap_path, "p591_pbmc_umap", Sys.Date(), ".png"), t, height = 7, width = 9, bg = "white")
+ggsave(paste0(project_path, "figures/all_umap_by_group.png"), all_umap_by_group, width = 18, height = 4.5)
 
-# Data frame to store cell types
-p594_cell_types <-data.frame(seurat_clusters = levels(pbmc_list$p594_pbmc$seurat_clusters),
-                         cell_type = NA)
-
-# Take a look at 594 markers
-
-# 0
-rna_marker_list$p594_pbmc %>% display_top(0)
-p594_cell_types <- update_cell_types(p594_cell_types, 0, cell_type = "monocyte")
-
-# 1
-rna_marker_list$p594_pbmc %>% display_top(1)
-p594_cell_types <- update_cell_types(p594_cell_types, 1, cell_type = "B cell")
-
-# 2
-rna_marker_list$p594_pbmc %>% display_top(2)
-p594_cell_types <- update_cell_types(p594_cell_types, 2, cell_type = "T cell")
-
-# 3
-rna_marker_list$p594_pbmc %>% display_top(3)
-adt_marker_list$p594_pbmc %>% display_top(3)
-p594_cell_types <- update_cell_types(p594_cell_types, 3, cell_type = "natural killer")
-
-# 4
-rna_marker_list$p594_pbmc %>% display_top(4)
-p594_cell_types <- update_cell_types(p594_cell_types, 4, cell_type = "monocyte")
-
-# 5
-rna_marker_list$p594_pbmc %>% display_top(5)
-adt_marker_list$p594_pbmc %>% display_top(5)
-p594_cell_types <- update_cell_types(p594_cell_types, 5, cell_type = "monocyte")
-
-# 6
-rna_marker_list$p594_pbmc %>% display_top(6)
-p594_cell_types <- update_cell_types(p594_cell_types, 6, cell_type = "T cell")
-
-# 7
-rna_marker_list$p594_pbmc %>% display_top(7)
-p594_cell_types <- update_cell_types(p594_cell_types, 7, cell_type = "mDC")
-
-# 8 (biphenotypic, B and C)
-rna_marker_list$p594_pbmc %>% display_top(8)
-adt_marker_list$p594_pbmc %>% display_top(8)
-p594_cell_types <- update_cell_types(p594_cell_types, 8, cell_type = "monocyte")
-
-# 9
-rna_marker_list$p594_pbmc %>% display_top(9)
-p594_cell_types <- update_cell_types(p594_cell_types, 9, cell_type = "pDC")
-
-
-# Add cell types to Seurat object
-p594_cell_type_vec <-
-   setNames(as.character(p594_cell_types$cell_type),
-          as.character(p594_cell_types$seurat_clusters))[as.character(pbmc_list$p594_pbmc$seurat_clusters)]
-names(p594_cell_type_vec) <- NULL
-pbmc_list$p594_pbmc$cell_type <- p594_cell_type_vec
-
-# Add to COLORS vector
-new_types <- p594_cell_type_vec %>% unique() %>% setdiff(names(COLORS))
-n_add <- new_types[!is.na(new_types)] %>% length()
-if (n_add > 0) {
-  COL_add <- my_colors[(length(COLORS) + 1): (length(COLORS) + n_add)]
-  names(COL_add) <- new_types
-  COLORS <- c(COLORS, COL_add)
-}
-
-# Plot it
-s <- DimPlot(pbmc_list$p594_pbmc,
-        reduction = "wnn.umap",
-        group.by = "cell_type",
-        pt.size = 2,
-        alpha = 0.8,
-        cols = COLORS, 
-        combine = F)[[1]]
-# Adjust labels
-t <- s + labs(title = "Patient 594 annotated PBMC clusters") + xlab("UMAP coordinate 1") + ylab("UMAP coordinate 2")
-# Take a look
-t
-
+# UMAP split by library
+# We relabel H as HC, and turn into a factor for desired ordering
+scler_pbmc@meta.data <- scler_pbmc@meta.data %>%
+  mutate(
+    LIBRARY = recode(LIBRARY, "H" = "HC"),
+    LIBRARY = factor(LIBRARY, levels = c("HC", "515", "591", "594"))
+  )
+all_umap_by_library <-
+scler_pbmc %>% DimPlot(label = T, cols = brewer.pal(12, "Set3"), repel = T, split.by = "LIBRARY") + ggtitle("Healthy control vs. jSSc patient PBMC clusters")
 # Save as PNG
-umap_path <- paste0(project_path, "figures/")
-ggsave(paste0(umap_path, "p594_pbmc_umap", Sys.Date(), ".png"), t, height = 7, width = 9, bg = "white")
+ggsave(paste0(project_path, "figures/all_umap_by_library.png"), all_umap_by_library, width = 12, height = 5.72)
 ```
+
+Now we plot cell type proportions.
 
 ```{r}
-plot_pb_offset(pbo_monocytes, )
+# Turn cell type into a factor (ordered from most abundant to rarest)
+scler_pbmc$cell_type <- factor(scler_pbmc$cell_type,
+                               levels = c("monocyte",
+                                          "B cell",
+                                          "T/B biphenotypic",
+                                          "CD4+ T cell",
+                                          "CD8+ T cell",
+                                          "natural killer/T cell",
+                                          "natural killer",
+                                          "mDC",
+                                          "pDC",
+                                          "HSPC",
+                                          "platelet"))
+
+# Add a blank level between HC and SSc baseline
+scler_pbmc@meta.data$group_spaced <- factor(
+  scler_pbmc@meta.data$group,
+  levels = c(levels(scler_pbmc@meta.data$group)[1], "", 
+             levels(scler_pbmc@meta.data$group)[2:5])
+)
+
+# Plot cell type proportions
+prop_by_group <- ggplot(scler_pbmc@meta.data, aes(y = group_spaced, fill = cell_type)) +
+    geom_bar(position = "fill", color = "black") +
+    scale_fill_brewer(palette = "Set3", name = "Cell type") +
+    scale_y_discrete(labels = c("HC", "", "SSc baseline", "SSc 6 mo.", "SSc 12 mo.", "SSc 24 mo."),
+                     drop = FALSE) +
+    coord_flip() +
+    theme_bw() +
+    labs(x = "Cell type proportion", y = "Group") +
+    geom_hline(yintercept = 2, col = "black", linewidth = 1, linetype = "dashed") +
+    ggtitle("HC vs. jSSc cell type proportions over time since ASCT") +
+    theme(
+        axis.text.x = element_text(size = 16, angle = 45, hjust = 1, color = "black"),
+        axis.text.y = element_text(size = 14),
+        axis.title.x = element_text(size = 18),
+        axis.title.y = element_text(size = 18),
+        plot.title = element_text(size = 18, face = "bold"),
+        legend.text = element_text(size = 14)
+    )
+
+# Save as PNG
+ggsave(paste0(project_path, "figures/prop_by_group.png"), prop_by_group, height = 7, width = 8)
 ```
+
+
 
