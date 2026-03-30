@@ -236,12 +236,41 @@ results <- read_csv(paste0(results_dir, "all_DE_results.csv"))
 
 Volcano plot of top DEGs:
 
+First, we grab genes from fav up pathways
+
+```{r}
+# Get all gene sets
+gene_sets <- gsea$DOWN@geneSets
+# Extract 5 favorite pathways
+fav_gene_sets <- gene_sets[favorite_pathways]
+
+# Make a named vector of p-values for quick lookup
+pval_lookup <- results$pval
+names(pval_lookup) <- results$name
+
+# Order each pathway's genes by p-value
+fav_gene_sets_ordered <- lapply(fav_gene_sets, function(genes) {
+  # Keep only genes that exist in results
+  genes_in_results <- intersect(genes, names(pval_lookup))
+  
+  # Order by p-value
+  genes_in_results[order(pval_lookup[genes_in_results])]
+})
+
+topgenes <- lapply(fav_gene_sets_ordered, function(x){head(x, 5)}) %>% unlist() %>% setNames(NULL) %>% unique()
+```
+
+
 ```{r}
 results <- read_csv(paste0(results_dir, "all_DE_results.csv"))
 
 top10_up <- results %>% arrange(pval) %>% filter(lfc > 0.6) %>% pull(name) %>% head(10)
 
 top10_down <- results %>% arrange(pval) %>% filter(lfc < -0.6) %>% pull(name) %>% head(10)
+
+volc_down_degs <- levels(heat_df$gene)
+
+volc_up_degs <- results %>% arrange(pval) %>% filter(lfc < -0.6) %>% pull(name) %>% head(18)
 
 results <- results %>%
   dplyr::rename(log2fc = lfc) %>%
@@ -251,7 +280,7 @@ results <- results %>%
     TRUE ~ "Not significant"
   )) %>%
   mutate(delabel = case_when(
-    name %in% c(top10_down, top10_up) ~ name,
+    name %in% c(volc_down_degs, volc_up_degs) ~ name,
     TRUE ~ NA
   ))
 
