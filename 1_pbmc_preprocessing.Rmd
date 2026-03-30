@@ -335,21 +335,21 @@ SaveH5Seurat(scler_pbmc,
 ```
 
 
-2) Ambient RNA removal with SoupX. Since this step addresses technical noise, we run it separately for each library (subject), so we need the output from cellranger count, before we demultiplexed with cellranger multi. 
+2) Ambient RNA removal with SoupX. Since this step addresses technical noise, we run it separately for each library (subject), so we need output from cellranger multi without demultiplexing (which was run separately for this purpose). 
 
 ```{r}
-# Path where cellranger_count outputs are saved
-path_to_cellranger_count <- paste0(project_path, "data/cellranger_output/cellranger_count/")
+# Path where pooled cellranger multi outputs are saved
+path_to_cellranger_denoise <- paste0(project_path, "data/cellranger_output/cellranger_count/cellranger_pooled_for_denoising")
 
 # Load (demultiplexed) Seurat object
 scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_2.h5seurat"))
 
 # Subjects
-subjects <- list.files(paste0(path_to_cellranger_count, "raw"))
+subjects <- list.files(paste0(path_to_cellranger_denoise, "raw"))
 
 # Load data for raw and filtered wells
-raw_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_count, "raw/", subject))})
-filtered_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_count, "filtered/", subject))})
+raw_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_denoise, "raw/", subject))})
+filtered_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_denoise, "filtered/", subject))})
 
 # Name accordingly
 names(raw_wells) <- names(filtered_wells) <- subjects
@@ -625,21 +625,21 @@ SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_6"))
 
 Now, let's denoise and normalize the ADT data with DSB. We set denoise.counts = FALSE since our signal is weak and our ADT data is not bimodal. We also scale the data. 
 
-For this step, we use the output from cellranger count, before we demultiplexed the data with cellranger multi.
+For this step, we use the output from cellranger multi without demultiplexing (as we did when we ran SoupX for the ambient RNA correction).
 
 ```{r}
 # Path where cellranger_count outputs are saved
-path_to_cellranger_count <- paste0(project_path, "data/cellranger_output/cellranger_count/")
+path_to_cellranger_denoise <- paste0(project_path, "data/cellranger_output/cellranger_pooled_for_denoising/")
 
 # Load (demultiplexed) Seurat object
 scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_6.h5seurat"))
 
 # Subjects
-subjects <- list.files(paste0(path_to_cellranger_count, "raw"))
+subjects <- list.files(paste0(path_to_cellranger_denoise, "raw"))
 
 # Load data for raw and filtered wells
-raw_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_count, "raw/", subject))})
-filtered_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_count, "filtered/", subject))})
+raw_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_denoise, "raw/", subject))})
+filtered_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_denoise, "filtered/", subject))})
 
 # Name accordingly
 names(raw_wells) <- names(filtered_wells) <- subjects
