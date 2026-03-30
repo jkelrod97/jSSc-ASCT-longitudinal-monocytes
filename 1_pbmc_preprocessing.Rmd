@@ -3,7 +3,7 @@ title: "PBMC preprocessing"
 output: html_notebook
 ---
 
-In this notebook, we perform preprocessing and QC on our PBMC CITE-seq data. Multimodal clustering and cell type annotation are performed in a follow-up notebook, 2_pbmc_cell_type_annotation.Rmd. The equivalent pipeline for the skin RNA-seq data is executed in 3_skin_preprocessing.Rmd.  
+In this notebook, we perform preprocessing and QC on our PBMC CITE-seq data. Multimodal clustering and cell type annotation are performed in a follow-up notebook, 2_pbmc_cell_type_annotation.Rmd. 
 
 First, clear the environment and set the path where the project folder is saved.
 
@@ -15,7 +15,7 @@ gc()
 # Increase max vector memory
 mem.maxVSize(200000)
 
-project_path <- "/Users/juliaelrod/Desktop/cmu/research/scleroderma/paired_skin_and_pbmc/manuscript/code_for_manuscript/"
+project_path <- "/Users/juliaelrod/Desktop/cmu/research/scleroderma/jSSc_ASCT_monocytes_manuscript/code_for_manuscript/"
 ```
 
 Now load in useful packages and custom functions.
@@ -88,10 +88,10 @@ patient_meta_data$Major.manifestations <- NULL
 ################################################################################
 #
 # # Get paths to cellranger multi output
-# cellranger_paths <- list.files(paste0(project_path, "data/cellranger_output/PBMC/cellranger_multi"), full.names = TRUE)
+# cellranger_paths <- list.files(paste0(project_path, "data/cellranger_output/cellranger_multi"), full.names = TRUE)
 # 
 # # Get sample names
-# samp_names <- list.files(paste0(project_path, "data/cellranger_output/PBMC/cellranger_multi"))
+# samp_names <- list.files(paste0(project_path, "data/cellranger_output/cellranger_multi"))
 # 
 # # Read 10x output
 # cellranger_output <- lapply(cellranger_paths, Read10X)
@@ -103,12 +103,12 @@ patient_meta_data$Major.manifestations <- NULL
 # plx_list <- lapply(cellranger_output, function(x){x$`Antibody Capture`})
 # 
 # # Save as RDS files
-# mapply(saveRDS, gex_list, paste0(project_path, "data/RDS_files/counts/PBMC/gex/", samp_names, "_gex.RDS"))
-# mapply(saveRDS, plx_list, paste0(project_path, "data/RDS_files/counts/PBMC/plx/", samp_names, "_plx.RDS"))
+# mapply(saveRDS, gex_list, paste0(project_path, "data/RDS_files/counts/gex/", samp_names, "_gex.RDS"))
+# mapply(saveRDS, plx_list, paste0(project_path, "data/RDS_files/counts/plx/", samp_names, "_plx.RDS"))
 
 # Read in RDS files
-gex_paths <- list.files(paste0(project_path, "data/RDS_files/counts/PBMC/gex"), pattern = "\\.RDS$", full.names = TRUE)
-plx_paths <- list.files(paste0(project_path, "data/RDS_files/counts/PBMC/plx"), pattern = "\\.RDS$", full.names = TRUE)
+gex_paths <- list.files(paste0(project_path, "data/RDS_files/counts/gex"), pattern = "\\.RDS$", full.names = TRUE)
+plx_paths <- list.files(paste0(project_path, "data/RDS_files/counts/plx"), pattern = "\\.RDS$", full.names = TRUE)
 
 # Read in counts
 gex_list <- lapply(gex_paths, readRDS)
@@ -268,7 +268,7 @@ scler_pbmc[["ADT"]] <- CreateAssayObject(counts = scler_pbmc_all[["ADT"]]$counts
 
 # Save as H5
 SaveH5Seurat(scler_pbmc,
-             paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_1"))
+             paste0(project_path, "data/h5seurat/scler_pbmc_1"))
 ```
 
 Now, we begin preprocessing
@@ -279,7 +279,7 @@ First, we extract the RNA and ADT counts matrices, filter out genes with > 50% z
 
 ```{r}
 # Load in most recent Seurat object
-scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_1.h5seurat"))
+scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_1.h5seurat"))
 
 # Extract RNA and ADT
 rna <- scler_pbmc@assays$RNA@counts
@@ -293,8 +293,8 @@ rna_prop_zero <- (rna == 0) %>% rowMeans()
 rna <- rna[names(which(rna_prop_zero < 0.5)), ]
 
 # Write to mtx files
-rna %>% writeMM(file = paste0(project_path, "data/composite/PBMC/RNA.mtx"))
-adt %>% writeMM(file = paste0(project_path, "data/composite/PBMC/ADT.mtx"))
+rna %>% writeMM(file = paste0(project_path, "data/composite/RNA.mtx"))
+adt %>% writeMM(file = paste0(project_path, "data/composite/ADT.mtx"))
 ```
 
 Composite is implemented in Python in the file, composite_pbmc.py.
@@ -309,7 +309,7 @@ After removing multiplets, 34,138 cells remain.
 
 ```{r}
 # Import sccomposite multiplet predictions
-composite_path <- paste0(project_path, "data/composite/PBMC/multiplet_prediction.csv")
+composite_path <- paste0(project_path, "data/composite/multiplet_prediction.csv")
 
 # Add sccomposite labels to Seurat object
 scler_pbmc$multiplet_label <- read.csv(composite_path) %>% pull(multiplet_classification)
@@ -331,7 +331,7 @@ scler_pbmc$multiplet_label <- NULL
 
 # Save as H5
 SaveH5Seurat(scler_pbmc,
-             paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_2"))
+             paste0(project_path, "data/h5seurat/scler_pbmc_2"))
 ```
 
 
@@ -339,10 +339,10 @@ SaveH5Seurat(scler_pbmc,
 
 ```{r}
 # Path where cellranger_count outputs are saved
-path_to_cellranger_count <- paste0(project_path, "data/cellranger_output/PBMC/cellranger_count/")
+path_to_cellranger_count <- paste0(project_path, "data/cellranger_output/cellranger_count/")
 
 # Load (demultiplexed) Seurat object
-scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_2.h5seurat"))
+scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_2.h5seurat"))
 
 # Subjects
 subjects <- list.files(paste0(path_to_cellranger_count, "raw"))
@@ -393,7 +393,7 @@ counts_adj <- counts_adj[, Cells(scler_pbmc)]
 scler_pbmc[["RNA"]]$counts <- counts_adj
 
 # Save as H5
-SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_3"))
+SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_3"))
 ```
 
 3) Quality control based on RNA and ADT features
@@ -407,7 +407,7 @@ After this filtering step, we retain 29,805 cells.
 # ## LOAD SEURAT OBJECT #########################################################
 # ################################################################################
 
-scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_3.h5seurat"))
+scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_3.h5seurat"))
 
 # ################################################################################
 # ## FILTERING AND QC ############################################################
@@ -529,7 +529,7 @@ print(paste0("cells after filtering: ", ncol(scler_pbmc))) # 28943
 # Check isotype_ctl_max violin plot again:
 VlnPlot(scler_pbmc, features = c("isotype_ctl_max"), pt.size = 0, group.by = "sample_id")
 # Save Seurat object
-SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_4"))
+SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_4"))
 
 ```
 
@@ -558,7 +558,7 @@ We only consider expression in patients, as we do not include healthy controls i
 
 ```{r}
 # Load Seurat object
-scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_4.h5seurat"))
+scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_4.h5seurat"))
 
 # Take subset of just patients
 patient_subset <- subset(scler_pbmc, health == "SSc")
@@ -597,7 +597,7 @@ scler_pbmc[["RNA"]] <- subset(scler_pbmc[["RNA"]], features = keep_genes)
 print(paste0("Genes after filtering: ", nrow(scler_pbmc)))
 
 # Save H5
-SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_5"))
+SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_5"))
 ```
 
 After filtering, we have 18,766 genes.
@@ -608,7 +608,7 @@ We've now denoised and filtered the RNA data. Lets normalize and scale it.
 
 ```{r}
 # Load Seurat object
-scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_5.h5seurat"))
+scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_5.h5seurat"))
 
 # Set default assay to RNA (we will address ADT layer later)
 DefaultAssay(scler_pbmc) <- "RNA"
@@ -618,7 +618,7 @@ scler_pbmc <- NormalizeData(scler_pbmc) %>%
   ScaleData(features = rownames(scler_pbmc))
 
 # Save as H5
-SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_6"))
+SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_6"))
 ```
 
 6) Denoise and normalize ADT data
@@ -629,10 +629,10 @@ For this step, we use the output from cellranger count, before we demultiplexed 
 
 ```{r}
 # Path where cellranger_count outputs are saved
-path_to_cellranger_count <- paste0(project_path, "data/cellranger_output/PBMC/cellranger_count/")
+path_to_cellranger_count <- paste0(project_path, "data/cellranger_output/cellranger_count/")
 
 # Load (demultiplexed) Seurat object
-scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_6.h5seurat"))
+scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_6.h5seurat"))
 
 # Subjects
 subjects <- list.files(paste0(path_to_cellranger_count, "raw"))
@@ -741,7 +741,7 @@ scler_pbmc <- scler_pbmc %>%
   ScaleData()
 
 # Save Seurat object as H5
-SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_7"))
+SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_7"))
 ```
 
 Ok, so both the RNA and ADT are denoised, normalized, and scaled.
@@ -751,7 +751,7 @@ Ok, so both the RNA and ADT are denoised, normalized, and scaled.
 Now, we integrate the RNA data using harmony and the ADT data using RPCA to account for batch effects.
 
 ```{r}
-scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_7.h5seurat"))
+scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_7.h5seurat"))
 
 # Data integration
 
@@ -772,6 +772,6 @@ DefaultAssay(scler_pbmc) <- "DSB"
 scler_pbmc <- run_rpca(scler_pbmc)
 
 # Save integrated Seurat object
-SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/PBMC/scler_pbmc_8"))
+SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_8"))
 ```
 

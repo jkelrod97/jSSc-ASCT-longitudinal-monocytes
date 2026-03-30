@@ -70,11 +70,10 @@ pb_offset <- function(seurat_obj,
                              layer = "counts",
                              method = "aggregate") %>% 
     .[["RNA"]] %>% suppressWarnings()
-  
-  
+
   # Restore original column names
   colnames(pb) <- original_colnames
-
+  
   # Create colData
   covariates <- all.vars(design_formula)
   colData <- meta %>%
@@ -88,6 +87,27 @@ pb_offset <- function(seurat_obj,
   sce <- SingleCellExperiment(assays = list(counts = pb))
   # Add colData to sce object (and transform to DataFrame object)
   colData(sce) <- DataFrame(colData)
+  
+  # Only keep genes that have expression for all three subjects during at least
+  # one of the timepoints, and median expression > 10
+  if (sample_id_variable == "cell_id") {
+    med_thres <- 0
+  } else {
+    med_thres <- 10
+  }
+  
+  if ("timepoint" %in% covariates) {
+    keep <- Reduce(`|`, lapply(unique(sce$timepoint), function(t)
+      rowSums(sapply(unique(sce$subject), function(s)
+        rowSums(counts(sce)[, sce$timepoint == t & sce$subject == s, drop = FALSE] > 0) > 0
+      )) == length(unique(sce$subject))
+    )) & (apply(counts(sce), 1, median) >= med_thres)
+  } else{
+    keep <- (apply(counts(sce), 1, median) >= med_thres)
+  }
+  
+  sce <- sce[keep, ]
+  pb <- pb[keep, ]
   
   # Create design matrix
   design_matrix <- model.matrix(design_formula, data = colData)
@@ -121,8 +141,7 @@ pb_offset <- function(seurat_obj,
 
 plot_pb_offset <- function(pbo, 
                            genes_to_plot,
-                           separate_plots_by = NULL,
-                           groupBy = NULL,
+                           groupBy,
                            new_timepoints = NULL,
                            scale = "log2",
                            linewidth = 2,
@@ -141,7 +160,6 @@ plot_pb_offset <- function(pbo,
   # Arguments:
   # (1) pbo (list): output from pb_offset
   # (2) genes_to_plot (vector of strings): list of genes to plot. 
-  # (3) separate_plots_by (string): variable to separate plots by
   # (3) groupBy (string): variable to group by
   # (4) new_timepoints (numeric): new x axis values for predictions
   # (5) scale (string): log2 (default), log (ln), or original
@@ -179,7 +197,6 @@ plot_pb_offset <- function(pbo,
   long_plot_list <- mapply(plot_gene, 
                       genes_to_plot, 
                       MoreArgs = list(pbo = pbo, 
-                                      separate_plots_by = separate_plots_by,
                                       new_timepoints = new_timepoints,
                                       scale = scale, 
                                       groupBy = groupBy,
@@ -191,107 +208,8 @@ plot_pb_offset <- function(pbo,
                                       legend_text_size = legend_text_size,
                                       legend_title_size = legend_title_size),
                       SIMPLIFY = FALSE)
-  # Get dot plot list
-  # We precompute the split based on separate_plots_by
-  seurat_list <- SplitObject(pbo$input$original_seurat_obj, split.by = separate_plots_by)
-  dot_plot_list <- lapply(genes_to_plot,
-                          dot_by_gene,
-                          pbo = pbo,
-                          precomputed_split = seurat_list)
-  names(dot_plot_list) <- genes_to_plot
-  
-  # Put plots together--1 for each gene
-  # (1) Combine longitudinal plots (for all values of separate_plots_by. Right
-  # now can only accomodate 2 values (e.g., skin and PBMC for separate_plot_by = Tissue))
-  # Display plots together
-  long_plots_combined <-
-    lapply(genes_to_plot,
-           function (gene) {
-             # One shared legend.
-             long_plot_list[[gene]]$PBMC + theme(legend.position = "none") + long_plot_list[[gene]]$skin + theme(legend.position = "right")
-           }
-    )
-  # Set genes as plot names
-  names(long_plots_combined) <- genes_to_plot
-  # (2) Combined dot plots
-  # Dot size legend data - horizontal layout
-  dot_legend <- data.frame(
-    # x values of dots
-    x = c(0.5, 1.5, 2.5),
-    # y values of dots
-    y = rep(7.5, 3),
-    # size of dots
-    size = c(2, 5, 9),
-    # label smallest and largest dot
-    label = c("small %", "", "large %")
-  )
-  # Color gradient bar - horizontal
-  color_bar <- data.frame(
-    # x values of color bar
-    x = seq(0.2, 2.8, length.out = 100),
-    # y values of color bar
-    y = rep(1.5, 100),
-    fill = seq(0, 1, length.out = 100)
-  )
-  # Create the legend plot
-  legend_plot <- ggplot() +
-    # Dot size legend
-    geom_point(data = dot_legend, aes(x = x, y = y, size = size), 
-               color = "black", stroke = 0.5, shape = 21, fill = "grey80") +
-    ylim(0, 10) +
-    # Label dots
-    geom_text(data = dot_legend, aes(x = x, y = y - 2, label = label), 
-              hjust = 0.5, size = 5) +
-    # Legend title
-    annotate("text", x = 1.5, y = 10, label = "% cells expressing", 
-             hjust = 0.5, size = 7, fontface = "bold") +
-    
-    # Color gradient bar
-    geom_tile(data = color_bar, aes(x = x, y = y, fill = fill), 
-              height = 0.75, width = 0.03) +
-    
-    # Color bar labels
-    annotate("text", x = 0.2, y = 0.1, label = "Low", hjust = 0.5, size = 5) +
-    annotate("text", x = 2.8, y = 0.1, label = "High", hjust = 0.5, size = 5) +
-    # Legend title
-    annotate("text", x = 1.5, y = 3, label = "Average expression", 
-             hjust = 0.5, size = 7, fontface = "bold") +
-    # Formatting
-    scale_size_identity() +
-    # Set colors
-    scale_fill_gradient(low = "yellow", high = "red", guide = "none") +
-    # Set xlim
-    xlim(-0.2, 3.2) +
-    # Set theme
-    theme_void() +
-    # White box for legend
-    theme(
-      panel.background = element_rect(fill = "white", color = "white")
-    )
-  # Combine plots
-  dot_plots_combined <- lapply(dot_plot_list, function(plots){
-    combined <- plots$PBMC + plots$skin + legend_plot +
-      # Specify proportions
-      plot_layout(ncol = 3, widths = c(5, 5, 3))})
-  # (3) Combine longitudinal and dot plots
-    combined_plots <- 
-      mapply(function(gene){
-        # Combine plots
-        combined_plot <- long_plots_combined[[gene]] / plot_spacer() / dot_plots_combined[[gene]] +
-          # Set proportinos
-          plot_layout(heights = c(4, 0.2, 1.5)) +
-          # Set overall title
-          plot_annotation(paste0(gene, " expression in jSSc patients following transplant"), 
-                          theme = theme(plot.title = element_text(hjust = 0.5,
-                                                                  size = 33,
-                                                                  face = "bold")))
-        # Return plot
-        return(combined_plot)
-      }, genes_to_plot)
-
-  # Return combined dot plots
-  return(combined_plots)
-  
+# Return
+  long_plot_list
 }
 
 ################################################################################
@@ -300,12 +218,11 @@ plot_pb_offset <- function(pbo,
 
 plot_gene <- function(gene,
                       pbo,
-                      separate_plots_by = NULL,
+                      groupBy,
                       new_timepoints = NULL,
                       scale = "log2", 
-                      groupBy = NULL,
                       linewidth = 2,
-                      legend.pos = legend.pos,
+                      legend.pos = "bottom",
                       title_text_size = 20,
                       axis_text_size = 10,
                       axis_label_size = 10,
@@ -319,17 +236,16 @@ plot_gene <- function(gene,
   # Arguments:
   #  (1) gene (string): gene name
   #  (2) pbo (list): output from pb_offset
-  #  (3) separate_plots_by (string): variable to separate plots by (e.g., Tissue)
-  #  (4) new_timepoints (numeric vector): new values to use for predictions
-  #  (5) scale (string): log2 (default) or original
-  #  (6) groupBy: Variable to group by (separate predictions for each group)
-  #  (7) linewidth (numeric): linewidth parameter in ggplot
-  #  (8) legend.pos (string): legend.position in ggplot
-  #  (9) title_text_size (numeric): title text size
-  #  (10) axis_text_size (numeric): text size for axis values
-  #  (11) axis_label_size (numeric): text size for axis labels
-  #  (12) legend_text_size (numeric): text size for legend values
-  #  (13) legend_title_size (numeric): text size for legend title
+  #  (3) new_timepoints (numeric vector): new values to use for predictions
+  #  (4) scale (string): log2 (default) or original
+  #  (5) groupBy: Variable to group by (separate predictions for each group)
+  #  (6) linewidth (numeric): linewidth parameter in ggplot
+  #  (7) legend.pos (string): legend.position in ggplot
+  #  (8) title_text_size (numeric): title text size
+  #  (9) axis_text_size (numeric): text size for axis values
+  #  (10) axis_label_size (numeric): text size for axis labels
+  #  (11) legend_text_size (numeric): text size for legend values
+  #  (12) legend_title_size (numeric): text size for legend title
   # Output:
   # gene_plot (ggplot): longitudinal expression plot for a given gene
   
@@ -406,17 +322,8 @@ plot_gene <- function(gene,
   # Combine measured and predicted values into one data frame for plotting
   all_df <- rbind(plot_data, pred_cpm_df)
   
-  # Separate plots?
-  if (!is.null(separate_plots_by)) {
-    all_df_list <- split(all_df, all_df[[separate_plots_by]])
-  } else {
-    all_df_list <- list(all_df)
-  }
-  
-  # Plot it (one plot for each data frame)
-  plots <-
-    lapply(all_df_list, function(df){
-      gene_plot <- ggplot(df, aes(x = timepoint, y = counts, col = !!sym(groupBy), linetype = type, alpha = type)) + 
+  # Plot it
+  gene_plot <- ggplot(all_df, aes(x = timepoint, y = counts, col = !!sym(groupBy), linetype = type, alpha = type)) + 
         geom_line(linewidth = linewidth) +
         theme_minimal() +
         # Set plot labels.
@@ -474,115 +381,72 @@ plot_gene <- function(gene,
                                           face = "bold"))
       
       
-      gene_plot
-    })
-  
-  # Add titles to plots
-  if (length(all_df_list) > 1) {
-    titles <- paste0(gene, ", ", names(plots))
-    plots <- 
-      mapply(function(plot, title){plot + ggtitle(title)},
-             plots,
-             titles,
-             SIMPLIFY = F)
-  } else {
-    plots <- 
-      mapply(function(plot){plot + ggtitle(gene)},
-             plots,
-             SIMPLIFY = F)
-  }
-
-  # Return plots
-  return(plots)
+      # Add title
+      gene_plot <- gene_plot + ggtitle(gene)
+    
+  # Return plot
+  return(gene_plot)
 }
 
-################################################################################
-# (4) DOT_BY_GENE ##############################################################
-################################################################################
-
-dot_by_gene <- function(gene, 
-                        pbo,
-                        subset = NULL,
-                        separate_plots_by = NULL,
-                        precomputed_split = NULL) {
-  # DOT_BY_GENE
-  # Function to produce dot plots showing avg. expression & pct expressed
-  # for a given gene. Optionally, separate plots will be created according
-  # to "separate_plots_by" variable (for example, Tissue)
-  #
-  # Arguments:
-  #  (1) gene (string): gene name
-  #  (2) pbo (list): output from pb_offset
-  #  (3) subset (call): call for subsetting Seurat object
-  #  (4) separate_plots_by (string): variable to separate plots by
-  #  (5) precomputed_split (list of Seurat objects): for efficiency,
-  #      you can split the Seurat object ahead of time if running for many genes
-  
-  # Only do these steps if split has not happened yet
-  if (is.null(precomputed_split)) {
-    # Get original seurat object (no subsetting) from pbo output
-    seurat_obj <- pbo$input$original_seurat_obj
-    
-    # Now, subset if specified
-    if (!is.null(subset)) {
-      seurat_obj <- subset(seurat_obj, subset = !!rlang::f_rhs(subset))
-    } 
-    
-    # Check separate_plots_by and separate accordingly
-    if (!is.null(separate_plots_by)) {
-      seurat_list <- SplitObject(seurat_obj, split.by = separate_plots_by)
-    } else {
-      seurat_list <- list(seurat_obj)
-    }
-  } else {
-    seurat_list <- precomputed_split
-  }
-    
-  # Create dot plots
-  dot_plots <- lapply(seurat_list,
-                      function(obj){
-                        DotPlot(obj, 
-                                features = gene, 
-                                group.by = "group") + 
-                          # This line makes sure the smallest dots are still visible
-                          scale_size(range = c(5, 25)) +
-                          # Add border around dots (helps to see yellow dots more easily)
-                          geom_point(aes(size = pct.exp, color = avg.exp.scaled), 
-                                     shape = 21, fill = NA, stroke = 0.5, color = "black") + 
-                          # Add dashed line for separation between healthy controls and patients
-                          geom_hline(yintercept = 1.5, linetype = "dashed") + 
-                          # Remove x and y labels
-                          labs(y = "", x = "") + 
-                          # Flip coordinates
-                          coord_flip() +
-                          # Set shared color scale
-                          scale_colour_gradient(low = "yellow", high = "red", 
-                                                name = "Average expression\n(scaled)") +
-                          # Set y-axis labels
-                          scale_y_discrete(labels = c(
-                            "healthy" = "healthy \ncontrols",
-                            "baseline" = "SSc \nbaseline",
-                            "six" = "SSc \n6 mo.",
-                            "twelve" = "SSc \n12 mo.",
-                            "twen4" = "SSc \n24 mo."
-                          ), expand = expansion(mult = c(0.2, 0.2))) +
-                          # Improve layout with a single theme call
-                          theme(
-                            panel.grid.major = element_blank(),
-                            panel.grid.minor = element_blank(),
-                            axis.text.y = element_blank(),
-                            axis.text.x = element_text(margin = margin(t = 5), size = 15),
-                            axis.ticks.length = unit(2, "pt"),
-                            legend.position = "none"
-                          )
-                      })
-  # Add titles
-  SEPVARS <- names(dot_plots)
-  dot_plots <- lapply(SEPVARS, function(SEPVAR){dot_plots[[SEPVAR]] +
-                        ggtitle(paste0(gene, ", ", SEPVAR))})
-  names(dot_plots) <- SEPVARS
-  dot_plots
-}
+# ################################################################################
+# # (4) DOT_BY_GENE ##############################################################
+# ################################################################################
+# 
+# dot_by_gene <- function(gene, 
+#                         pbo) {
+#   # DOT_BY_GENE
+#   # Function to produce dot plots showing avg. expression & pct expressed
+#   # for a given gene. 
+#   #
+#   # Arguments:
+#   #  (1) gene (string): gene name
+#   #  (2) pbo (list): output from pb_offset
+#     
+#   # Create dot plots
+#   dot_plots <- lapply(seurat_list,
+#                       function(obj){
+#                         DotPlot(obj, 
+#                                 features = gene, 
+#                                 group.by = "group") + 
+#                           # This line makes sure the smallest dots are still visible
+#                           scale_size(range = c(5, 25)) +
+#                           # Add border around dots (helps to see yellow dots more easily)
+#                           geom_point(aes(size = pct.exp, color = avg.exp.scaled), 
+#                                      shape = 21, fill = NA, stroke = 0.5, color = "black") + 
+#                           # Add dashed line for separation between healthy controls and patients
+#                           geom_hline(yintercept = 1.5, linetype = "dashed") + 
+#                           # Remove x and y labels
+#                           labs(y = "", x = "") + 
+#                           # Flip coordinates
+#                           coord_flip() +
+#                           # Set shared color scale
+#                           scale_colour_gradient(low = "yellow", high = "red", 
+#                                                 name = "Average expression\n(scaled)") +
+#                           # Set y-axis labels
+#                           scale_y_discrete(labels = c(
+#                             "healthy" = "healthy \ncontrols",
+#                             "baseline" = "SSc \nbaseline",
+#                             "six" = "SSc \n6 mo.",
+#                             "twelve" = "SSc \n12 mo.",
+#                             "twen4" = "SSc \n24 mo."
+#                           ), expand = expansion(mult = c(0.2, 0.2))) +
+#                           # Improve layout with a single theme call
+#                           theme(
+#                             panel.grid.major = element_blank(),
+#                             panel.grid.minor = element_blank(),
+#                             axis.text.y = element_blank(),
+#                             axis.text.x = element_text(margin = margin(t = 5), size = 15),
+#                             axis.ticks.length = unit(2, "pt"),
+#                             legend.position = "none"
+#                           )
+#                       })
+#   # Add titles
+#   SEPVARS <- names(dot_plots)
+#   dot_plots <- lapply(SEPVARS, function(SEPVAR){dot_plots[[SEPVAR]] +
+#                         ggtitle(paste0(gene, ", ", SEPVAR))})
+#   names(dot_plots) <- SEPVARS
+#   dot_plots
+# }
   
   
 

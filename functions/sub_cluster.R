@@ -83,12 +83,12 @@ sub_cluster <- function(obj,
     if (cluster.only == FALSE) {
       # DSB ADT
       DefaultAssay(obj) <- "DSB"
-      # Remove old integrated DSB
-      obj[["DSB_integrated"]] <- NULL
       # Scale DSB output
       obj <- ScaleData(obj, features = rownames(obj))
       # Run RPCA
       if (nlib > 1) {
+        # Remove old integrated DSB
+        obj[["DSB_integrated"]] <- NULL
         obj <- run_rpca(obj, n_dim = dims[2], k.weight = k.weight, k.score = k.score)
       # RNA harmony reduction is ready to be used with WNN.
       # Now, set up integrated DSB values to use in WNN analysis.
