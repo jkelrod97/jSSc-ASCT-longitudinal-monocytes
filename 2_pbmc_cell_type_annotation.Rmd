@@ -1,5 +1,5 @@
 ---
-title: "PBMC cell type annotation"
+title: "2: PBMC cell type annotation"
 output: html_notebook
 ---
 
