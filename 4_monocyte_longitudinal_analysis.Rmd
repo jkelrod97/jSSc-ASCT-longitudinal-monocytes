@@ -739,9 +739,9 @@ Idents(monocytes) <- "seurat_clusters"
 clus9_markers <- FindMarkers(monocytes, ident.1 = 9, assay = "RNA")
 
 # Get signficiant markers
-sig_clus_9_markers <- clus9_markers %>% filter(p_val_adj < 0.05 & abs(avg_log2FC) > 2) %>% rownames()
+sig_clus_9_markers <- clus9_markers %>% filter(p_val_adj < 0.05 & avg_log2FC > 2) %>% rownames()
 
-# Now, let's see which of these are in our pathways of interest
+# Now, let's see which of these are in TNFA pathway
 clus_9_markers_in_tnfa <- sig_clus_9_markers[sig_clus_9_markers %in% fav_gene_sets_down$HALLMARK_TNFA_SIGNALING_VIA_NFKB]
 
 # Make dotplot
@@ -753,7 +753,63 @@ clus9_tnfa_dot <- DotPlot(monocytes, clus_9_markers_in_tnfa, dot.scale = 10) +
     xlab("Gene") +
     theme(plot.caption = element_text(size = 9, hjust = 0))
 
-ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_tnfa_dotplot.png"), width = 10, height = 10, bg = "white")
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_tnfa_dotplot.png"), clus9_tnfa_dot, width = 8, height = 7, bg = "white")
+
+# Now, let's see which of these are in inflammatory response pathway
+clus_9_markers_inflammatory <- sig_clus_9_markers[sig_clus_9_markers %in% fav_gene_sets_down$HALLMARK_INFLAMMATORY_RESPONSE]
+
+# Make dotplot
+clus9_inflammatory_dot <- DotPlot(monocytes, clus_9_markers_inflammatory, dot.scale = 10) +
+    coord_flip() +
+    scale_color_gradient2(low = "steelblue", mid = "white", high = "darkred", midpoint = 0) +
+    ggtitle(str_wrap("Inflammatory response genes upregulated in monocyte cluster 9", width = 50)) +
+    ylab("Cluster") +
+    xlab("Gene") +
+    theme(plot.caption = element_text(size = 9, hjust = 0))
+
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_inflammatory_dotplot.png"), clus9_inflammatory_dot, width = 8, height = 7, bg = "white")
+
+# Now, let's see which of these are in TGFB pathway
+clus_9_markers_TGFB <- sig_clus_9_markers[sig_clus_9_markers %in% fav_gene_sets_down$HALLMARK_TGF_BETA_SIGNALING]
+
+# Make dotplot
+clus9_TGFB_dot <- DotPlot(monocytes, clus_9_markers_TGFB, dot.scale = 10) +
+    coord_flip() +
+    scale_color_gradient2(low = "steelblue", mid = "white", high = "darkred", midpoint = 0) +
+    ggtitle(str_wrap("Genes upregulated in monocyte cluster 9 involved in TGF Beta signaling", width = 50)) +
+    ylab("Cluster") +
+    xlab("Gene") +
+    theme(plot.caption = element_text(size = 9, hjust = 0))
+
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_TGFB_dotplot.png"), clus9_TGFB_dot, width = 8, height = 7, bg = "white")
+
+# Now, let's see which of these are in IL2/STAT5 pathway
+clus_9_markers_IL2 <- sig_clus_9_markers[sig_clus_9_markers %in% fav_gene_sets_down$HALLMARK_IL2_STAT5_SIGNALING]
+
+# Make dotplot
+clus9_IL2_dot <- DotPlot(monocytes, clus_9_markers_IL2, dot.scale = 10) +
+    coord_flip() +
+    scale_color_gradient2(low = "steelblue", mid = "white", high = "darkred", midpoint = 0) +
+    ggtitle(str_wrap("Genes upregulated in monocyte cluster 9 involved in IL2/STAT5 signaling", width = 50)) +
+    ylab("Cluster") +
+    xlab("Gene") +
+    theme(plot.caption = element_text(size = 9, hjust = 0))
+
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_IL2_dotplot.png"), clus9_IL2_dot, width = 8, height = 7, bg = "white")
+
+# Now, let's see which of these are in epithelial pathway
+clus_9_markers_epithelial <- sig_clus_9_markers[sig_clus_9_markers %in% fav_gene_sets_down$GOBP_EPITHELIAL_CELL_DIFFERENTIATION]
+
+# Make dotplot
+clus9_epithelial_dot <- DotPlot(monocytes, clus_9_markers_epithelial, dot.scale = 10) +
+    coord_flip() +
+    scale_color_gradient2(low = "steelblue", mid = "white", high = "darkred", midpoint = 0) +
+    ggtitle(str_wrap("Genes upregulated in monocyte cluster 9 involved in epithelial cell differentiation", width = 50)) +
+    ylab("Cluster") +
+    xlab("Gene") +
+    theme(plot.caption = element_text(size = 9, hjust = 0))
+
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_epithelial_dotplot.png"), clus9_epithelial_dot, width = 8, height = 7, bg = "white")
 ```
 
 Let's look at expression of these genes over time and in HC
