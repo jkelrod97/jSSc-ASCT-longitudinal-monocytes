@@ -729,7 +729,7 @@ DimPlot(monocytes,
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_umap_by_group.png"), width = 8, height = 4)
 ```
 
-Which genes are up-regulated in cluster 9 compared to the other clusters?
+We use FindMarkers to determine which genes are upregulated in cluster 9 compared to other clusters. Then, we identify genes which are upregulated in cluster 9 and also involved in one of our gene sets of interest (decreasing pathways, which makes sense since cluster 9 disappears over time).
 
 ```{r}
 # Set Idents to clusters
@@ -753,6 +753,7 @@ clus9_tnfa_dot <- DotPlot(monocytes, clus_9_markers_in_tnfa, dot.scale = 10) +
     xlab("Gene") +
     theme(plot.caption = element_text(size = 9, hjust = 0))
 
+# Save as PNG
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_tnfa_dotplot.png"), clus9_tnfa_dot, width = 8, height = 7, bg = "white")
 
 # Now, let's see which of these are in inflammatory response pathway
@@ -767,6 +768,7 @@ clus9_inflammatory_dot <- DotPlot(monocytes, clus_9_markers_inflammatory, dot.sc
     xlab("Gene") +
     theme(plot.caption = element_text(size = 9, hjust = 0))
 
+# Save as PNG
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_inflammatory_dotplot.png"), clus9_inflammatory_dot, width = 8, height = 7, bg = "white")
 
 # Now, let's see which of these are in TGFB pathway
@@ -781,6 +783,7 @@ clus9_TGFB_dot <- DotPlot(monocytes, clus_9_markers_TGFB, dot.scale = 10) +
     xlab("Gene") +
     theme(plot.caption = element_text(size = 9, hjust = 0))
 
+# Save as PNG
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_TGFB_dotplot.png"), clus9_TGFB_dot, width = 8, height = 7, bg = "white")
 
 # Now, let's see which of these are in IL2/STAT5 pathway
@@ -809,13 +812,6 @@ clus9_epithelial_dot <- DotPlot(monocytes, clus_9_markers_epithelial, dot.scale 
     xlab("Gene") +
     theme(plot.caption = element_text(size = 9, hjust = 0))
 
+# Save as PNG
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_epithelial_dotplot.png"), clus9_epithelial_dot, width = 8, height = 7, bg = "white")
 ```
-
-Let's look at expression of these genes over time and in HC
-
-```{r}
-# Subset out cluster 9
-clus9_genes_over_time_feature <- FeaturePlot(clus9, c("LAMB3", "AREG", "SERPINE1"), split.by = "group", reduction = "wnn.umap", order = T, label = F, cols = c("grey95", "magenta3")) 
-```
-
