@@ -816,77 +816,59 @@ clus9_markers <- FindMarkers(monocytes, ident.1 = 9, assay = "RNA")
 # Get signficiant markers
 sig_clus_9_markers <- clus9_markers %>% filter(p_val_adj < 0.05 & avg_log2FC > 2) %>% rownames()
 
-# Now, let's see which of these are in TNFA pathway
-clus_9_markers_in_tnfa <- sig_clus_9_markers[sig_clus_9_markers %in% fav_gene_sets_down$HALLMARK_TNFA_SIGNALING_VIA_NFKB]
+# Now, we see which markers appear in our pathways of interest.
+cluster_9_markers_per_pathway <- lapply(fav_gene_sets_down, function(gs){gs[gs %in% sig_clus_9_markers]})
 
-# Make dotplot
-clus9_tnfa_dot <- DotPlot(monocytes, clus_9_markers_in_tnfa, dot.scale = 10) +
-    coord_flip() +
-    scale_color_gradient2(low = "steelblue", mid = "white", high = "darkred", midpoint = 0) +
-    ggtitle(str_wrap("Genes upregulated in monocyte cluster 9 involved in TNFA signaling via NFKB", width = 50)) +
-    ylab("Cluster") +
-    xlab("Gene") +
-    theme(plot.caption = element_text(size = 9, hjust = 0))
+# Subset out cluster 9 markers in our pathways
+clus9_markers_in_pathway <- clus9_markers[rownames(clus9_markers) %in% unique(unlist(cluster_9_markers_per_pathway)), ]
 
-# Save as PNG
-ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_tnfa_dotplot.png"), clus9_tnfa_dot, width = 8, height = 7, bg = "white")
+# We will label with top pathway
+clus9_markers_in_pathway$pathway <- NA
 
-# Now, let's see which of these are in inflammatory response pathway
-clus_9_markers_inflammatory <- sig_clus_9_markers[sig_clus_9_markers %in% fav_gene_sets_down$HALLMARK_INFLAMMATORY_RESPONSE]
+# Create gene column
+clus9_markers_in_pathway$gene <- rownames(clus9_markers_in_pathway)
 
-# Make dotplot
-clus9_inflammatory_dot <- DotPlot(monocytes, clus_9_markers_inflammatory, dot.scale = 10) +
-    coord_flip() +
-    scale_color_gradient2(low = "steelblue", mid = "white", high = "darkred", midpoint = 0) +
-    ggtitle(str_wrap("Inflammatory response genes upregulated in monocyte cluster 9", width = 50)) +
-    ylab("Cluster") +
-    xlab("Gene") +
-    theme(plot.caption = element_text(size = 9, hjust = 0))
+# Add pathway (each gene is assigned to the most significant pathway it appears in)
+for (pathway in names(cluster_9_markers_per_pathway)) {
+  for (gene in clus9_markers_in_pathway$gene) {
+    if (clus9_markers_in_pathway[gene, ]$pathway %>% is.na) {
+      if (gene %in% cluster_9_markers_per_pathway[[pathway]]) {
+        clus9_markers_in_pathway[gene, ]$pathway <- pathway
+      }
+    }
+  }
+}
 
-# Save as PNG
-ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_inflammatory_dotplot.png"), clus9_inflammatory_dot, width = 8, height = 7, bg = "white")
+# Add pathway names for plotting
+clus9_markers_in_pathway <-
+clus9_markers_in_pathway %>%
+    left_join(
+        down_pathways_to_show %>% select(full_name, plot_name),
+        by = c("pathway" = "full_name")
+    )
 
-# Now, let's see which of these are in TGFB pathway
-clus_9_markers_TGFB <- sig_clus_9_markers[sig_clus_9_markers %in% fav_gene_sets_down$HALLMARK_TGF_BETA_SIGNALING]
+# Group by pathway
+clus9_markers_in_pathway <- clus9_markers_in_pathway %>%
+  mutate(plot_name = factor(plot_name, levels = down_gb$layout$panel_params[[1]]$y$breaks)) %>%
+  arrange(plot_name)
 
-# Make dotplot
-clus9_TGFB_dot <- DotPlot(monocytes, clus_9_markers_TGFB, dot.scale = 10) +
-    coord_flip() +
-    scale_color_gradient2(low = "steelblue", mid = "white", high = "darkred", midpoint = 0) +
-    ggtitle(str_wrap("Genes upregulated in monocyte cluster 9 involved in TGF Beta signaling", width = 50)) +
-    ylab("Cluster") +
-    xlab("Gene") +
-    theme(plot.caption = element_text(size = 9, hjust = 0))
-
-# Save as PNG
-ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_TGFB_dotplot.png"), clus9_TGFB_dot, width = 8, height = 7, bg = "white")
-
-# Now, let's see which of these are in IL2/STAT5 pathway
-clus_9_markers_IL2 <- sig_clus_9_markers[sig_clus_9_markers %in% fav_gene_sets_down$HALLMARK_IL2_STAT5_SIGNALING]
-
-# Make dotplot
-clus9_IL2_dot <- DotPlot(monocytes, clus_9_markers_IL2, dot.scale = 10) +
-    coord_flip() +
-    scale_color_gradient2(low = "steelblue", mid = "white", high = "darkred", midpoint = 0) +
-    ggtitle(str_wrap("Genes upregulated in monocyte cluster 9 involved in IL2/STAT5 signaling", width = 50)) +
-    ylab("Cluster") +
-    xlab("Gene") +
-    theme(plot.caption = element_text(size = 9, hjust = 0))
-
-ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_IL2_dotplot.png"), clus9_IL2_dot, width = 8, height = 7, bg = "white")
-
-# Now, let's see which of these are in epithelial pathway
-clus_9_markers_epithelial <- sig_clus_9_markers[sig_clus_9_markers %in% fav_gene_sets_down$GOBP_EPITHELIAL_CELL_DIFFERENTIATION]
-
-# Make dotplot
-clus9_epithelial_dot <- DotPlot(monocytes, clus_9_markers_epithelial, dot.scale = 10) +
-    coord_flip() +
-    scale_color_gradient2(low = "steelblue", mid = "white", high = "darkred", midpoint = 0) +
-    ggtitle(str_wrap("Genes upregulated in monocyte cluster 9 involved in epithelial cell differentiation", width = 50)) +
-    ylab("Cluster") +
-    xlab("Gene") +
-    theme(plot.caption = element_text(size = 9, hjust = 0))
-
-# Save as PNG
-ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_epithelial_dotplot.png"), clus9_epithelial_dot, width = 8, height = 7, bg = "white")
+# Heatmap
+dp <- DotPlot(monocytes, clus9_markers_in_pathway$gene, group.by = "seurat_clusters")
+dp_data <- dp$data
+ggplot(dp_data, aes(y = features.plot, x = id, fill = avg.exp.scaled)) +
+    geom_tile() +
+  scale_fill_distiller(palette = "RdYlBu") +
+  labs(fill = str_wrap("Scaled average expression", 10),
+       x = "Monocyte sub-cluster",
+       y = "Gene",
+       title = str_wrap("Scaled average expression of key pathway-associated genes in jSSc and healthy monocytes, split by cluster", 60)) +
+  theme(axis.text = element_text(color = "black", face = "bold"),
+        axis.title = element_text(color = "black", face = "bold"),
+        legend.title = element_text(color = "black", face = "bold"),
+        legend.text = element_text(color = "black", face = "bold"),
+        plot.title = element_text(color = "black", face = "bold"))
+  
 ```
+
+
+
