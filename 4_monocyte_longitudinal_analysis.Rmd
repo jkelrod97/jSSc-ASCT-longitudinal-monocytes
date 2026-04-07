@@ -695,10 +695,9 @@ top50_down_results <- SSc_v_h_PB_results %>% filter(lfc < 0.5) %>% head(50)
 write_csv(top50_up_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc_v_healthy_monocytes_UP.csv"))
 write_csv(top50_down_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc_v_healthy_monocytes_DOWN.csv"))
 
-# Get top 20 up DEGs
-top20_up_pb <- SSc_v_h_PB_results %>% arrange(pval) %>% filter(lfc > 0.5) %>% pull(name) %>% head(20)
-# Get to 20 down DEGs
-top20_down_pb <- SSc_v_h_PB_results %>% arrange(pval) %>% filter(lfc < -0.5) %>% pull(name) %>% head(20)
+# Genes to highlight (biologically interesting)
+ssc_v_h_up_highlight <- c("HLA-DRB5", "FOLR3", "THBS1", "TMEM176B", "EREG", "SNHG5", "PLCB1", "TEX14", "LYZ", "KIF9", "PLAUR", "FOS", "SLC2A3", "TMEM170B", "CCNL1", "KLF6", "BRK1")
+ssc_v_h_down_highlight <- c("LINC03078", "ANK2", "HFM1", "RETN", "SLCO5A1", "TPTEP1", "CDKN1C", "PIGK", "RHOC", "POLR2J3", "TALAM1", "LILRB1", "HSPB1", "CTSL", "RRAS", "RPS26", "WARS1", "CD81", "RPL41","CRIP1")
 
 # Create new data frame for plotting (mutation of results from pb offset)
 SSc_v_h_PB_volc_results <- SSc_v_h_PB_results %>%
@@ -708,7 +707,7 @@ SSc_v_h_PB_volc_results <- SSc_v_h_PB_results %>%
     TRUE ~ "Not significant"
   )) %>%
   mutate(delabel = case_when(
-    name %in% c(top20_down_pb, top20_up_pb) ~ name,
+    name %in% c(ssc_v_h_up_highlight, ssc_v_h_down_highlight) ~ name,
     TRUE ~ NA
   ))
 
