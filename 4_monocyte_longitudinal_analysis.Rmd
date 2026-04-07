@@ -29,7 +29,7 @@ Now load in useful packages and custom functions.
 packages <- c("Seurat", "dplyr", "tidyr", "SeuratDisk", "harmony", "readr",
               "ggplot2", "stringr", "SoupX", "dsb", "data.table", "Matrix",
               "scDblFinder", "scater", "ggrepel","tidyverse", "RColorBrewer", "pheatmap",
-              "clusterProfiler", "enrichplot", "msigdbr", "patchwork", "grid", "gridExtra", "ggtext")
+              "clusterProfiler", "enrichplot", "msigdbr", "patchwork", "grid", "gridExtra", "ggtext", "ggh4x", "gtable")
 invisible(lapply(packages, require, character.only = TRUE))
 
 # Source functions
@@ -807,67 +807,123 @@ ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_umap
 We use FindMarkers to determine which genes are upregulated in cluster 9 compared to other clusters. Then, we identify genes which are upregulated in cluster 9 and also involved in one of our gene sets of interest (decreasing pathways, which makes sense since cluster 9 disappears over time).
 
 ```{r}
-# Set Idents to clusters
-Idents(monocytes) <- "seurat_clusters"
+# # Set Idents to clusters
+# Idents(monocytes) <- "seurat_clusters"
+# 
+# # Find DEGs between clus 9 and other clusters
+# clus9_markers <- FindMarkers(monocytes, ident.1 = 9, assay = "RNA")
+# 
+# # Get signficiant markers
+# sig_clus_9_markers <- clus9_markers %>% filter(p_val_adj < 0.05 & avg_log2FC > 2) %>% rownames()
+# 
+# # Now, we see which markers appear in our pathways of interest.
+# cluster_9_markers_per_pathway <- lapply(fav_gene_sets_down, function(gs){gs[gs %in% sig_clus_9_markers]})
+# 
+# # Subset out cluster 9 markers in our pathways
+# clus9_markers_in_pathway <- clus9_markers[rownames(clus9_markers) %in% unique(unlist(cluster_9_markers_per_pathway)), ]
+# 
+# # We will label with top pathway
+# clus9_markers_in_pathway$pathway <- NA
+# 
+# # Create gene column
+# clus9_markers_in_pathway$gene <- rownames(clus9_markers_in_pathway)
+# 
+# # Add pathway (each gene is assigned to the most significant pathway it appears in)
+# for (pathway in names(cluster_9_markers_per_pathway)) {
+#   for (gene in clus9_markers_in_pathway$gene) {
+#     if (clus9_markers_in_pathway[gene, ]$pathway %>% is.na) {
+#       if (gene %in% cluster_9_markers_per_pathway[[pathway]]) {
+#         clus9_markers_in_pathway[gene, ]$pathway <- pathway
+#       }
+#     }
+#   }
+# }
+# 
+# # Add pathway names for plotting
+# clus9_markers_in_pathway <-
+# clus9_markers_in_pathway %>%
+#     left_join(
+#         down_pathways_to_show %>% select(full_name, plot_name),
+#         by = c("pathway" = "full_name")
+#     )
+# 
+# # Group by pathway
+# clus9_markers_in_pathway <- clus9_markers_in_pathway %>%
+#   mutate(plot_name = factor(plot_name, levels = down_gb$layout$panel_params[[1]]$y$breaks)) %>%
+#   arrange(plot_name)
+# 
+# # We use the dotplot function to get scaled averages for our heatmap
+# dp <- DotPlot(monocytes, clus9_markers_in_pathway$gene, group.by = "seurat_clusters")
+# # Extract data
+# dp_data <- dp$data
+# # Store levels of gene variable
+# lvls <- levels(dp_data$features.plot)
+# # Join
+# dp_data <- dp_data %>%
+#   left_join(
+#     clus9_markers_in_pathway %>%
+#       select(gene, plot_name),
+#     by = c("features.plot" = "gene")
+#   ) %>%
+#   rename(pathway = plot_name) %>%
+#   mutate(features.plot = factor(features.plot, levels = lvls))
 
-# Find DEGs between clus 9 and other clusters
-clus9_markers <- FindMarkers(monocytes, ident.1 = 9, assay = "RNA")
-
-# Get signficiant markers
-sig_clus_9_markers <- clus9_markers %>% filter(p_val_adj < 0.05 & avg_log2FC > 2) %>% rownames()
-
-# Now, we see which markers appear in our pathways of interest.
-cluster_9_markers_per_pathway <- lapply(fav_gene_sets_down, function(gs){gs[gs %in% sig_clus_9_markers]})
-
-# Subset out cluster 9 markers in our pathways
-clus9_markers_in_pathway <- clus9_markers[rownames(clus9_markers) %in% unique(unlist(cluster_9_markers_per_pathway)), ]
-
-# We will label with top pathway
-clus9_markers_in_pathway$pathway <- NA
-
-# Create gene column
-clus9_markers_in_pathway$gene <- rownames(clus9_markers_in_pathway)
-
-# Add pathway (each gene is assigned to the most significant pathway it appears in)
-for (pathway in names(cluster_9_markers_per_pathway)) {
-  for (gene in clus9_markers_in_pathway$gene) {
-    if (clus9_markers_in_pathway[gene, ]$pathway %>% is.na) {
-      if (gene %in% cluster_9_markers_per_pathway[[pathway]]) {
-        clus9_markers_in_pathway[gene, ]$pathway <- pathway
-      }
-    }
-  }
-}
-
-# Add pathway names for plotting
-clus9_markers_in_pathway <-
-clus9_markers_in_pathway %>%
-    left_join(
-        down_pathways_to_show %>% select(full_name, plot_name),
-        by = c("pathway" = "full_name")
-    )
-
-# Group by pathway
-clus9_markers_in_pathway <- clus9_markers_in_pathway %>%
-  mutate(plot_name = factor(plot_name, levels = down_gb$layout$panel_params[[1]]$y$breaks)) %>%
-  arrange(plot_name)
+# Build alternating fill vector matching your pathway factor levels
+strip_fills <- rep(c("grey90", "white"),
+                   length.out = length(levels(forcats::fct_rev(dp_data$pathway))))
 
 # Heatmap
-dp <- DotPlot(monocytes, clus9_markers_in_pathway$gene, group.by = "seurat_clusters")
-dp_data <- dp$data
-ggplot(dp_data, aes(y = features.plot, x = id, fill = avg.exp.scaled)) +
+clus9_heatmap <-
+    ggplot(dp_data, aes(y = features.plot, x = id, fill = avg.exp.scaled)) +
     geom_tile() +
-  scale_fill_distiller(palette = "RdYlBu") +
-  labs(fill = str_wrap("Scaled average expression", 10),
-       x = "Monocyte sub-cluster",
-       y = "Gene",
-       title = str_wrap("Scaled average expression of key pathway-associated genes in jSSc and healthy monocytes, split by cluster", 60)) +
-  theme(axis.text = element_text(color = "black", face = "bold"),
+    scale_fill_distiller(palette = "RdYlBu") +
+    ggh4x::facet_grid2(                                                         # CHANGED
+        forcats::fct_rev(pathway) ~ ., scales = "free_y", space = "free_y",
+        switch   = "y",
+        labeller = label_wrap_gen(width = 15),                                  # ADDED
+        strip    = strip_themed(                                                 # ADDED
+            background_y = elem_list_rect(fill = strip_fills, color = NA)       # ADDED
+        )                                                                        # ADDED
+    ) +
+    labs(fill = str_wrap("Scaled average expression", 10),
+         x = "Monocyte sub-cluster",
+         y = "",
+         title = str_wrap("Scaled average expression of key SSc pathway genes in jSSc and healthy monocytes by cluster", 65)) +
+    theme(
+        axis.text = element_text(color = "black"),
         axis.title = element_text(color = "black", face = "bold"),
         legend.title = element_text(color = "black", face = "bold"),
         legend.text = element_text(color = "black", face = "bold"),
-        plot.title = element_text(color = "black", face = "bold"))
-  
+        plot.title = element_text(color = "black", face = "bold"),
+        
+        strip.placement = "outside",
+        strip.text.y.left = element_text(angle = 0, face = "bold",
+                                         margin = margin(0, 2, 0, 2)),          # CHANGED
+        strip.background = element_rect(color = NA),                                      # CHANGED
+        strip.switch.pad.grid = unit(0, "pt"),                                  # ADDED
+        panel.border = element_blank(),                                         # ADDED
+        panel.spacing.y = unit(0.3, "lines"),
+        plot.title.position = "plot"
+    )
+
+# Build the gtable
+g <- ggplotGrob(clus9_heatmap)
+
+# Find left-axis cells (these hold the gene name labels)
+axis_idx <- grep("^axis-l", g$layout$name)
+
+# Inject a matching background rect into each axis cell
+# axis-l grobs run top-to-bottom, matching strip_fills order
+for (i in seq_along(axis_idx)) {
+    bg_rect <- rectGrob(gp = gpar(fill = strip_fills[i], col = NA))
+    g$grobs[[axis_idx[i]]] <- grobTree(bg_rect, g$grobs[[axis_idx[i]]])
+}
+
+# Draw or save
+grid.newpage(); grid.draw(g)
+
+# Save as PNG
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_heatmap.png"), g, width = 6, height = 8)
 ```
 
 
