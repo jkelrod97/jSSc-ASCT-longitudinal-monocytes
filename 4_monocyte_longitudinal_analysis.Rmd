@@ -190,7 +190,7 @@ gsea_down_plot <- ggplot(data = gsea_down_df,
   theme_bw() +
   ylab("Gene set") +
   xlab(expression("-log"[10]*"p-value")) +
-  ggtitle(str_wrap("Gene sets with decreased activity in jSSc monocytes over time since ASCT", 40)) +
+  #ggtitle(str_wrap("Gene sets with decreased activity in jSSc monocytes over time since ASCT", 40)) +
   theme(
     text = element_text(face = "bold"),
     axis.text = element_text(color = "black", size = 13),
@@ -236,7 +236,7 @@ gsea_up_plot <- ggplot(data = gsea_up_df,
   theme_bw() +
   ylab("Gene set") +
   xlab(expression("-log"[10]*"p-value")) +
-  ggtitle(str_wrap("Gene sets with increased activity \nin jSSc monocytes over time since ASCT", 40)) +
+  #ggtitle(str_wrap("Gene sets with increased activity \nin jSSc monocytes over time since ASCT", 40)) +
   theme(
     text = element_text(face = "bold"),
     axis.text = element_text(color = "black", size = 13),
@@ -345,7 +345,7 @@ gsea_plot_with_genes_down <-
     ) +
     ylab("Gene Set") +
     xlab("Gene") +
-    ggtitle(str_wrap("Top DEGs contributing to pathways with decreased activity in jSSc monocytes over time since ASCT", width = 40)) +
+    #ggtitle(str_wrap("Top DEGs contributing to pathways with decreased activity in jSSc monocytes over time since ASCT", width = 40)) +
   scale_y_discrete(labels = function(x) str_wrap(x, width = 25)) +
   scale_x_discrete(labels = gene_labels) +
   theme(axis.text.x = element_markdown(angle = 45, hjust = 1, size = 11))
@@ -449,7 +449,7 @@ gsea_plot_with_genes_up <-
     ) +
     ylab("Gene Set") +
     xlab("Gene") +
-    ggtitle(str_wrap("Top DEGs contributing to pathways with decreased activity in jSSc monocytes over time since ASCT", width = 40)) +
+    #ggtitle(str_wrap("Top DEGs contributing to pathways with decreased activity in jSSc monocytes over time since ASCT", width = 40)) +
   scale_y_discrete(labels = function(x) str_wrap(x, width = 25)) +
   scale_x_discrete(labels = gene_labels) +
   theme(axis.text.x = element_markdown(angle = 45, hjust = 1, size = 11))
@@ -498,7 +498,8 @@ gene_plots_down_combined <- wrap_elements(full = gene_plots_down_combined) +
   theme(
     plot.tag = element_text(size = 30, angle = 90, hjust = 0.5, vjust = -1),
     plot.tag.position = "left"
-  ) + ggtitle("Downward longitudinal trends for key DEGs \nin jSSc monocytes over time since ASCT") + theme(plot.title = element_text(size = 30, face = "bold"))
+  ) + #ggtitle("Downward longitudinal trends for key DEGs \nin jSSc monocytes over time since ASCT")
+  theme(plot.title = element_text(size = 30, face = "bold"))
 # Save as PNG
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/gene_plots_down_combined.png"), 
        gene_plots_down_combined, width = 14, height = 24, bg = "white")
@@ -543,7 +544,8 @@ gene_plots_up_combined <- wrap_elements(full = gene_plots_up_combined) +
   theme(
     plot.tag = element_text(size = 30, angle = 90, hjust = 0.5, vjust = -1),
     plot.tag.position = "left"
-  ) + ggtitle("Upward longitudinal trends for key DEGs \nin jSSc monocytes over time since ASCT") + theme(plot.title = element_text(size = 30, face = "bold"))
+  ) + #ggtitle("Upward longitudinal trends for key DEGs \nin jSSc monocytes over time since ASCT") 
+theme(plot.title = element_text(size = 30, face = "bold"))
 # Save as PNG
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/gene_plots_up_combined.png"), 
        gene_plots_up_combined, width = 14, height = 18, bg = "white")
@@ -664,7 +666,7 @@ legend.box.background = element_rect(color = "black")) +
   scale_color_manual(values = c("red3", "#00AFBB", "grey")) +
   labs(x = expression("log"[2]*"FC"), y = expression("-log"[10]*"p-value")) + 
   scale_x_continuous(breaks = seq(-10, 10, 2)) +
-  ggtitle(str_wrap("Differentially expressed genes over time since ASCT in jSSc monocytes", width = 50)) +
+  #ggtitle(str_wrap("Differentially expressed genes over time since ASCT in jSSc monocytes", width = 50)) +
   geom_label_repel(#max.overlaps = Inf,
                   # size = rel(3),
                   box.padding = 0.3,
@@ -728,7 +730,7 @@ SSc_v_h_volcano <- ggplot(data = SSc_v_h_PB_volc_results, aes(x = lfc, y = -log1
   scale_color_manual(values = c( "red3", "#00AFBB", "grey")) +
   labs(x = expression("log"[2]*"FC"), y = expression("-log"[10]*"p-value")) +
   scale_x_continuous(breaks = seq(-10, 10, 2)) +
-  ggtitle(str_wrap("Differentially expressed genes in SSc monocytes (before ASCT) vs. healthy monocytes (pseudobulk level)", width = 75)) +
+  #ggtitle(str_wrap("Differentially expressed genes in SSc monocytes (before ASCT) vs. healthy monocytes (pseudobulk level)", width = 75)) +
   geom_label_repel(max.overlaps = Inf,
                   size = 6.5,
                   box.padding = 0.3,
@@ -765,7 +767,7 @@ down_deg_dot <-
   down_deg_dot +
     coord_flip() +
     scale_fill_gradient2(low = "steelblue", mid = "white", high = "darkred", midpoint = 0) +
-    ggtitle(str_wrap("Expression of select jSSc monocyte DEGs over time since ASCT", width = 70)) +
+    #ggtitle(str_wrap("Expression of select jSSc monocyte DEGs over time since ASCT", width = 70)) +
     ylab("Timepoint") +
     xlab("Gene") +
     theme(plot.caption = element_text(size = 9, hjust = 0))

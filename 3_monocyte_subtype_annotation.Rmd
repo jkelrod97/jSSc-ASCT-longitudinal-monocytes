@@ -230,7 +230,8 @@ Now we generate some UMAPs.
 monocyte_dim_plot <-
   monocytes %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3"))) +
   labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+        plot.title = element_blank())
 #+ ggtitle("jSSc and healthy monocytes")
 # Save as PNG
 ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_healthy_monocytes_umap.png"), height = 6, width = 5)
@@ -238,7 +239,8 @@ ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_heal
 # By group (jSSc time points and HC)
 monocyte_dim_plot_by_group <-
   monocytes %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3")), split.by = "group") +
-  labs(x = "WNN UMAP 1", y = "WNN UMAP 2")
+  labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
+  theme(plot.title = element_blank())
 #+ ggtitle("jSSc and healthy monocytes by group")
 # Save as PNG
 ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_healthy_monocytes_by_group_umap.png"), height = 4, width = 9)
@@ -246,7 +248,8 @@ ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_heal
 # By health (jSSc vs. HC)
 monocyte_dim_plot_by_health <-
   monocytes %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3")), split.by = "health") +
-  labs(x = "WNN UMAP 1", y = "WNN UMAP 2")
+  labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
+  theme(plot.title = element_blank())
  #+ ggtitle("jSSc vs. healthy monocytes")
 # Save as PNG
 ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_healthy_monocytes_by_health_umap.png"), height = 5.79, width = 7.4)
@@ -260,7 +263,8 @@ monocytes@meta.data <- monocytes@meta.data %>%
   )
 monocyte_dim_plot_by_library <-
   monocytes %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3")), split.by = "LIBRARY") +
-  labs(x = "WNN UMAP 1", y = "WNN UMAP 2") 
+  labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
+  theme(plot.title = element_blank())
 #+ ggtitle("jSSc and healthy monocytes by library")
 # Save as PNG
 ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_healthy_monocytes_by_library_umap.png"), height = 3, width = 10)
