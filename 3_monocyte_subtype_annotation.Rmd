@@ -233,7 +233,7 @@ monocyte_dim_plot <-
   theme(legend.position = "none")
 #+ ggtitle("jSSc and healthy monocytes")
 # Save as PNG
-ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_healthy_monocytes_umap.png"))
+ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_healthy_monocytes_umap.png"), height = 6, width = 5)
 
 # By group (jSSc time points and HC)
 monocyte_dim_plot_by_group <-
@@ -287,8 +287,7 @@ monocytes_prop_by_group <- ggplot(monocytes@meta.data, aes(y = group_spaced, fil
     labs(x = "Cell type proportion") +
     geom_hline(yintercept = 2, col = "black", linewidth = 1, linetype = "dashed") +
     #ggtitle(str_wrap("HC vs. jSSc monocyte subtype proportions over time since ASCT", width = 40)) +
-    theme(/
-        axis.text.x = element_text(size = 16, angle = 45, hjust = 1, color = "black"),
+    theme(axis.text.x = element_text(size = 16, angle = 45, hjust = 1, color = "black"),
         axis.text.y = element_text(size = 14),
         axis.title.x = element_blank(),
         axis.title.y = element_text(size = 18),
@@ -297,7 +296,7 @@ monocytes_prop_by_group <- ggplot(monocytes@meta.data, aes(y = group_spaced, fil
         #legend.text = element_text(size = 14)
     )
 # Save as PNG
-ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/monocytes_prop_by_group.png"), monocytes_prop_by_group, height = 7, width = 8)
+ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/monocytes_prop_by_group.png"), monocytes_prop_by_group, height = 7, width = 6)
 ```
 
 For biological annotation of monocyte sub-clusters:
