@@ -948,22 +948,24 @@ bio_markers <- c("CCL20", "TK1",
                  "LY6E", "FCGR3A", "IFITM1",
                  "CCL2", "CXCL10", "IFI44L",
                  "MARCO", "CLDN5")
-mono_subset  <- monocytes %>% subset(!grepl("like", cell_type)) %>% subset(downsample = 60)
 
-dp <- DotPlot(mono_subset, bio_markers, group.by = "bio_annotation")
-dp_data <- dp$data
-dp_data$id <- factor(dp_data$id, levels = str_wrap(c("CD14+ CCL20+ TK1+",
-"CD14+ PDE3A+ LY6G5B+",
-"CD14+ LAMP5+ MMP14+ MUC12+",
-"CD14+ CLEC5A+ CXCR2+ TNFAIP6+",
-"CD14+ ST7-AS1+ SINGLEC1+ ZNF219+",
-"CD16+ CDKN1C+ LYPD2+ MERTK+",
-"CD16+ LY6E+ FCGR3A+ IFITM1+",
-"CD14+ CCL2+ CXCL10+ IFI44L+",
-"CD14+ MARCO+ CCL2+ CLDN5+"), width = 15))
+monocytes$bio_annotation_wrapped_2 <- str_wrap(monocytes$bio_annotation, width = 20)
+dp_bio_markers <- DotPlot(monocytes, bio_markers, group.by = "bio_annotation_wrapped_2", dot.scale = 15, cols = c("lightgrey", "darkgreen")) +
+    scale_y_manual(
+        breaks = lapply(levels(monocytes$seurat_clusters), function(x){
+            monocytes@meta.data %>% filter(seurat_clusters == x) %>% pull(bio_annotation_wrapped_2) %>% unique()
+        }) %>% unlist(),
+        values = rev(as.numeric(levels(monocytes$seurat_clusters)))
+    ) +
+  theme(
+  axis.text.x = element_text(angle = 45, hjust = 1)
+) +
+  labs(y = "Monocyte sub-cluster",
+       x = "RNA marker")
 
-ggplot(dp_data, aes(y = features.plot, x = id, fill = avg.exp.scaled)) +
-  geom_tile()
+# Save as PNG
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/bio_annotation_rna_markers.png"),
+       dp_bio_markers, width = 15, height = 9, bg = "white")
 ```
 
 
