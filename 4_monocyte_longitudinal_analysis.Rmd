@@ -586,9 +586,10 @@ inner_with_caption <- wrap_plots(
   ) +
   plot_layout(guides = "collect") +
   plot_annotation(
-    title = str_wrap("Downward longitudinal trends for key DEGs in jSSc monocytes over time since ASCT", width = 30),
+    #title = str_wrap("Downward longitudinal trends for key DEGs in jSSc monocytes over time since ASCT", width = 30),
     theme = theme(
-      plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
+      #plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
+      plot.title = element_blank(), 
       plot.margin = margin(10, 10, 10, 10, "pt")
     )
   ) &
@@ -676,7 +677,7 @@ legend.box.background = element_rect(color = "black")) +
                   size = 6.5)
 
 # Save as PNG
-ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/jSSc_longitudinal_volcano.png"), jSSc_longitudinal_volcano, width = 14, height = 8)
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/jSSc_longitudinal_volcano.png"), jSSc_longitudinal_volcano, width = 14, height = 10)
 ```
 
 We also make a volcano plot comparing jSSc and HC.
@@ -738,7 +739,7 @@ SSc_v_h_volcano <- ggplot(data = SSc_v_h_PB_volc_results, aes(x = lfc, y = -log1
                   show.legend = F,
                   na.rm = T)
 # Save as PNG
-ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/SSc_v_healthy_pb_volcano.png"), width = 12, height = 6)
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/SSc_v_healthy_pb_volcano.png"), SSc_v_h_volcano, width = 14, height = 6)
 ```
 
 

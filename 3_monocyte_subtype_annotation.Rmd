@@ -240,10 +240,17 @@ ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_heal
 monocyte_dim_plot_by_group <-
   monocytes %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3")), split.by = "group") +
   labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
-  theme(plot.title = element_blank())
+  theme(plot.title = element_blank()) +
+  facet_wrap(~group, labeller = labeller(group = c(
+    "healthy"           = "HC",
+    "baseline" = "SSc baseline",
+    "six"      = "SSc 6 mo.",
+    "twelve"     = "SSc 12 mo.",
+    "twen4"     = "SSc 24 mo."
+  )), nrow = 1)
 #+ ggtitle("jSSc and healthy monocytes by group")
 # Save as PNG
-ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_healthy_monocytes_by_group_umap.png"), height = 4, width = 9)
+ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_healthy_monocytes_by_group_umap.png"), height = 4, width = 11)
 
 # By health (jSSc vs. HC)
 monocyte_dim_plot_by_health <-
