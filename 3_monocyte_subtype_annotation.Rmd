@@ -99,6 +99,8 @@ Now we're going to annotate the monocytes.
 # names(cell_type_vec) <- NULL
 # monocytes$cell_type <- cell_type_vec
 # 
+# # Set levels on LIBRARY
+# monocytes$LIBRARY <- factor(monocytes$LIBRARY, levels = c("H", "515", "591", "594"))
 # 
 # # Save annotated Seurat object
 # SaveH5Seurat(monocytes, paste0(project_path, "data/h5seurat/monocytes_2.h5seurat"))
@@ -241,7 +243,7 @@ monocyte_dim_plot_by_group <-
   labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
   theme(plot.title = element_blank()) +
   facet_wrap(~group, labeller = labeller(group = c(
-    "healthy"           = "HC",
+    "healthy"           = "Healthy",
     "baseline" = "SSc baseline",
     "six"      = "SSc 6 mo.",
     "twelve"     = "SSc 12 mo.",
@@ -254,21 +256,26 @@ ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_heal
 monocyte_dim_plot_by_health <-
   monocytes %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3")), split.by = "health") +
   labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
-  theme(plot.title = element_blank())
+  theme(plot.title = element_blank()) +
+  facet_wrap(~health, labeller = labeller(health = c(
+    "healthy" = "Healthy",
+    "SSc" = "SSc"
+  )), nrow = 1)
 # Save as PNG
 ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_healthy_monocytes_by_health_umap.png"), height = 5.79, width = 7.4)
 
 # By library (3 patients and HC)
 # We relabel H as HC, and turn into a factor for desired ordering
-monocytes@meta.data <- monocytes@meta.data %>%
-  mutate(
-    LIBRARY = recode(LIBRARY, "H" = "HC"),
-    LIBRARY = factor(LIBRARY, levels = c("HC", "515", "591", "594"))
-  )
 monocyte_dim_plot_by_library <-
   monocytes %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3")), split.by = "LIBRARY") +
   labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
-  theme(plot.title = element_blank())
+  theme(plot.title = element_blank()) +
+  facet_wrap(~LIBRARY, labeller = labeller(LIBRARY = c(
+    "H" = "Healthy",
+    "515" = "515",
+    "591" = "591",
+    "594" = "594"
+  )), nrow = 1)
 # Save as PNG
 ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_healthy_monocytes_by_library_umap.png"), height = 3, width = 10)
 ```
@@ -287,7 +294,7 @@ monocytes@meta.data$group_spaced <- factor(
 monocytes_prop_by_group <- ggplot(monocytes@meta.data, aes(y = group_spaced, fill = cell_type)) +
     geom_bar(position = "fill", color = "black") +
     scale_fill_manual(values = rev(brewer.pal(8, "Set3")), name = "Cell type") +
-    scale_y_discrete(labels = c("HC", "", "SSc baseline", "SSc 6 mo.", "SSc 12 mo.", "SSc 24 mo."),
+    scale_y_discrete(labels = c("Healthy", "", "SSc baseline", "SSc 6 mo.", "SSc 12 mo.", "SSc 24 mo."),
                      drop = FALSE) +
     coord_flip() +
     theme_bw() +
