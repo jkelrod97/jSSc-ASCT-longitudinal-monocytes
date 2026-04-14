@@ -1121,4 +1121,149 @@ ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_heat
 ```
 
 
+Now, we want to compare patients to HC *within cluster 9*.
 
+We do 2 two-way comparisons: SSc baseline vs. healthy, and SSc six months vs. healthy
+
+```{r}
+# Subset out cluster 9
+clus9 <- subset(monocytes, seurat_clusters == 9)
+
+# Set idents
+Idents(clus9) <- "group"
+
+# Baseline SSc vs. healthy
+baseline_v_h_clus9 <- FindAllMarkers(subset(clus9, group %in% c("healthy", "baseline")), only.pos = T) %>%
+  select("p_val", "avg_log2FC", "p_val_adj", "group" = "cluster", "gene")
+rownames(baseline_v_h_clus9) <- NULL
+
+# Six months SSc vs. healthy
+six_v_h_clus9 <- FindAllMarkers(subset(clus9, group %in% c("healthy", "six")), only.pos = T) %>%
+  select("p_val", "avg_log2FC", "p_val_adj", "group" = "cluster", "gene")
+rownames(six_v_h_clus9) <- NULL
+
+# Save as CSV
+write_csv(baseline_v_h_clus9, paste0(results_dir, "baseline_v_h_clus9.csv"))
+write_csv(baseline_v_h_clus9, paste0(results_dir, "six_v_h_clus9.csv"))
+
+
+```
+
+We need a plot showing cluster 9 proportions by group
+
+```{r}
+# Get counts in cluster 9 by group
+clus9_counts_by_group <- clus9$group %>% table()
+# Get counts in all monocytes by group
+monocytes_counts_by_group <- monocytes$group %>% table()
+# Get proportions in cluster 9 by group
+clus9_prop_by_group <- clus9_counts_by_group / monocytes_counts_by_group 
+# Put into data frame for plotting
+clus9_prop_by_group_df <- clus9_prop_by_group %>% as.data.frame() %>% select("Group" = ".", "Proportion" = "Freq") %>%
+  mutate(Group = case_when(
+    Group == "healthy" ~ "Healthy",
+    Group == "baseline" ~ "SSc. baseline",
+    Group == "six" ~ "SSc. 6 mo.",
+    Group == "twelve" ~ "SSc. 12 mo.",
+    Group == "twen4" ~ "SSc. 24 mo."
+  ))
+clus9_prop_by_group_df$Group <- factor(clus9_prop_by_group_df$Group, levels = clus9_prop_by_group_df$Group)
+clus9_prop_by_group_df <- clus9_prop_by_group_df %>% mutate(
+  Health = case_when(
+    Group == "Healthy" ~ "Healthy",
+    TRUE ~ "SSc"
+  )
+)
+
+# Bar plot
+clus9_prop_plot <- ggplot(aes(y = Proportion, x = Group, fill = Health), data = clus9_prop_by_group_df) +
+  geom_col() +
+  scale_fill_manual(values = c(
+    "Healthy" = "#377EB8",
+    "SSc" = "#E41A1C"
+  )) +
+  theme_bw() +
+  theme(legend.position = "none",
+        text = element_text(size = 28),
+          axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title.x = element_blank()) +
+  labs(y = str_wrap("Proportion of CD14+ MARCO+ CCL2+ CLDN5+ monocytes", width = 25))
+
+# Save as PNG
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_prop_plot.png"), clus9_prop_plot, width = 7, height = 7)
+```
+
+Let's also do it by library. 
+
+```{r}
+# Get counts in cluster 9 by LIBRARY
+clus9_counts_by_LIBRARY <- clus9$LIBRARY %>% table()
+# Get counts in all monocytes by LIBRARY
+monocytes_counts_by_LIBRARY <- monocytes$LIBRARY %>% table()
+# Get proportions in cluster 9 by LIBRARY
+clus9_prop_by_LIBRARY <- clus9_counts_by_LIBRARY / monocytes_counts_by_LIBRARY 
+# Put into data frame for plotting
+clus9_prop_by_LIBRARY_df <- clus9_prop_by_LIBRARY %>% as.data.frame() %>% select("Library" = ".", "Proportion" = "Freq") %>%
+  mutate(Library = case_when(
+    Library == "H" ~ "Healthy",
+    TRUE ~ Library
+  ))
+clus9_prop_by_LIBRARY_df$Library <- factor(clus9_prop_by_LIBRARY_df$Library, levels = clus9_prop_by_LIBRARY_df$Library)
+clus9_prop_by_LIBRARY_df <- clus9_prop_by_LIBRARY_df %>% mutate(
+  Health = case_when(
+    Library == "Healthy" ~ "Healthy",
+    TRUE ~ "SSc"
+  )
+)
+
+# Bar plot
+clus9_prop_plot_lib <- ggplot(aes(y = Proportion, x = Library, fill = Health), data = clus9_prop_by_LIBRARY_df) +
+  geom_col() +
+  scale_fill_manual(values = c(
+    "Healthy" = "#377EB8",
+    "SSc" = "#E41A1C"
+  )) +
+  theme_bw() +
+  theme(legend.position = "none",
+        text = element_text(size = 28),
+          axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title.x = element_blank()) +
+  labs(y = str_wrap("Proportion of CD14+ MARCO+ CCL2+ CLDN5+ monocytes", width = 25))
+
+# Save as PNG
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_prop_plot_lib.png"), clus9_prop_plot_lib, width = 7, height = 7)
+```
+
+We can also split by health
+
+```{r}
+# Get counts in cluster 9 by health
+clus9_counts_by_health <- clus9$health %>% table()
+# Get counts in all monocytes by health
+monocytes_counts_by_health <- monocytes$health %>% table()
+# Get proportions in cluster 9 by health
+clus9_prop_by_health <- clus9_counts_by_health / monocytes_counts_by_health 
+# Put into data frame for plotting
+clus9_prop_by_health_df <- clus9_prop_by_health %>% as.data.frame() %>% select("Health" = ".", "Proportion" = "Freq") %>%
+  mutate(Health = case_when(
+    Health == "healthy" ~ "Healthy",
+    TRUE ~ Health
+  ))
+
+# Bar plot
+clus9_prop_plot_health <- ggplot(aes(y = Proportion, x = Health, fill = Health), data = clus9_prop_by_health_df) +
+  geom_col() +
+  scale_fill_manual(values = c(
+    "Healthy" = "#377EB8",
+    "SSc" = "#E41A1C"
+  )) +
+  theme_bw() +
+  theme(legend.position = "none",
+        text = element_text(size = 28),
+          axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title.x = element_blank()) +
+  labs(y = str_wrap("Proportion of CD14+ MARCO+ CCL2+ CLDN5+ monocytes", width = 25))
+
+# Save as PNG
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_prop_plot_health.png"), clus9_prop_plot_health, width = 7, height = 7)
+```
