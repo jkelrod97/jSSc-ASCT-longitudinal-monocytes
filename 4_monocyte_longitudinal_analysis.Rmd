@@ -165,7 +165,7 @@ down_pathways_to_show <- data.frame(full_name = c("HALLMARK_TNFA_SIGNALING_VIA_N
                            "HALLMARK_TGF_BETA_SIGNALING",
                            "HALLMARK_IL2_STAT5_SIGNALING",
                            "HALLMARK_APOPTOSIS"
-                           ), plot_name = c("TNF-α signaling through NF-κB (Hallmark)",
+                           ), plot_name = c("TNF-α signaling via NF-κB (Hallmark)",
                                             "Inflammatory response (Hallmark)",
                                             "Epithelial cell differentiation (GOBP)",
                                             "TGF-β signaling (Hallmark)",
