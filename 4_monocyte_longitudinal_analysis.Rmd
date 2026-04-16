@@ -737,6 +737,251 @@ SSc_v_h_volcano <- ggplot(data = SSc_v_h_PB_volc_results, aes(x = lfc, y = -log1
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/SSc_v_healthy_pb_volcano.png"), SSc_v_h_volcano, width = 14, height = 6)
 ```
 
+We compare the other time points to healthy as well
+
+6 months:
+
+```{r}
+# Make sure default assay is set to RNA
+DefaultAssay(monocytes) <- "RNA"
+
+# Run pb offset for six and healthy, where we are testing group membership (two-way comparison) rather than time coefficient.
+SSc6_v_h_PB <- pb_offset(subset(monocytes, group %in% c("six", "healthy")), "sample_id", ~health)
+# Test DE
+SSc6_v_h_PB_results <- SSc6_v_h_PB$fit %>% test_de("healthSSc") %>% arrange(pval)
+
+# We save the top 50 upregulated DEGs and top 50 downregulated DEGs as CSV
+top50_up_results <- SSc6_v_h_PB_results %>% filter(lfc > 0.5) %>% head(50)
+top50_down_results <- SSc6_v_h_PB_results %>% filter(lfc < 0.5) %>% head(50)
+# Write CSV
+write_csv(top50_up_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc6_v_healthy_monocytes_UP.csv"))
+write_csv(top50_down_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc6_v_healthy_monocytes_DOWN.csv"))
+
+# Genes to highlight 
+ssc_v_h_up_highlight <- top50_up_results$name[1:15]
+ssc_v_h_down_highlight <- top50_down_results$name[1:15]
+
+# Create new data frame for plotting (mutation of results from pb offset)
+SSc6_v_h_PB_volc_results <- SSc6_v_h_PB_results %>%
+  mutate(`SSc vs. Healthy` = case_when(
+    lfc > 0.5 & pval < 0.05 ~ "Up",
+    lfc < -0.5 & pval < 0.05 ~ "Down",
+    TRUE ~ "Not significant"
+  )) %>%
+  mutate(delabel = case_when(
+    name %in% c(ssc_v_h_up_highlight, ssc_v_h_down_highlight) ~ name,
+    TRUE ~ NA
+  ))
+
+# Put significance levels in proper order
+SSc6_v_h_PB_volc_results$`SSc vs. Healthy` <- factor(SSc6_v_h_PB_volc_results$`SSc vs. Healthy`, levels = c("Up", "Down", "Not significant"))
+
+# Volcano plot
+SSc6_v_h_volcano <- ggplot(data = SSc6_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc vs. Healthy`, label = delabel)) +
+  geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = 'dashed') +
+  geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') +
+  geom_point(size = 2) +
+  theme_classic(base_size = 20) +
+  theme(axis.title.y = element_text(face = "bold", margin = margin(0,20,0,0), size = rel(1.1), color = 'black'),
+        axis.title.x = element_text(hjust = 0.5, face = "bold", margin = margin(20,0,0,0), size = rel(1.1), color = 'black'),
+        plot.title = element_text(hjust = 0.5, size = rel(1.1)),
+        plot.title.position = "plot",
+        text = element_text(face = "bold", color = "black")) +
+  scale_color_manual(values = c( "red3", "#00AFBB", "grey")) +
+  labs(x = expression("log"[2]*"FC"), y = expression("-log"[10]*"p-value")) +
+  scale_x_continuous(breaks = seq(-10, 10, 2)) +
+  geom_label_repel(max.overlaps = Inf,
+                  size = 6.5,
+                  box.padding = 0.3,
+                  force = 4,
+                  show.legend = F,
+                  na.rm = T)
+# Save as PNG
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/SSc6_v_healthy_pb_volcano.png"), SSc6_v_h_volcano, width = 14, height = 6)
+```
+
+12 months:
+
+```{r}
+# Make sure default assay is set to RNA
+DefaultAssay(monocytes) <- "RNA"
+
+# Run pb offset for six and healthy, where we are testing group membership (two-way comparison) rather than time coefficient.
+SSc12_v_h_PB <- pb_offset(subset(monocytes, group %in% c("twelve", "healthy")), "sample_id", ~health)
+# Test DE
+SSc12_v_h_PB_results <- SSc12_v_h_PB$fit %>% test_de("healthSSc") %>% arrange(pval)
+
+# We save the top 50 upregulated DEGs and top 50 downregulated DEGs as CSV
+top50_up_results <- SSc12_v_h_PB_results %>% filter(lfc > 0.5) %>% head(50)
+top50_down_results <- SSc12_v_h_PB_results %>% filter(lfc < 0.5) %>% head(50)
+# Write CSV
+write_csv(top50_up_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc12_v_healthy_monocytes_UP.csv"))
+write_csv(top50_down_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc12_v_healthy_monocytes_DOWN.csv"))
+
+# Genes to highlight 
+ssc_v_h_up_highlight <- top50_up_results$name[1:15]
+ssc_v_h_down_highlight <- top50_down_results$name[1:15]
+
+# Create new data frame for plotting (mutation of results from pb offset)
+SSc12_v_h_PB_volc_results <- SSc12_v_h_PB_results %>%
+  mutate(`SSc vs. Healthy` = case_when(
+    lfc > 0.5 & pval < 0.05 ~ "Up",
+    lfc < -0.5 & pval < 0.05 ~ "Down",
+    TRUE ~ "Not significant"
+  )) %>%
+  mutate(delabel = case_when(
+    name %in% c(ssc_v_h_up_highlight, ssc_v_h_down_highlight) ~ name,
+    TRUE ~ NA
+  ))
+
+# Put significance levels in proper order
+SSc12_v_h_PB_volc_results$`SSc vs. Healthy` <- factor(SSc12_v_h_PB_volc_results$`SSc vs. Healthy`, levels = c("Up", "Down", "Not significant"))
+
+# Volcano plot
+SSc12_v_h_volcano <- ggplot(data = SSc12_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc vs. Healthy`, label = delabel)) +
+  geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = 'dashed') +
+  geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') +
+  geom_point(size = 2) +
+  theme_classic(base_size = 20) +
+  theme(axis.title.y = element_text(face = "bold", margin = margin(0,20,0,0), size = rel(1.1), color = 'black'),
+        axis.title.x = element_text(hjust = 0.5, face = "bold", margin = margin(20,0,0,0), size = rel(1.1), color = 'black'),
+        plot.title = element_text(hjust = 0.5, size = rel(1.1)),
+        plot.title.position = "plot",
+        text = element_text(face = "bold", color = "black")) +
+  scale_color_manual(values = c( "red3", "#00AFBB", "grey")) +
+  labs(x = expression("log"[2]*"FC"), y = expression("-log"[10]*"p-value")) +
+  scale_x_continuous(breaks = seq(-10, 10, 2)) +
+  geom_label_repel(max.overlaps = Inf,
+                  size = 12.5,
+                  box.padding = 0.3,
+                  force = 4,
+                  show.legend = F,
+                  na.rm = T)
+# Save as PNG
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/SSc12_v_healthy_pb_volcano.png"), SSc12_v_h_volcano, width = 14, height = 6)
+```
+
+24 months:
+
+```{r}
+# Make sure default assay is set to RNA
+DefaultAssay(monocytes) <- "RNA"
+
+# Run pb offset for six and healthy, where we are testing group membership (two-way comparison) rather than time coefficient.
+SSc24_v_h_PB <- pb_offset(subset(monocytes, group %in% c("twen4", "healthy")), "sample_id", ~health)
+# Test DE
+SSc24_v_h_PB_results <- SSc24_v_h_PB$fit %>% test_de("healthSSc") %>% arrange(pval)
+
+# We save the top 50 upregulated DEGs and top 50 downregulated DEGs as CSV
+top50_up_results <- SSc24_v_h_PB_results %>% filter(lfc > 0.5) %>% head(50)
+top50_down_results <- SSc24_v_h_PB_results %>% filter(lfc < 0.5) %>% head(50)
+# Write CSV
+write_csv(top50_up_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc24_v_healthy_monocytes_UP.csv"))
+write_csv(top50_down_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc24_v_healthy_monocytes_DOWN.csv"))
+
+# Genes to highlight 
+ssc_v_h_up_highlight <- top50_up_results$name[1:15]
+ssc_v_h_down_highlight <- top50_down_results$name[1:15]
+
+# Create new data frame for plotting (mutation of results from pb offset)
+SSc24_v_h_PB_volc_results <- SSc24_v_h_PB_results %>%
+  mutate(`SSc vs. Healthy` = case_when(
+    lfc > 0.5 & pval < 0.05 ~ "Up",
+    lfc < -0.5 & pval < 0.05 ~ "Down",
+    TRUE ~ "Not significant"
+  )) %>%
+  mutate(delabel = case_when(
+    name %in% c(ssc_v_h_up_highlight, ssc_v_h_down_highlight) ~ name,
+    TRUE ~ NA
+  ))
+
+# Put significance levels in proper order
+SSc24_v_h_PB_volc_results$`SSc vs. Healthy` <- factor(SSc24_v_h_PB_volc_results$`SSc vs. Healthy`, levels = c("Up", "Down", "Not significant"))
+
+# Volcano plot
+SSc24_v_h_volcano <- ggplot(data = SSc24_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc vs. Healthy`, label = delabel)) +
+  geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = 'dashed') +
+  geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') +
+  geom_point(size = 2) +
+  theme_classic(base_size = 20) +
+  theme(axis.title.y = element_text(face = "bold", margin = margin(0,20,0,0), size = rel(1.1), color = 'black'),
+        axis.title.x = element_text(hjust = 0.5, face = "bold", margin = margin(20,0,0,0), size = rel(1.1), color = 'black'),
+        plot.title = element_text(hjust = 0.5, size = rel(1.1)),
+        plot.title.position = "plot",
+        text = element_text(face = "bold", color = "black")) +
+  scale_color_manual(values = c( "red3", "#00AFBB", "grey")) +
+  labs(x = expression("log"[2]*"FC"), y = expression("-log"[10]*"p-value")) +
+  scale_x_continuous(breaks = seq(-10, 10, 2)) +
+  geom_label_repel(max.overlaps = Inf,
+                  size = 12.5,
+                  box.padding = 0.3,
+                  force = 4,
+                  show.legend = F,
+                  na.rm = T)
+# Save as PNG
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/SSc24_v_healthy_pb_volcano.png"), SSc24_v_h_volcano, width = 14, height = 6)
+```
+
+
+
+
+We also try running GSEA on the DEGs that are upregulated in SSc vs. healthy controls
+
+```{r}
+ssc_v_h_up_degs <- SSc_v_h_PB_volc_results %>% filter(`SSc vs. Healthy` == "Up") %>% pull(name)
+
+gsea_ssc_v_h_up <- enricher(
+                  gene = ssc_v_h_up_degs,
+                  TERM2GENE = term2gene,
+                  TERM2NAME = term2name,
+                  universe = background_genes,
+                  pvalueCutoff = 1,
+                  qvalueCutoff = 1,
+                  minGSSize = 5,
+                  maxGSSize = 500
+              )
+
+ssc6_v_h_up_degs <- SSc6_v_h_PB_volc_results %>% filter(`SSc vs. Healthy` == "Up") %>% pull(name)
+
+gsea_ssc6_v_h_up <- enricher(
+                  gene = ssc6_v_h_up_degs,
+                  TERM2GENE = term2gene,
+                  TERM2NAME = term2name,
+                  universe = background_genes,
+                  pvalueCutoff = 1,
+                  qvalueCutoff = 1,
+                  minGSSize = 5,
+                  maxGSSize = 500
+              )
+
+ssc12_v_h_up_degs <- SSc12_v_h_PB_volc_results %>% filter(`SSc vs. Healthy` == "Up") %>% pull(name)
+
+gsea_ssc12_v_h_up <- enricher(
+                  gene = ssc12_v_h_up_degs,
+                  TERM2GENE = term2gene,
+                  TERM2NAME = term2name,
+                  universe = background_genes,
+                  pvalueCutoff = 1,
+                  qvalueCutoff = 1,
+                  minGSSize = 5,
+                  maxGSSize = 500
+              )
+
+ssc24_v_h_up_degs <- SSc24_v_h_PB_volc_results %>% filter(`SSc vs. Healthy` == "Up") %>% pull(name)
+
+gsea_ssc24_v_h_up <- enricher(
+                  gene = ssc24_v_h_up_degs,
+                  TERM2GENE = term2gene,
+                  TERM2NAME = term2name,
+                  universe = background_genes,
+                  pvalueCutoff = 1,
+                  qvalueCutoff = 1,
+                  minGSSize = 5,
+                  maxGSSize = 500
+              )
+```
+
+
 
 
 
