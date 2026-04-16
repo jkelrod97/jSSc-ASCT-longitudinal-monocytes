@@ -700,7 +700,7 @@ ssc_v_h_down_highlight <- c("LINC03078", "ANK2", "HFM1", "RETN", "SLCO5A1", "TPT
 
 # Create new data frame for plotting (mutation of results from pb offset)
 SSc_v_h_PB_volc_results <- SSc_v_h_PB_results %>%
-  mutate(`SSc vs. Healthy` = case_when(
+  mutate(`SSc baseline vs. Healthy` = case_when(
     lfc > 0.5 & pval < 0.05 ~ "Up",
     lfc < -0.5 & pval < 0.05 ~ "Down",
     TRUE ~ "Not significant"
@@ -711,10 +711,10 @@ SSc_v_h_PB_volc_results <- SSc_v_h_PB_results %>%
   ))
 
 # Put significance levels in proper order
-SSc_v_h_PB_volc_results$`SSc vs. Healthy` <- factor(SSc_v_h_PB_volc_results$`SSc vs. Healthy`, levels = c("Up", "Down", "Not significant"))
+SSc_v_h_PB_volc_results$`SSc baseline vs. Healthy` <- factor(SSc_v_h_PB_volc_results$`SSc baseline vs. Healthy`, levels = c("Up", "Down", "Not significant"))
 
 # Volcano plot
-SSc_v_h_volcano <- ggplot(data = SSc_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc vs. Healthy`, label = delabel)) +
+SSc_v_h_volcano <- ggplot(data = SSc_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc baseline vs. Healthy`, label = delabel)) +
   geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = 'dashed') +
   geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') +
   geom_point(size = 2) +
@@ -732,7 +732,8 @@ SSc_v_h_volcano <- ggplot(data = SSc_v_h_PB_volc_results, aes(x = lfc, y = -log1
                   box.padding = 0.3,
                   force = 4,
                   show.legend = F,
-                  na.rm = T)
+                  na.rm = T) +
+  labs(col = "SSc baseline \nvs. Healthy")
 # Save as PNG
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/SSc_v_healthy_pb_volcano.png"), SSc_v_h_volcano, width = 14, height = 6)
 ```
@@ -763,7 +764,7 @@ ssc_v_h_down_highlight <- top50_down_results$name[1:15]
 
 # Create new data frame for plotting (mutation of results from pb offset)
 SSc6_v_h_PB_volc_results <- SSc6_v_h_PB_results %>%
-  mutate(`SSc vs. Healthy` = case_when(
+  mutate(`SSc 6 mo. vs. Healthy` = case_when(
     lfc > 0.5 & pval < 0.05 ~ "Up",
     lfc < -0.5 & pval < 0.05 ~ "Down",
     TRUE ~ "Not significant"
@@ -774,10 +775,10 @@ SSc6_v_h_PB_volc_results <- SSc6_v_h_PB_results %>%
   ))
 
 # Put significance levels in proper order
-SSc6_v_h_PB_volc_results$`SSc vs. Healthy` <- factor(SSc6_v_h_PB_volc_results$`SSc vs. Healthy`, levels = c("Up", "Down", "Not significant"))
+SSc6_v_h_PB_volc_results$`SSc 6 mo. vs. Healthy` <- factor(SSc6_v_h_PB_volc_results$`SSc 6 mo. vs. Healthy`, levels = c("Up", "Down", "Not significant"))
 
 # Volcano plot
-SSc6_v_h_volcano <- ggplot(data = SSc6_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc vs. Healthy`, label = delabel)) +
+SSc6_v_h_volcano <- ggplot(data = SSc6_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc 6 mo. vs. Healthy`, label = delabel)) +
   geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = 'dashed') +
   geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') +
   geom_point(size = 2) +
@@ -790,12 +791,12 @@ SSc6_v_h_volcano <- ggplot(data = SSc6_v_h_PB_volc_results, aes(x = lfc, y = -lo
   scale_color_manual(values = c( "red3", "#00AFBB", "grey")) +
   labs(x = expression("log"[2]*"FC"), y = expression("-log"[10]*"p-value")) +
   scale_x_continuous(breaks = seq(-10, 10, 2)) +
-  geom_label_repel(max.overlaps = Inf,
-                  size = 6.5,
+  geom_label_repel(size = 6.5,
                   box.padding = 0.3,
                   force = 4,
                   show.legend = F,
-                  na.rm = T)
+                  na.rm = T) +
+  labs(col = "SSc 6 mo. \nvs. Healthy")
 # Save as PNG
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/SSc6_v_healthy_pb_volcano.png"), SSc6_v_h_volcano, width = 14, height = 6)
 ```
@@ -824,7 +825,7 @@ ssc_v_h_down_highlight <- top50_down_results$name[1:15]
 
 # Create new data frame for plotting (mutation of results from pb offset)
 SSc12_v_h_PB_volc_results <- SSc12_v_h_PB_results %>%
-  mutate(`SSc vs. Healthy` = case_when(
+  mutate(`SSc 12 mo. vs. Healthy` = case_when(
     lfc > 0.5 & pval < 0.05 ~ "Up",
     lfc < -0.5 & pval < 0.05 ~ "Down",
     TRUE ~ "Not significant"
@@ -835,10 +836,10 @@ SSc12_v_h_PB_volc_results <- SSc12_v_h_PB_results %>%
   ))
 
 # Put significance levels in proper order
-SSc12_v_h_PB_volc_results$`SSc vs. Healthy` <- factor(SSc12_v_h_PB_volc_results$`SSc vs. Healthy`, levels = c("Up", "Down", "Not significant"))
+SSc12_v_h_PB_volc_results$`SSc 12 mo. vs. Healthy` <- factor(SSc12_v_h_PB_volc_results$`SSc 12 mo. vs. Healthy`, levels = c("Up", "Down", "Not significant"))
 
 # Volcano plot
-SSc12_v_h_volcano <- ggplot(data = SSc12_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc vs. Healthy`, label = delabel)) +
+SSc12_v_h_volcano <- ggplot(data = SSc12_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc 12 mo. vs. Healthy`, label = delabel)) +
   geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = 'dashed') +
   geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') +
   geom_point(size = 2) +
@@ -851,12 +852,12 @@ SSc12_v_h_volcano <- ggplot(data = SSc12_v_h_PB_volc_results, aes(x = lfc, y = -
   scale_color_manual(values = c( "red3", "#00AFBB", "grey")) +
   labs(x = expression("log"[2]*"FC"), y = expression("-log"[10]*"p-value")) +
   scale_x_continuous(breaks = seq(-10, 10, 2)) +
-  geom_label_repel(max.overlaps = Inf,
-                  size = 12.5,
+  geom_label_repel(size = 6.5,
                   box.padding = 0.3,
                   force = 4,
                   show.legend = F,
-                  na.rm = T)
+                  na.rm = T) +
+    labs(col = "SSc 12 mo. \nvs. Healthy")
 # Save as PNG
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/SSc12_v_healthy_pb_volcano.png"), SSc12_v_h_volcano, width = 14, height = 6)
 ```
@@ -885,7 +886,7 @@ ssc_v_h_down_highlight <- top50_down_results$name[1:15]
 
 # Create new data frame for plotting (mutation of results from pb offset)
 SSc24_v_h_PB_volc_results <- SSc24_v_h_PB_results %>%
-  mutate(`SSc vs. Healthy` = case_when(
+  mutate(`SSc 24 mo. vs. Healthy` = case_when(
     lfc > 0.5 & pval < 0.05 ~ "Up",
     lfc < -0.5 & pval < 0.05 ~ "Down",
     TRUE ~ "Not significant"
@@ -896,10 +897,10 @@ SSc24_v_h_PB_volc_results <- SSc24_v_h_PB_results %>%
   ))
 
 # Put significance levels in proper order
-SSc24_v_h_PB_volc_results$`SSc vs. Healthy` <- factor(SSc24_v_h_PB_volc_results$`SSc vs. Healthy`, levels = c("Up", "Down", "Not significant"))
+SSc24_v_h_PB_volc_results$`SSc 24 mo. vs. Healthy` <- factor(SSc24_v_h_PB_volc_results$`SSc 24 mo. vs. Healthy`, levels = c("Up", "Down", "Not significant"))
 
 # Volcano plot
-SSc24_v_h_volcano <- ggplot(data = SSc24_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc vs. Healthy`, label = delabel)) +
+SSc24_v_h_volcano <- ggplot(data = SSc24_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc 24 mo. vs. Healthy`, label = delabel)) +
   geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = 'dashed') +
   geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') +
   geom_point(size = 2) +
@@ -912,12 +913,12 @@ SSc24_v_h_volcano <- ggplot(data = SSc24_v_h_PB_volc_results, aes(x = lfc, y = -
   scale_color_manual(values = c( "red3", "#00AFBB", "grey")) +
   labs(x = expression("log"[2]*"FC"), y = expression("-log"[10]*"p-value")) +
   scale_x_continuous(breaks = seq(-10, 10, 2)) +
-  geom_label_repel(max.overlaps = Inf,
-                  size = 12.5,
+  geom_label_repel(size = 6.5,
                   box.padding = 0.3,
                   force = 4,
                   show.legend = F,
-                  na.rm = T)
+                  na.rm = T) +
+    labs(col = "SSc 24 mo. \nvs. Healthy")
 # Save as PNG
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/SSc24_v_healthy_pb_volcano.png"), SSc24_v_h_volcano, width = 14, height = 6)
 ```
@@ -928,7 +929,7 @@ ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/SSc24_v_he
 We also try running GSEA on the DEGs that are upregulated in SSc vs. healthy controls
 
 ```{r}
-ssc_v_h_up_degs <- SSc_v_h_PB_volc_results %>% filter(`SSc vs. Healthy` == "Up") %>% pull(name)
+ssc_v_h_up_degs <- SSc_v_h_PB_volc_results %>% filter(`SSc baseline vs. Healthy` == "Up") %>% pull(name)
 
 gsea_ssc_v_h_up <- enricher(
                   gene = ssc_v_h_up_degs,
@@ -941,7 +942,7 @@ gsea_ssc_v_h_up <- enricher(
                   maxGSSize = 500
               )
 
-ssc6_v_h_up_degs <- SSc6_v_h_PB_volc_results %>% filter(`SSc vs. Healthy` == "Up") %>% pull(name)
+ssc6_v_h_up_degs <- SSc6_v_h_PB_volc_results %>% filter(`SSc 6 mo. vs. Healthy` == "Up") %>% pull(name)
 
 gsea_ssc6_v_h_up <- enricher(
                   gene = ssc6_v_h_up_degs,
@@ -954,7 +955,7 @@ gsea_ssc6_v_h_up <- enricher(
                   maxGSSize = 500
               )
 
-ssc12_v_h_up_degs <- SSc12_v_h_PB_volc_results %>% filter(`SSc vs. Healthy` == "Up") %>% pull(name)
+ssc12_v_h_up_degs <- SSc12_v_h_PB_volc_results %>% filter(`SSc 12 mo. vs. Healthy` == "Up") %>% pull(name)
 
 gsea_ssc12_v_h_up <- enricher(
                   gene = ssc12_v_h_up_degs,
@@ -967,7 +968,7 @@ gsea_ssc12_v_h_up <- enricher(
                   maxGSSize = 500
               )
 
-ssc24_v_h_up_degs <- SSc24_v_h_PB_volc_results %>% filter(`SSc vs. Healthy` == "Up") %>% pull(name)
+ssc24_v_h_up_degs <- SSc24_v_h_PB_volc_results %>% filter(`SSc 24 mo. vs. Healthy` == "Up") %>% pull(name)
 
 gsea_ssc24_v_h_up <- enricher(
                   gene = ssc24_v_h_up_degs,
@@ -1177,6 +1178,9 @@ monocyte_bio_umap
 # Save as PNG
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/bio_annotation_umap.png"),
        monocyte_bio_umap, width = 15, height = 9, bg = "white")
+
+# Save updated Seurat object with bio. annotations
+SaveH5Seurat(monocytes, paste0(project_path, "data/h5seurat/monocytes_3.h5seurat"))
 ```
 
 
