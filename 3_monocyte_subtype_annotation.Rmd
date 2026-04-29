@@ -337,3 +337,32 @@ lapply(names(rna_marker_list), function(clus){
 ```
 
 
+Now, we some cell type counts tables for the manuscript. 
+
+```{r}
+counts_by_timepoint <- table(monocytes$cell_type,
+                       monocytes$group) %>%
+  as.data.frame() %>%
+  setNames(c("Cell type", "Time point", "Count")) %>%
+  pivot_wider(names_from = "Time point", values_from = "Count") %>%
+    dplyr::rename("Healthy" = "healthy",
+           "jSSc baseline" = "baseline",
+           "jSSc 6 months" = "six",
+           "jSSc 12 months" = "twelve",
+           "jSSc 24 months" = "twen4")
+
+counts_by_library <- table(monocytes$cell_type,
+                       monocytes$LIBRARY) %>%
+  as.data.frame() %>%
+  setNames(c("Cell type", "Library", "Count")) %>%
+  pivot_wider(names_from = "Library", values_from = "Count") %>%
+    dplyr::rename("Healthy" = "H",
+           "NRCOS 515" = "515",
+           "NRCOS 591" = "591",
+           "NRCOS 594" = "594")
+
+# Save as CSV
+write_csv(counts_by_timepoint, paste0(project_path, "data/cell_count_csvs/monocytes_counts_by_timepoint.csv"))
+write_csv(counts_by_library, paste0(project_path, "data/cell_count_csvs/monocytes_counts_by_library.csv"))
+```
+
