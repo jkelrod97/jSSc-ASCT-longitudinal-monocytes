@@ -1265,7 +1265,7 @@ ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/bio_annota
        monocyte_bio_umap, width = 15, height = 9, bg = "white")
 
 # Save updated Seurat object with bio. annotations
-SaveH5Seurat(monocytes, paste0(project_path, "data/h5seurat/monocytes_3.h5seurat"))
+# SaveH5Seurat(monocytes, paste0(project_path, "data/h5seurat/monocytes_3.h5seurat"))
 ```
 
 
@@ -1617,7 +1617,7 @@ sizes <- diag(pathway_intersect_mat)
 jaccard <- pathway_intersect_mat / 
   (outer(sizes, sizes, "+") - pathway_intersect_mat)
 # As a heatmap
-jaccard_df <- melt(jaccard)
+jaccard_df <- reshape2::melt(jaccard)
 jaccard_plot <- 
 ggplot(jaccard_df, aes(Var2, Var1, fill = value)) +
   geom_tile() +
@@ -1630,4 +1630,6 @@ ggplot(jaccard_df, aes(Var2, Var1, fill = value)) +
         axis.text.y = element_text(color = "black"))
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/pathway_jaccard.png"), jaccard_plot, width = 10, height = 7)
 ```
+
+
 
