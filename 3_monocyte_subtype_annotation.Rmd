@@ -337,7 +337,7 @@ lapply(names(rna_marker_list), function(clus){
 ```
 
 
-Now, we some cell type counts tables for the manuscript. 
+Now, we generate some cell type counts tables for the manuscript. 
 
 ```{r}
 counts_by_timepoint <- table(monocytes$cell_type,
