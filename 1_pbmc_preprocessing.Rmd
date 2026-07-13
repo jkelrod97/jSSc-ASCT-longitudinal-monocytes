@@ -533,7 +533,7 @@ SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_4"))
 
 ```
 
-We'll save these thresholds in a text file for future reference.
+We'll save these thresholds in a text file and as an RDS object for future reference.
 
 ```{r}
 qc_features <- list("nCount_RNA" = qc.nCount_RNA,
@@ -545,6 +545,10 @@ qc_features <- list("nCount_RNA" = qc.nCount_RNA,
                  "isotype_ctl_max" = qc.isotype_ctl_max)
 threshold_list <- lapply(qc_features, attr, "thresholds")
 
+# Save as RDS
+saveRDS(threshold_list, paste0(project_path, "data/qc/pbmc_thresholds.RDS"))
+
+# Save as txt file
 sink(paste0(project_path, "data/qc/pbmc_thresholds.txt"))
 threshold_list
 sink
