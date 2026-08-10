@@ -95,10 +95,10 @@ healthy_demographics <- healthy_demographics %>%
   "Sample ID" = c("H1", "H2", "H3", "H4")) %>%
   select(
   "Sample ID",
-  "Age" = "age",
-  "Sex" = "sex",
   "Race" = "race",
-  "Ethnicity" = "ethnicity"
+  "Ethnicity" = "ethnicity",
+  "Sex" = "sex",
+  "Age" = "age"
 )
 
 # Set caption
