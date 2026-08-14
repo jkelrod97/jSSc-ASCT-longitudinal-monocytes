@@ -77,10 +77,14 @@ patient_meta_data <- patient_meta_data %>%
     "Disease duration at time of ASCT (years)" = "Disease.Duration.at.time.of.ASCT..years.",
     "Disease subtype" = "Disease.Subtype",
     "Autoantibody positivity" = "X....Auto.antibody.positivity",
-    "MRSS" = "X....mRSS.",
+    "Modified Rodnan Skin Score (MRSS)" = "X....mRSS.",
     "Treatment prior to ASCT" = "Treatment.prior.to.ASCT",
     "Major manifestations" = "Major.manifestations"
-  )
+  ) %>% mutate(`Autoantibody positivity` = case_match(`Autoantibody positivity`,
+    "none"     ~ "ANA+, no SSc-specific Ab",
+    "Pm-Scla" ~ "PM-Scl",
+    .default = `Autoantibody positivity`  
+  ))
 ```
 
 Get healthy demographics. Add both patient and healthy demographics to sheet.
@@ -130,7 +134,7 @@ wb <- wb %>%
 
 ```{r}
 threshold_list <- readRDS(paste0(project_path, "data/qc/pbmc_thresholds.RDS"))
-caption <- "Adaptive QC filtering thresholds by library. Calculated as ±3 median absolute deviations (MAD) from the median of each metric."
+caption <- "Adaptive PBMC QC filtering thresholds by subject library. Calculated as ±3 median absolute deviations (MAD) from the median of each metric."
 sheet_num  <- length(wb$sheet_names) + 1
 sheet_name <- paste0("Table ", sheet_num, "꞉ QC thresholds")
 wb <- wb %>%
@@ -249,17 +253,29 @@ make_single_row <- function(lst, label) {
   block
 }
 
+
+# Function to make an empty spacer row
+make_blank_row <- function() {
+  block <- data.frame(Section = "")
+  for (ct in cell_types) {
+    block[[ct]] <- ""
+  }
+  block
+}
+
 # Extract RNA and ADT genes
 RNA_genes <- lapply(RNA_markers, function(d) d$gene)
 ADT_genes <- lapply(ADT_markers, function(d) d$gene)   # adjust if ADT uses a different column name
-
 all_cell_df <- rbind(
   make_single_row(cluster_nums,   "Cluster IDs"),
   make_single_row(RNA_annotation, "RNA markers"),
   make_single_row(ADT_annotation, "ADT markers"),
+  make_blank_row(),
   make_block(RNA_genes, "Top 100 DE genes (by p-value)",      100),
+  make_blank_row(),
   make_block(ADT_genes, "Top 20 DE antibodies (by p-value)",   20)
 )
+
 # Blank out the "Section" header
 colnames(all_cell_df)[1] <- ""
 
@@ -272,8 +288,10 @@ data_row  <- caption_row + 2
 
 # Get sheet #
 sheet_num <- length(wb$sheet_names) + 1
+
 # Generate sheet name
 sheet_name <- paste0("Table ", sheet_num, "꞉ All cell markers")
+
 # Add to workbook
 wb <- wb %>%
   wb_add_worksheet(sheet_name) %>%
