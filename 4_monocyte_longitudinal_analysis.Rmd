@@ -1131,6 +1131,17 @@ monocytes@meta.data <- monocytes@meta.data %>%
 # Break up into multiple lines for plotting
 monocytes$bio_annotation_wrapped <- str_wrap(monocytes$bio_annotation, width = 15)
 
+# Lookup to map wrapped labels back to single-line versions for the legend
+label_lookup <- monocytes@meta.data %>%
+    distinct(bio_annotation_wrapped, bio_annotation) %>%
+    { setNames(.$bio_annotation, .$bio_annotation_wrapped) }
+
+# Blend a colour toward white; amount = 0 is unchanged, 1 is pure white
+lighten_col <- function(col, amount = 0.65) {
+    rgb_vals <- grDevices::col2rgb(col) / 255
+    grDevices::rgb(t(rgb_vals + (1 - rgb_vals) * amount))
+}
+
 # --- Capture original color mapping WITHOUT order=9 ---
 temp_plot <- monocytes %>%
     DimPlot(reduction = "wnn.umap", group.by = "bio_annotation_wrapped", combine = FALSE) %>%
@@ -1161,12 +1172,13 @@ monocyte_bio_umap <-
     pluck(1) +
     ggtitle("") +
     theme(plot.title = element_text(size = 18),
-          legend.text = element_text(size = 18)) +
+          legend.text = element_text(size = 22)) +
     scale_color_manual(
         values = all_colours,
         breaks = lapply(levels(monocytes$seurat_clusters), function(x){
             monocytes@meta.data %>% filter(seurat_clusters == x) %>% pull(bio_annotation_wrapped) %>% unique()
-        }) %>% unlist()
+        }) %>% unlist(),
+        labels = function(x) unname(label_lookup[x])
     )
 
 # Find and style the label layer
@@ -1177,7 +1189,7 @@ label_idx <- which(sapply(
 monocyte_bio_umap$layers[[label_idx]]$aes_params$fill      <- "white"
 monocyte_bio_umap$layers[[label_idx]]$aes_params$alpha     <- NULL
 monocyte_bio_umap$layers[[label_idx]]$aes_params$fontface  <- "bold"
-monocyte_bio_umap$layers[[label_idx]]$aes_params$size      <- 5.5
+monocyte_bio_umap$layers[[label_idx]]$aes_params$size      <- 6.5
 monocyte_bio_umap$layers[[label_idx]]$aes_params$linewidth <- 0.4
 monocyte_bio_umap$layers[[label_idx]]$aes_params$colour    <- "black"
 
@@ -1189,7 +1201,8 @@ monocyte_bio_umap$layers[[label_idx]]$data <-
     filter(bio_annotation_wrapped != target_label)
 
 # Get target colour from the named vector (no ambiguity)
-target_col <- all_colours[target_label]
+target_col      <- all_colours[target_label]
+target_col_fill <- lighten_col(target_col, amount = 0.65)
 
 # Get centroid from embeddings
 centroid <- monocytes@reductions$wnn.umap@cell.embeddings %>%
@@ -1249,20 +1262,21 @@ label_idx <- label_idx + length(new_layers)
 monocyte_bio_umap <- monocyte_bio_umap +
     annotate(
         "label",
-        x        = centroid$x - 3,
-        y        = centroid$y + 4,
-        label    = target_label,
-        size     = 5.5,
-        fill     = "white",
-        fontface = "bold",
-        colour   = target_col
+        x          = centroid$x - 3,
+        y          = centroid$y + 4,
+        label      = target_label,
+        size       = 6.5,
+        fill       = target_col_fill,
+        fontface   = "bold",
+        colour     = "black",
+        label.size = 0.4
     )
 
 monocyte_bio_umap
 
 # Save as PNG
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/bio_annotation_umap.png"),
-       monocyte_bio_umap, width = 15, height = 9, bg = "white")
+       monocyte_bio_umap, width = 18, height = 11, bg = "white")
 
 # Save updated Seurat object with bio. annotations
 # SaveH5Seurat(monocytes, paste0(project_path, "data/h5seurat/monocytes_3.h5seurat"))
