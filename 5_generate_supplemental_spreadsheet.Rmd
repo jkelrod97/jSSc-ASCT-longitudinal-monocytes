@@ -422,7 +422,6 @@ RNA_annotation <- list(
   "T-like" = c("CD3E", "CD3D"),
   "NK-like" = c("NKG7", "KLRD1")
 )
-
 ADT_annotation <- list(
   "CD14+" = c("CD14"),
   "CD16+" = c("CD16"),
@@ -434,18 +433,19 @@ ADT_annotation <- list(
 # Get cell types
 cell_types <- names(RNA_markers)
 
-
 # Extract RNA and ADT genes
 RNA_genes <- lapply(RNA_markers, function(d) d$gene)
 ADT_genes <- lapply(ADT_markers, function(d) d$gene)   # adjust if ADT uses a different column name
-
 monocyte_df <- rbind(
   make_single_row(cluster_nums,   "Cluster IDs"),
   make_single_row(RNA_annotation, "RNA markers"),
   make_single_row(ADT_annotation, "ADT markers"),
+  make_blank_row(),
   make_block(RNA_genes, "Top 100 DE genes (by p-value)",      100),
+  make_blank_row(),
   make_block(ADT_genes, "Top 20 DE antibodies (by p-value)",   20)
 )
+
 # Blank out the "Section" header
 colnames(monocyte_df)[1] <- ""
 
@@ -458,8 +458,10 @@ data_row    <- caption_row + 2          # +1 caption, +1 blank row
 
 # Get sheet #
 sheet_num <- length(wb$sheet_names) + 1
+
 # Generate sheet name
 sheet_name <- paste0("Table ", sheet_num, "꞉ Monocyte markers")
+
 # Add to workbook
 wb <- wb %>%
   wb_add_worksheet(sheet_name) %>%
