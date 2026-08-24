@@ -1,0 +1,221 @@
+---
+title: "6: Generate supporting data values spreadsheets"
+output: html_notebook
+---
+
+JCI Insight requires an excel file containing supporting data values for all graphs. We generate the file here, using RDS files saved in previous notebooks.
+
+We start by setting the project path and loading packages.
+
+```{r}
+# Set project path
+project_path <- "/Users/juliaelrod/Desktop/cmu/research/scleroderma/jSSc_ASCT_monocytes_manuscript/code_for_manuscript/"
+
+# Load packages
+library(dplyr)
+library(openxlsx2)
+library(Seurat)
+library(SeuratDisk)
+library(tidyr)
+library(stringr)
+library(purrr)
+```
+
+We begin by creating the workbook.
+
+```{r}
+wb <- wb_workbook()
+
+# Helper: add a bold title/label cell
+wb_add_title <- function(wb, sheet, x, start_row, start_col = 1) {
+  wb %>%
+    wb_add_data(sheet = sheet, x = x, start_row = start_row, start_col = start_col) %>%
+    wb_add_font(sheet = sheet,
+                dims = wb_dims(rows = start_row, cols = start_col),
+                bold = "1")
+}
+
+# Helper: add a data frame with bolded headers and (optionally) bolded first column.
+# Numeric columns are rounded to 3 significant figures.
+wb_add_table <- function(wb, sheet, x, start_row = 1, start_col = 1, bold_first_col = TRUE) {
+  # Round numeric columns to 3 significant figures (base R, tolerates blank colnames)
+  num_cols <- vapply(x, is.numeric, logical(1))
+  x[num_cols] <- lapply(x[num_cols], signif, 3)
+  end_col <- start_col + ncol(x) - 1
+  wb <- wb %>%
+    wb_add_data(sheet = sheet, x = x, start_row = start_row, start_col = start_col) %>%
+    wb_add_font(sheet = sheet,
+                dims = wb_dims(rows = start_row, cols = start_col:end_col),
+                bold = "1")
+  if (bold_first_col && nrow(x) > 0) {
+    wb <- wb %>%
+      wb_add_font(sheet = sheet,
+                  dims = wb_dims(rows = (start_row + 1):(start_row + nrow(x)),
+                                 cols = start_col),
+                  bold = "1")
+  }
+  wb
+}
+```
+
+1. Figure 2F
+
+```{r}
+dat <- readRDS(paste0(project_path, "data/supporting_data_values/2F.RDS"))
+
+# Set sheet name
+sheet_name <- paste0("Fig. 2F")
+
+# Add to workbook
+wb <- wb %>%
+  wb_add_worksheet(sheet_name) %>%
+  wb_add_table(sheet = sheet_name, x = dat)
+```
+
+2. Figure 3A
+
+```{r}
+dat <- readRDS(paste0(project_path, "data/supporting_data_values/3A.RDS"))
+
+# Set sheet name
+sheet_name <- paste0("Fig. 3A")
+
+# Add to workbook
+wb <- wb %>%
+  wb_add_worksheet(sheet_name) %>%
+  wb_add_table(sheet = sheet_name, x = dat)
+```
+
+3. Figure 3B
+
+```{r}
+dat <- readRDS(paste0(project_path, "data/supporting_data_values/3B.RDS"))
+
+# Set sheet name
+sheet_name <- paste0("Fig. 3B")
+
+# Add to workbook
+wb <- wb %>%
+  wb_add_worksheet(sheet_name) %>%
+  wb_add_table(sheet = sheet_name, x = dat)
+```
+
+4. Supplemental figure 3A
+
+```{r}
+dat <- readRDS(paste0(project_path, "data/supporting_data_values/Supp3A.RDS"))
+
+# Set sheet name
+sheet_name <- paste0("S Fig. 3A")
+
+# Add to workbook
+wb <- wb %>%
+  wb_add_worksheet(sheet_name) %>%
+  wb_add_table(sheet = sheet_name, x = dat)
+```
+
+5. Supplemental figure 3B
+
+```{r}
+dat <- readRDS(paste0(project_path, "data/supporting_data_values/Supp3B.RDS"))
+
+# Set sheet name
+sheet_name <- paste0("S Fig. 3B")
+
+# Add to workbook
+wb <- wb %>%
+  wb_add_worksheet(sheet_name) %>%
+  wb_add_table(sheet = sheet_name, x = dat)
+```
+
+6. Supplemental figure 3C
+
+```{r}
+dat <- readRDS(paste0(project_path, "data/supporting_data_values/Supp3C.RDS"))
+
+# Set sheet name
+sheet_name <- paste0("S Fig. 3C")
+
+# Add to workbook
+wb <- wb %>%
+  wb_add_worksheet(sheet_name) %>%
+  wb_add_table(sheet = sheet_name, x = dat)
+```
+
+7. Supplemental figure 4
+
+```{r}
+dat <- readRDS(paste0(project_path, "data/supporting_data_values/Supp4.RDS"))
+
+# Set sheet name
+sheet_name <- paste0("S Fig. 4")
+
+# Add to workbook
+wb <- wb %>%
+  wb_add_worksheet(sheet_name) %>%
+  wb_add_table(sheet = sheet_name, x = dat)
+```
+
+8. Supplemental figure 5
+
+```{r}
+dat <- readRDS(paste0(project_path, "data/supporting_data_values/Supp5.RDS"))
+
+# Set sheet name
+sheet_name <- paste0("S Fig. 5")
+
+# Add to workbook
+wb <- wb %>%
+  wb_add_worksheet(sheet_name) %>%
+  wb_add_table(sheet = sheet_name, x = dat)
+```
+
+9. Supplemental figure 6A
+
+```{r}
+dat <- readRDS(paste0(project_path, "data/supporting_data_values/Supp6A.RDS"))
+
+# Set sheet name
+sheet_name <- paste0("S Fig. 6A")
+
+# Add to workbook
+wb <- wb %>%
+  wb_add_worksheet(sheet_name) %>%
+  wb_add_table(sheet = sheet_name, x = dat)
+```
+
+10. Supplemental figure 6B
+
+```{r}
+dat <- readRDS(paste0(project_path, "data/supporting_data_values/Supp6B.RDS"))
+
+# Set sheet name
+sheet_name <- paste0("S Fig. 6B")
+
+# Add to workbook
+wb <- wb %>%
+  wb_add_worksheet(sheet_name) %>%
+  wb_add_table(sheet = sheet_name, x = dat)
+```
+
+Format and save the workbook
+
+```{r}
+# Auto-fit column widths on every sheet.
+for (sn in wb$get_sheet_names()) {
+  df <- wb_to_df(wb, sheet = sn, col_names = FALSE)
+  if (is.null(df) || ncol(df) == 0) next
+
+  widths <- vapply(df, function(col) {
+    vals <- as.character(col)
+    vals <- vals[!is.na(vals) & vals != ""]
+    if (length(vals) == 0) return(8.43)              # Excel default width
+    min(max(nchar(vals)) + 2, 255)                   # +2 padding, cap at Excel max
+  }, numeric(1))
+
+  wb <- wb_set_col_widths(wb, sheet = sn, cols = seq_along(widths), widths = widths)
+}
+
+wb_save(wb, paste0(project_path, "data/supporting_data_values/supporting_data_values.xlsx"), overwrite = T)
+```
+

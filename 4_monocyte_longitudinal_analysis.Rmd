@@ -902,7 +902,7 @@ SSc12_v_h_PB_volc_results <- SSc12_v_h_PB_results %>%
 SSc12_v_h_PB_volc_results$`SSc 12 mo. vs. Healthy` <- factor(SSc12_v_h_PB_volc_results$`SSc 12 mo. vs. Healthy`, levels = c("Up", "Down", "Not significant"))
 
 # Save as RDS for supporting data values file
-SuppFig3BDat <- SSc6_v_h_PB_volc_results %>% 
+SuppFig3BDat <- SSc12_v_h_PB_volc_results %>% 
   mutate(highlight = case_when(
     is.na(delabel) ~ FALSE,
     .default = TRUE
@@ -976,7 +976,7 @@ SSc24_v_h_PB_volc_results <- SSc24_v_h_PB_results %>%
 SSc24_v_h_PB_volc_results$`SSc 24 mo. vs. Healthy` <- factor(SSc24_v_h_PB_volc_results$`SSc 24 mo. vs. Healthy`, levels = c("Up", "Down", "Not significant"))
 
 # Save as RDS for supporting data values file
-SuppFig3CDat <- SSc6_v_h_PB_volc_results %>% 
+SuppFig3CDat <- SSc24_v_h_PB_volc_results %>% 
   mutate(highlight = case_when(
     is.na(delabel) ~ FALSE,
     .default = TRUE
