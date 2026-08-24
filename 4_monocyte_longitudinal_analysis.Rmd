@@ -462,6 +462,14 @@ We start with decreasing genes.
 # Plot with custom function
 gene_plots_down <- plot_pb_offset(pbo_monocytes, topgenes_down, groupBy = "subject")
 
+# Put in data frame for supporting data values spreadsheet
+SuppFig4Dat <- gene_plots_down %>%
+  lapply(function(GGPLOT){GGPLOT@data}) %>%
+  bind_rows(.id = "gene")
+rownames(SuppFig4Dat) <- NULL
+# Save as RDS
+saveRDS(SuppFig4Dat, paste0(project_path, "data/supporting_data_values/Supp4.RDS"))
+
 # Arrange plots
 gene_plots_down_clean <- lapply(seq_along(gene_plots_down), function(i) {
   p <- gene_plots_down[[i]]
@@ -507,6 +515,14 @@ Now for increasing genes/pathways.
 ```{r}
 # Plot with custom function
 gene_plots_up <- plot_pb_offset(pbo_monocytes, topgenes_up, groupBy = "subject")
+
+# Put in data frame for supporting data values spreadsheet
+SuppFig5Dat <- gene_plots_up %>%
+  lapply(function(GGPLOT){GGPLOT@data}) %>%
+  bind_rows(.id = "gene")
+rownames(SuppFig5Dat) <- NULL
+# Save as RDS
+saveRDS(SuppFig5Dat, paste0(project_path, "data/supporting_data_values/Supp5.RDS"))
 
 # Arrange plots
 gene_plots_up_clean <- lapply(seq_along(gene_plots_up), function(i) {
@@ -556,6 +572,14 @@ six_down_degs <- c("SERPINE1", "FOSL1", "SMAD3", "TAGLN2", "CDKN1C", "LYN")
 
 # Plot with custom functions
 gene_plots_down_reduced <- plot_pb_offset(pbo_monocytes, six_down_degs, groupBy = "subject")
+
+# Put in data frame for supporting data values spreadsheet
+Fig3BDat <- gene_plots_down_reduced %>%
+  lapply(function(GGPLOT){GGPLOT@data}) %>%
+  bind_rows(.id = "gene")
+rownames(Fig3BDat) <- NULL
+# Save as RDS
+saveRDS(Fig3BDat, paste0(project_path, "data/supporting_data_values/3B.RDS"))
 
 # Clean individual plots
 gene_plots_down_reduced_clean <- lapply(seq_along(gene_plots_down_reduced), function(i) {
@@ -646,6 +670,19 @@ volc_results <- results %>%
 # Put significance levels in proper order
 volc_results$`Trend following ASCT` <- factor(volc_results$`Trend following ASCT`, levels = c("Up", "Down", "Not significant"))
 
+# Save as RDS for supporting data values file
+Fig3ADat <- volc_results %>% 
+  mutate(highlight = case_when(
+    is.na(delabel) ~ FALSE,
+    .default = TRUE
+  )) %>%
+  select(name,
+         pval,
+         adj_pval,
+         lfc,
+         highlight)
+saveRDS(Fig3ADat, paste0(project_path, "data/supporting_data_values/3A.RDS"))
+
 # Volcano plot
 jSSc_longitudinal_volcano <- ggplot(data = volc_results, aes(x = lfc, y = -log10(pval), col = `Trend following ASCT`, label = delabel)) +
   geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = 'dashed') +
@@ -713,6 +750,19 @@ SSc_v_h_PB_volc_results <- SSc_v_h_PB_results %>%
 # Put significance levels in proper order
 SSc_v_h_PB_volc_results$`SSc baseline vs. Healthy` <- factor(SSc_v_h_PB_volc_results$`SSc baseline vs. Healthy`, levels = c("Up", "Down", "Not significant"))
 
+# Save as RDS for supporting data values file
+Fig2FDat <- SSc_v_h_PB_volc_results %>% 
+  mutate(highlight = case_when(
+    is.na(delabel) ~ FALSE,
+    .default = TRUE
+  )) %>%
+  select(name,
+         pval,
+         adj_pval,
+         lfc,
+         highlight)
+saveRDS(Fig2FDat, paste0(project_path, "data/supporting_data_values/2F.RDS"))
+
 # Volcano plot
 SSc_v_h_volcano <- ggplot(data = SSc_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc baseline vs. Healthy`, label = delabel)) +
   geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = 'dashed') +
@@ -777,6 +827,19 @@ SSc6_v_h_PB_volc_results <- SSc6_v_h_PB_results %>%
 # Put significance levels in proper order
 SSc6_v_h_PB_volc_results$`SSc 6 mo. vs. Healthy` <- factor(SSc6_v_h_PB_volc_results$`SSc 6 mo. vs. Healthy`, levels = c("Up", "Down", "Not significant"))
 
+# Save as RDS for supporting data values file
+SuppFig3ADat <- SSc6_v_h_PB_volc_results %>% 
+  mutate(highlight = case_when(
+    is.na(delabel) ~ FALSE,
+    .default = TRUE
+  )) %>%
+  select(name,
+         pval,
+         adj_pval,
+         lfc,
+         highlight)
+saveRDS(SuppFig3ADat, paste0(project_path, "data/supporting_data_values/Supp3A.RDS"))
+
 # Volcano plot
 SSc6_v_h_volcano <- ggplot(data = SSc6_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc 6 mo. vs. Healthy`, label = delabel)) +
   geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = 'dashed') +
@@ -838,6 +901,19 @@ SSc12_v_h_PB_volc_results <- SSc12_v_h_PB_results %>%
 # Put significance levels in proper order
 SSc12_v_h_PB_volc_results$`SSc 12 mo. vs. Healthy` <- factor(SSc12_v_h_PB_volc_results$`SSc 12 mo. vs. Healthy`, levels = c("Up", "Down", "Not significant"))
 
+# Save as RDS for supporting data values file
+SuppFig3BDat <- SSc6_v_h_PB_volc_results %>% 
+  mutate(highlight = case_when(
+    is.na(delabel) ~ FALSE,
+    .default = TRUE
+  )) %>%
+  select(name,
+         pval,
+         adj_pval,
+         lfc,
+         highlight)
+saveRDS(SuppFig3BDat, paste0(project_path, "data/supporting_data_values/Supp3B.RDS"))
+
 # Volcano plot
 SSc12_v_h_volcano <- ggplot(data = SSc12_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc 12 mo. vs. Healthy`, label = delabel)) +
   geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = 'dashed') +
@@ -898,6 +974,19 @@ SSc24_v_h_PB_volc_results <- SSc24_v_h_PB_results %>%
 
 # Put significance levels in proper order
 SSc24_v_h_PB_volc_results$`SSc 24 mo. vs. Healthy` <- factor(SSc24_v_h_PB_volc_results$`SSc 24 mo. vs. Healthy`, levels = c("Up", "Down", "Not significant"))
+
+# Save as RDS for supporting data values file
+SuppFig3CDat <- SSc6_v_h_PB_volc_results %>% 
+  mutate(highlight = case_when(
+    is.na(delabel) ~ FALSE,
+    .default = TRUE
+  )) %>%
+  select(name,
+         pval,
+         adj_pval,
+         lfc,
+         highlight)
+saveRDS(SuppFig3CDat, paste0(project_path, "data/supporting_data_values/Supp3C.RDS"))
 
 # Volcano plot
 SSc24_v_h_volcano <- ggplot(data = SSc24_v_h_PB_volc_results, aes(x = lfc, y = -log10(pval), col = `SSc 24 mo. vs. Healthy`, label = delabel)) +
@@ -1014,6 +1103,9 @@ nfkb_df <- nfkb_df %>%
                                         "SSc 12 mo vs. healthy",
                                         "SSc 24 mo vs. healthy")),
          neg_log_p = -log10(p.adjust))
+rownames(nfkb_df) <- NULL
+# Save as RDS for supporting data values
+saveRDS(nfkb_df, paste0(project_path, "data/supporting_data_values/Supp6A.RDS"))
 
 # Plot it
 nfkb_plot <-
@@ -1046,6 +1138,9 @@ inflammation_df <- inflammation_df %>%
                                         "SSc 12 mo vs. healthy",
                                         "SSc 24 mo vs. healthy")),
          neg_log_p = -log10(p.adjust))
+rownames(inflammation_df) <- NULL
+# Save as RDS for supporting data values
+saveRDS(inflammation_df, paste0(project_path, "data/supporting_data_values/Supp6B.RDS"))
 
 # Plot it
 inflammation_plot <-
