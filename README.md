@@ -1,4 +1,6 @@
-Code accompanying longitudinal scRNA-seq jSSc ASCT monocytes paper (Elrod et al.)
+Code accompanying "Longitudinal single-cell modeling reveals monocyte reprogramming in juvenile systemic sclerosis following autologous stem cell transplantation" (Elrod et al. 2026)
+
+Preprint: https://www.biorxiv.org/content/10.64898/2026.08.21.738279v1
 
 Torok lab, UPMC Children's hospital.
 
@@ -13,4 +15,5 @@ Files are executed in this order:
 6. **2_pbmc_cell_type_annotation.Rmd**: Perform multimodal clustering and cell type annotation on PBMCs.
 7. **3_monocyte_subtype_annotation.Rmd**: Sub-cluster monocytes and annotate subtypes.
 8. **4_monocyte_longitudinal_analysis.Rmd**: Implement longitudinal analysis to identify differentially express genes in jSSc monocytes over time since ASCT. 
-9. **5_generate_supplemental_spreadsheet.Rmd**: Generate Excel workbook with supplemental tables. 
+9. **5_generate_supplemental_spreadsheet.Rmd**: Generate Excel workbook with supplemental tables.
+10. **6_generate_supporting_data_values**: Generate supporting data values XLSX workbook.
