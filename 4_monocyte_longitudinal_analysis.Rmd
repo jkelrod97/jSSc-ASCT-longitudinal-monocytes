@@ -127,6 +127,129 @@ gsea$DOWN@result %>% head()
 gsea$UP@result %>% head()
 ```
 
+Note from a reviewer: Do these genes behave similarly in classical vs non-classical monocytes, or are there subsets that are restricted to one of the two large monocyte subpopulations seen?
+
+We investigate below: 
+
+```{r}
+# Subset out CD14 patient monocytes
+cd14_SSc_monocytes <- subset(SSc_monocytes, cell_type == "CD14+")
+cd16_SSc_monocytes <- subset(SSc_monocytes, cell_type == "CD16+")
+
+# Design (same as before)
+design_formula <- ~ subject + poly(timepoint)
+
+# Fit offset pseudobulk models
+# CD14
+pbo_CD14_monocytes <- pb_offset(
+  seurat_obj = cd14_SSc_monocytes,
+  sample_id_variable = "sample_id",
+  design_formula = design_formula)
+# CD16
+pbo_CD16_monocytes <- pb_offset(
+  seurat_obj = cd16_SSc_monocytes,
+  sample_id_variable = "sample_id",
+  design_formula = design_formula)
+
+# Test for significant effect of time since ASCT
+results_CD14 <- test_de(pbo_CD14_monocytes$fit, `poly(timepoint)`) %>% 
+  arrange(pval)
+results_CD16 <- test_de(pbo_CD16_monocytes$fit, `poly(timepoint)`) %>% 
+  arrange(pval)
+
+# Add direction (whether expression goes up or down over time) to results data frame
+results_CD14_sig <- results_CD14 %>% filter(pval < 0.05) %>% mutate(direction = case_when(
+  lfc > 0 ~ 'UP',
+  lfc < 0 ~ 'DOWN',
+))
+# Add direction (whether expression goes up or down over time) to results data frame
+results_CD16_sig <- results_CD16 %>% filter(pval < 0.05) %>% mutate(direction = case_when(
+  lfc > 0 ~ 'UP',
+  lfc < 0 ~ 'DOWN',
+))
+
+# For both sets of genes, check whether it is in results_sig and whether the direction matches
+
+# Track # of matches between broad monocyte results and CD14+ results
+CD14_match_total <- 0
+# Track names of matches between broad monocyte results and CD14+ results
+CD14_match_list <- c()
+# Track # of matches between broad monocyte results and CD16+ results
+CD16_match_total <- 0
+# Track names of matches between broad monocyte results and CD16+ results
+CD16_match_list <- c()
+
+# Loop over all significant genes in broad monocyte modl
+for (sig_gene in results_sig$name) {
+  # Check if significant in CD14+ model & if the directino is the same
+  if (sig_gene %in% results_CD14_sig$name && results_CD14_sig[which(results_CD14_sig$name == sig_gene), "direction"] == results_sig[which(results_sig$name == sig_gene), "direction"]) {
+    # Add to match count
+    CD14_match_total <- CD14_match_total + 1
+    # Add gene name to match list
+    CD14_match_list <- c(CD14_match_list, sig_gene)
+  }
+  # Check if significant in CD16+ model & if the direction is the same
+  if (sig_gene %in% results_CD16_sig$name && results_CD16_sig[which(results_CD16_sig$name == sig_gene), "direction"] == results_sig[which(results_sig$name == sig_gene), "direction"]) {
+    # Add to match count
+    CD16_match_total <- CD16_match_total + 1
+    # Add gene name to match list
+    CD16_match_list <- c(CD16_match_list, sig_gene)
+  }
+}
+
+# Get intersection between significant CD14+ and CD16+ genes
+intersect_list <- intersect(CD14_match_list, CD16_match_list)
+# Get # of genes in the intersection
+intersect_count <- intersect_list %>% length()
+# Number of unique CD14+ genes
+CD14_unique_count <- CD14_match_total - intersect_count
+# Number of unique CD16+ genes
+CD16_unique_count <- CD16_match_total - intersect_count
+
+# Get full results for these genes from broad monocyte model
+intersect_sig <- results_sig[results_sig$name %in% intersect_list, ]
+
+# Split the dataframe into a list of sub-dataframes: upregulated, downregulated genes
+intersect_results_list <- split(intersect_sig, intersect_sig$direction)
+
+# Check directions of unique CD14+ and CD16+ genes
+results_sig[results_sig$name %in% setdiff(CD14_match_list, intersect_list), ] %>% pull(direction) %>% table()
+results_sig[results_sig$name %in% setdiff(CD16_match_list, intersect_list), ] %>% pull(direction) %>% table()
+
+
+# GSEA
+# Run enricher R on each set of genes (up set and down set)
+gsea_interset <- lapply(names(intersect_results_list),
+              function(x) enricher(
+                  gene = intersect_results_list[[x]]$name,
+                  TERM2GENE = term2gene,
+                  TERM2NAME = term2name,
+                  universe = background_genes,
+                  pvalueCutoff = 1,
+                  qvalueCutoff = 1,
+                  minGSSize = 5,
+                  maxGSSize = 500
+              )) %>% setNames(names(intersect_results_list))
+
+# View results
+# DOWN
+gsea_interset$DOWN@result %>% head()
+# UP
+gsea_interset$UP@result %>% head()
+```
+
+We will add a column to results_sig that indicates whether the gene is significant in both classical/non-classical monocytes, one, the other, or neither
+
+```{r}
+results_sig$subtype <- ""
+results_sig[results_sig$name %in% intersect_list, "subtype"] <- "Both"
+results_sig[results_sig$name %in% setdiff(CD14_match_list, intersect_list), "subtype"] <- "CD14+"
+results_sig[results_sig$name %in% setdiff(CD16_match_list, intersect_list), "subtype"] <- "CD16+"
+```
+
+
+
+
 Now, we save
 a) genes that go down
 b) genes that go up
@@ -1739,6 +1862,5 @@ ggplot(jaccard_df, aes(Var2, Var1, fill = value)) +
         axis.text.y = element_text(color = "black"))
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/pathway_jaccard.png"), jaccard_plot, width = 10, height = 7)
 ```
-
 
 
