@@ -572,7 +572,8 @@ down_res <- down_res %>% select(
   "Gene" = "name",
   "P-value" = "pval",
   "Adjusted p-value" = "adj_pval",
-  "Log-fold change" = "lfc"
+  "Log-fold change" = "lfc",
+  "Subtype" = "subtype"
 )
 up_res <- read.csv(paste0(results_dir, "up_DEGs.csv"))
 # Adjust names + select desired variables
@@ -580,11 +581,12 @@ up_res <- up_res %>% select(
   "Gene" = "name",
   "P-value" = "pval",
   "Adjusted p-value" = "adj_pval",
-  "Log-fold change" = "lfc"
+  "Log-fold change" = "lfc",
+  "Subtype" = "subtype"
 )
 
 # Set caption
-caption <- "Genes with decreasing expression in jSSc monocytes over time since ASCT (p-value < 0.05, LFC ), identified by the model described in Methods and sorted by p-value."
+caption <- "Genes with significant longitudinal expression changes in jSSc monocytes over time since ASCT (p-value < 0.05, LFC ), identified by the model described in Methods and sorted by p-value. The Subtype column indicates whether genes were significant in separately run models with CD14+ cells only, CD16+ cells only, both, or neither (blank)."
 
 # Get sheet #
 sheet_num <- length(wb$sheet_names) + 1
@@ -642,7 +644,7 @@ up_pathways <- up_pathways %>%
          "Number of genes" = "Count")
 
 # Set caption
-caption <- "Pathways with decreasing activity in jSSc monocytes over time since ASCT, identified by performing GSEA on the genes in Supplementary Table 6 and sorted by p-value."
+caption <- "Pathways with significant changes in activity in jSSc monocytes over time since ASCT, identified by performing GSEA on the genes in Supplementary Table 7 and sorted by p-value."
 
 # Get sheet #
 sheet_num <- length(wb$sheet_names) + 1
