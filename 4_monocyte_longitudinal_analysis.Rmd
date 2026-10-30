@@ -249,6 +249,57 @@ results_sig[results_sig$name %in% setdiff(CD14_match_list, intersect_list), "sub
 results_sig[results_sig$name %in% setdiff(CD16_match_list, intersect_list), "subtype"] <- "CD16+"
 ```
 
+Let us also do separate GSEA for CD14+ and CD16+ DEGs
+
+```{r}
+# CD14
+# Split the dataframe into a list of sub-dataframes: upregulated, downregulated genes
+results_CD14_list <- split(results_CD14_sig, results_CD14_sig$direction)
+
+# GSEA
+# Run enricher R on each set of genes (up set and down set)
+gsea_CD14 <- lapply(names(results_CD14_list),
+              function(x) enricher(
+                  gene = results_CD14_list[[x]]$name,
+                  TERM2GENE = term2gene,
+                  TERM2NAME = term2name,
+                  universe = background_genes,
+                  pvalueCutoff = 1,
+                  qvalueCutoff = 1,
+                  minGSSize = 5,
+                  maxGSSize = 500
+              )) %>% setNames(names(results_CD14_list))
+
+# View results
+# DOWN
+gsea_CD14$DOWN@result %>% head()
+# UP
+gsea_CD14$UP@result %>% head()
+
+# CD16
+# Split the dataframe into a list of sub-dataframes: upregulated, downregulated genes
+results_CD16_list <- split(results_CD16_sig, results_CD16_sig$direction)
+
+# GSEA
+# Run enricher R on each set of genes (up set and down set)
+gsea_CD16 <- lapply(names(results_CD16_list),
+              function(x) enricher(
+                  gene = results_CD16_list[[x]]$name,
+                  TERM2GENE = term2gene,
+                  TERM2NAME = term2name,
+                  universe = background_genes,
+                  pvalueCutoff = 1,
+                  qvalueCutoff = 1,
+                  minGSSize = 5,
+                  maxGSSize = 500
+              )) %>% setNames(names(results_CD16_list))
+
+# View results
+# DOWN
+gsea_CD16$DOWN@result %>% head()
+# UP
+gsea_CD16$UP@result %>% head()
+```
 
 
 
@@ -261,6 +312,10 @@ e) genes that go down (CD14+)
 f) genes that go up (CD14+)
 g) genes that go down (CD16+)
 h) genes that go up (CD16+)
+i) pathways that go down (CD14+)
+j) pathways that go up (CD14+)
+k) pathways that go down (CD16+)
+l) pathways that go up (CD16+)
 
 ```{r}
 # a) genes that go down (ALL)
@@ -294,6 +349,22 @@ write_csv(down_res_CD16, paste0(results_dir, "down_DEGs_CD16.csv"))
 # g) genes that go up (CD16+)
 up_res_CD16 <- results_CD16_sig %>% filter(lfc > 0)
 write_csv(up_res_CD16, paste0(results_dir, "up_DEGs_CD16.csv"))
+
+# i) pathways that go down (CD14+)
+down_pathways_CD14 <- gsea_CD14$DOWN@result
+write_csv(down_pathways_CD14, paste0(results_dir, "down_GSEA_CD14.csv"))
+
+# j) pathways that go up (CD14+)
+up_pathways_CD14 <- gsea_CD14$UP@result
+write_csv(up_pathways_CD14, paste0(results_dir, "up_GSEA_CD14.csv"))
+
+# k) pathways that go down (CD16+)
+down_pathways_CD16 <- gsea_CD16$DOWN@result
+write_csv(down_pathways_CD16, paste0(results_dir, "down_GSEA_CD16.csv"))
+
+# l) pathways that go up (CD16+)
+up_pathways_CD16 <- gsea_CD16$UP@result
+write_csv(up_pathways_CD16, paste0(results_dir, "up_GSEA_CD16.csv"))
 ```
 
 
