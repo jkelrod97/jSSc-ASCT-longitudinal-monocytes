@@ -586,7 +586,7 @@ up_res <- up_res %>% select(
 )
 
 # Set caption
-caption <- "Genes with significant longitudinal expression changes in jSSc monocytes over time since ASCT (p-value < 0.05, LFC ), identified by the model described in Methods and sorted by p-value. The Subtype column indicates whether genes were significant in separately run models with CD14+ cells only, CD16+ cells only, both, or neither (blank)."
+caption <- "Genes with significant longitudinal expression changes in jSSc monocytes over time since ASCT (p-value < 0.05), identified by the model described in Methods and sorted by p-value. The Subtype column indicates whether genes were significant in separately run models with CD14+ cells only, CD16+ cells only, both, or neither (blank)."
 
 # Get sheet #
 sheet_num <- length(wb$sheet_names) + 1
@@ -677,7 +677,115 @@ wb <- wb %>%
                start_row = data_row,  start_col = right_col, bold_first_col = FALSE)
 ```
 
-9. Now we add the top 50 DEGs for each monocyte sub-cluster, as well as the markers we use to label each sub-cluster. 
+9. Longitudinal DEGs in SSc CD14+ monocytes
+
+```{r}
+down_res_CD14 <- read.csv(paste0(results_dir, "down_DEGs_CD14.csv"))
+# Adjust names + select desired variables
+down_res_CD14 <- down_res_CD14 %>% select(
+  "Gene" = "name",
+  "P-value" = "pval",
+  "Adjusted p-value" = "adj_pval",
+  "Log-fold change" = "lfc"
+)
+up_res_CD14 <- read.csv(paste0(results_dir, "up_DEGs_CD14.csv"))
+# Adjust names + select desired variables
+up_res_CD14 <- up_res_CD14 %>% select(
+  "Gene" = "name",
+  "P-value" = "pval",
+  "Adjusted p-value" = "adj_pval",
+  "Log-fold change" = "lfc"
+)
+
+# Set caption
+caption <- "Genes with significant longitudinal expression changes in jSSc CD14+ monocytes over time since ASCT (p-value < 0.05), identified by the model described in Methods and sorted by p-value."
+
+# Get sheet #
+sheet_num <- length(wb$sheet_names) + 1
+# Generate sheet name
+sheet_name <- paste0("Table ", sheet_num, "꞉ CD14 long. mon. DEGs")
+
+# Column positions
+left_col  <- 1
+right_col <- ncol(down_res_CD14) + 2   # gap of 1 column between left/right tables
+
+# Row positions
+caption_row <- 1
+label_row   <- caption_row + 2    # +1 caption, +1 blank row
+data_row    <- label_row + 1
+
+# Add to workbook
+wb <- wb %>%
+  wb_add_worksheet(sheet_name) %>%
+  wb_add_title(sheet = sheet_name, x = paste0("Supplemental Table ", sheet_num, ": ", caption),
+               start_row = caption_row, start_col = left_col) %>%
+  # Left
+  wb_add_title(sheet = sheet_name, x = "Decreasing DEGs over time since ASCT in jSSc CD14+ monocytes",
+               start_row = label_row, start_col = left_col) %>%
+  wb_add_table(sheet = sheet_name, x = down_res_CD14,
+               start_row = data_row,  start_col = left_col, bold_first_col = FALSE) %>%
+  # Right
+  wb_add_title(sheet = sheet_name, x = "Increasing DEGs over time since ASCT in jSSc CD14+ monocytes",
+               start_row = label_row, start_col = right_col) %>%
+  wb_add_table(sheet = sheet_name, x = up_res_CD14,
+               start_row = data_row,  start_col = right_col, bold_first_col = FALSE)
+```
+
+10. Longitudinal DEGs in SSc CD16+ monocytes
+
+```{r}
+down_res_CD16 <- read.csv(paste0(results_dir, "down_DEGs_CD16.csv"))
+# Adjust names + select desired variables
+down_res_CD16 <- down_res_CD16 %>% select(
+  "Gene" = "name",
+  "P-value" = "pval",
+  "Adjusted p-value" = "adj_pval",
+  "Log-fold change" = "lfc"
+)
+up_res_CD16 <- read.csv(paste0(results_dir, "up_DEGs_CD16.csv"))
+# Adjust names + select desired variables
+up_res_CD16 <- up_res_CD16 %>% select(
+  "Gene" = "name",
+  "P-value" = "pval",
+  "Adjusted p-value" = "adj_pval",
+  "Log-fold change" = "lfc"
+)
+
+# Set caption
+caption <- "Genes with significant longitudinal expression changes in jSSc CD16+ monocytes over time since ASCT (p-value < 0.05), identified by the model described in Methods and sorted by p-value."
+
+# Get sheet #
+sheet_num <- length(wb$sheet_names) + 1
+# Generate sheet name
+sheet_name <- paste0("Table ", sheet_num, "꞉ CD16 long. mon. DEGs")
+
+# Column positions
+left_col  <- 1
+right_col <- ncol(down_res_CD16) + 2   # gap of 1 column between left/right tables
+
+# Row positions
+caption_row <- 1
+label_row   <- caption_row + 2    # +1 caption, +1 blank row
+data_row    <- label_row + 1
+
+# Add to workbook
+wb <- wb %>%
+  wb_add_worksheet(sheet_name) %>%
+  wb_add_title(sheet = sheet_name, x = paste0("Supplemental Table ", sheet_num, ": ", caption),
+               start_row = caption_row, start_col = left_col) %>%
+  # Left
+  wb_add_title(sheet = sheet_name, x = "Decreasing DEGs over time since ASCT in jSSc CD16+ monocytes",
+               start_row = label_row, start_col = left_col) %>%
+  wb_add_table(sheet = sheet_name, x = down_res_CD16,
+               start_row = data_row,  start_col = left_col, bold_first_col = FALSE) %>%
+  # Right
+  wb_add_title(sheet = sheet_name, x = "Increasing DEGs over time since ASCT in jSSc CD16+ monocytes",
+               start_row = label_row, start_col = right_col) %>%
+  wb_add_table(sheet = sheet_name, x = up_res_CD16,
+               start_row = data_row,  start_col = right_col, bold_first_col = FALSE)
+```
+
+11. Now we add the top 50 DEGs for each monocyte sub-cluster, as well as the markers we use to label each sub-cluster. 
 
 ```{r}
 # Set path
