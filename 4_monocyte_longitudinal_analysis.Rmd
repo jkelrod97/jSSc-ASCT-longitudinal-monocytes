@@ -168,6 +168,8 @@ results_CD16_sig <- results_CD16 %>% filter(pval < 0.05) %>% mutate(direction = 
   lfc < 0 ~ 'DOWN',
 ))
 
+
+
 # For both sets of genes, check whether it is in results_sig and whether the direction matches
 
 # Track # of matches between broad monocyte results and CD14+ results
@@ -219,7 +221,7 @@ results_sig[results_sig$name %in% setdiff(CD16_match_list, intersect_list), ] %>
 
 # GSEA
 # Run enricher R on each set of genes (up set and down set)
-gsea_interset <- lapply(names(intersect_results_list),
+gsea_intersect <- lapply(names(intersect_results_list),
               function(x) enricher(
                   gene = intersect_results_list[[x]]$name,
                   TERM2GENE = term2gene,
@@ -233,9 +235,9 @@ gsea_interset <- lapply(names(intersect_results_list),
 
 # View results
 # DOWN
-gsea_interset$DOWN@result %>% head()
+gsea_intersect$DOWN@result %>% head()
 # UP
-gsea_interset$UP@result %>% head()
+gsea_intersect$UP@result %>% head()
 ```
 
 We will add a column to results_sig that indicates whether the gene is significant in both classical/non-classical monocytes, one, the other, or neither
@@ -251,27 +253,47 @@ results_sig[results_sig$name %in% setdiff(CD16_match_list, intersect_list), "sub
 
 
 Now, we save
-a) genes that go down
-b) genes that go up
-c) pathways that go down
-d) pathways that go up
+a) genes that go down (ALL)
+b) genes that go up (ALL)
+c) pathways that go down (ALL)
+d) pathways that go up (ALL)
+e) genes that go down (CD14+)
+f) genes that go up (CD14+)
+g) genes that go down (CD16+)
+h) genes that go up (CD16+)
 
 ```{r}
-# # Down genes
+# a) genes that go down (ALL)
 down_res <- results_sig %>% filter(lfc < 0)
 write_csv(down_res, paste0(results_dir, "down_DEGs.csv"))
 
-# # Up genes
+# b) genes that go up (ALL)
 up_res <- results_sig %>% filter(lfc > 0)
 write_csv(up_res, paste0(results_dir, "up_DEGs.csv"))
 
-# # Down pathways
+# c) pathways that go down (ALL)
 down_pathways <- gsea$DOWN@result
 write_csv(down_pathways, paste0(results_dir, "down_GSEA.csv"))
 
-# # Up pathways
+# d) pathways that go up (ALL)
 up_pathways <- gsea$UP@result
 write_csv(up_pathways, paste0(results_dir, "up_GSEA.csv"))
+
+# e) genes that go down (CD14+)
+down_res_CD14 <- results_CD14_sig %>% filter(lfc < 0)
+write_csv(down_res_CD14, paste0(results_dir, "down_DEGs_CD14.csv"))
+
+# f) genes that go up (CD14+)
+up_res_CD14 <- results_CD14_sig %>% filter(lfc > 0)
+write_csv(up_res_CD14, paste0(results_dir, "up_DEGs_CD14.csv"))
+
+# g) genes that go down (CD16+)
+down_res_CD16 <- results_CD16_sig %>% filter(lfc < 0)
+write_csv(down_res_CD16, paste0(results_dir, "down_DEGs_CD16.csv"))
+
+# g) genes that go up (CD16+)
+up_res_CD16 <- results_CD16_sig %>% filter(lfc > 0)
+write_csv(up_res_CD16, paste0(results_dir, "up_DEGs_CD16.csv"))
 ```
 
 
@@ -1714,6 +1736,42 @@ write_csv(baseline_v_h_clus9, paste0(results_dir, "six_v_h_clus9.csv"))
 
 
 ```
+
+We will run GSEA on genes upregulated in jSSc at baseline (compared to healthy controls) and then separately on genes upregulated in healthy controls (compared to jSSc at baseline).
+
+```{r}
+clus9_jSSc_bas_genes <- baseline_v_h_clus9 %>% filter(group == "baseline") %>% pull("gene")
+clus9_healthy_genes <- baseline_v_h_clus9 %>% filter(group == "healthy") %>% pull("gene")
+
+# GSEA
+gsea_clus9_jSSc_bas <- enricher(
+                  gene = clus9_jSSc_bas_genes,
+                  TERM2GENE = term2gene,
+                  TERM2NAME = term2name,
+                  universe = background_genes,
+                  pvalueCutoff = 1,
+                  qvalueCutoff = 1,
+                  minGSSize = 5,
+                  maxGSSize = 500)
+
+# View results
+gsea_clus9_jSSc_bas@result %>% pull(ID) %>% head(30)
+
+gsea_clus9_healthy <- enricher(
+                  gene = clus9_healthy_genes,
+                  TERM2GENE = term2gene,
+                  TERM2NAME = term2name,
+                  universe = background_genes,
+                  pvalueCutoff = 1,
+                  qvalueCutoff = 1,
+                  minGSSize = 5,
+                  maxGSSize = 500)
+
+# View results
+gsea_clus9_healthy@result %>% pull(ID) %>% head(30)
+```
+
+
 
 We need a plot showing cluster 9 proportions by group
 
