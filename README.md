@@ -17,3 +17,15 @@ Files are executed in this order:
 8. **4_monocyte_longitudinal_analysis.Rmd**: Implement longitudinal analysis to identify differentially express genes in jSSc monocytes over time since ASCT. 
 9. **5_generate_supplemental_spreadsheet.Rmd**: Generate Excel workbook with supplemental tables.
 10. **6_generate_supporting_data_values**: Generate supporting data values XLSX workbook.
+
+## Sample label correction (2026-11-03)
+
+Healthy controls H1–H4 and patient 594 (baseline, 6, 12, and 24 months) were found to have their labels swapped. The whole pool was affected: the library originally labelled "594" is the healthy pool, and the other way round. Every label in this repository, the cellranger config CSVs, the FASTQ file names, and the data folders has been corrected, so the labels used throughout refer to the correct samples. The sequencing library IDs (`CKDL…`) stay attached to their data. Cellranger was **not** rerun; its existing outputs were renamed.
+
+- `sample_swap.csv`: every rename rule (sample, pool, library/FASTQ prefix, and bamtofastq folder level).
+- `sample_swap.py`: applies the rules.
+  - `python3 sample_swap.py rename <dir> --dry-run` previews renaming files and folders under `<dir>`. Drop `--dry-run` to apply.
+  - Renames go through temporary names in two passes. md5 checksums are recorded before and after, and a log and manifest are written to `<dir>/sample_swap_logs/`.
+  - `python3 sample_swap.py text <files>` swaps labels inside config files.
+
+Downstream objects saved before the correction (h5seurat, SoupX, COMPOSITE, DEG/GSEA outputs, supplement) are out of date. Regenerate them by rerunning steps 4–10 above.

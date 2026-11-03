@@ -339,7 +339,7 @@ SaveH5Seurat(scler_pbmc,
 
 ```{r}
 # Path where pooled cellranger multi outputs are saved
-path_to_cellranger_denoise <- paste0(project_path, "data/cellranger_output/cellranger_count/cellranger_pooled_for_denoising")
+path_to_cellranger_denoise <- paste0(project_path, "data/cellranger_output/cellranger_pooled_for_denoising/")
 
 # Load (demultiplexed) Seurat object
 scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_2.h5seurat"))
@@ -354,14 +354,16 @@ filtered_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cell
 # Name accordingly
 names(raw_wells) <- names(filtered_wells) <- subjects
 
-# # Run soup for each well individually
-# soup_wells <- mapply(run_soup,
-#                     raw_counts = raw_wells,
-#                     filtered_counts = filtered_wells,
-#                     subject = gsub("^p", "", subjects),
-#                     SIMPLIFY = F)
-# # Save as RDS
-# saveRDS(soup_wells, paste0(project_path, "data/RDS_files/soup_wells/PBMC_soup.RDS"))
+# Run soup for each well individually
+# (Re-enabled 2026-11-03: the cached PBMC_soup.RDS was built with the H <-> 594
+# pool labels swapped and must be regenerated. See sample_swap.csv.)
+soup_wells <- mapply(run_soup,
+                    raw_counts = raw_wells,
+                    filtered_counts = filtered_wells,
+                    subject = gsub("^p", "", subjects),
+                    SIMPLIFY = F)
+# Save as RDS
+saveRDS(soup_wells, paste0(project_path, "data/RDS_files/soup_wells/PBMC_soup.RDS"))
 
 # Open RDS of SoupX output
 soup_wells <- readRDS(paste0(project_path, "data/RDS_files/soup_wells/PBMC_soup.RDS"))
