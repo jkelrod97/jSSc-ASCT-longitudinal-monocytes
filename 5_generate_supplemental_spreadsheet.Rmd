@@ -785,7 +785,123 @@ wb <- wb %>%
                start_row = data_row,  start_col = right_col, bold_first_col = FALSE)
 ```
 
-11. Now we add the top 50 DEGs for each monocyte sub-cluster, as well as the markers we use to label each sub-cluster. 
+11. Longitudinal pathways in SSc CD14+ monocytes 
+
+```{r}
+down_pathways_CD14 <- read.csv(paste0(results_dir, "down_GSEA_CD14.csv"))
+# Only include pvalue < 0.01 and rename variables
+down_pathways_CD14 <- down_pathways_CD14 %>%
+  filter(pvalue < 0.01) %>%
+  select("Pathway ID" = "ID",
+         "Fold enrichment" = "FoldEnrichment",
+         "P-value" = "pvalue",
+         "Adjusted p-value" = "p.adjust",
+         "Genes" = "geneID",
+         "Number of genes" = "Count")
+up_pathways_CD14 <- read.csv(paste0(results_dir, "up_GSEA_CD14.csv"))
+# Only include pvalue < 0.01 and rename variables
+up_pathways_CD14 <- up_pathways_CD14 %>%
+  filter(pvalue < 0.01) %>%
+  select("Pathway ID" = "ID",
+         "Fold enrichment" = "FoldEnrichment",
+         "P-value" = "pvalue",
+         "Adjusted p-value" = "p.adjust",
+         "Genes" = "geneID",
+         "Number of genes" = "Count")
+
+# Set caption
+caption <- "Pathways with significant changes in activity in jSSc CD14+ monocytes over time since ASCT, identified by performing GSEA on the genes in Supplementary Table 9 and sorted by p-value."
+
+# Get sheet #
+sheet_num <- length(wb$sheet_names) + 1
+# Generate sheet name
+sheet_name <- paste0("Table ", sheet_num, "꞉ long. CD14 mon. GSEA")
+
+# Column positions
+left_col  <- 1
+right_col <- ncol(down_pathways) + 2   # gap of 1 column between left/right tables
+
+# Row positions
+caption_row <- 1
+label_row   <- caption_row + 2    # +1 caption, +1 blank row
+data_row    <- label_row + 1
+
+# Add to workbook
+wb <- wb %>%
+  wb_add_worksheet(sheet_name) %>%
+  wb_add_title(sheet = sheet_name, x = paste0("Supplemental Table ", sheet_num, ": ", caption),
+               start_row = caption_row, start_col = left_col) %>%
+  # Left
+  wb_add_title(sheet = sheet_name, x = "Decreasing pathways over time since ASCT in jSSc CD14+ monocytes",
+               start_row = label_row, start_col = left_col) %>%
+  wb_add_table(sheet = sheet_name, x = down_pathways_CD14,
+               start_row = data_row,  start_col = left_col, bold_first_col = FALSE) %>%
+  # Right
+  wb_add_title(sheet = sheet_name, x = "Increasing pathways over time since ASCT in jSSc CD14+ monocytes",
+               start_row = label_row, start_col = right_col) %>%
+  wb_add_table(sheet = sheet_name, x = up_pathways_CD14,
+               start_row = data_row,  start_col = right_col, bold_first_col = FALSE)
+```
+
+12. Longitudinal pathways in SSc CD16+ monocytes 
+
+```{r}
+down_pathways_CD16 <- read.csv(paste0(results_dir, "down_GSEA_CD16.csv"))
+# Only include pvalue < 0.01 and rename variables
+down_pathways_CD16 <- down_pathways_CD16 %>%
+  filter(pvalue < 0.01) %>%
+  select("Pathway ID" = "ID",
+         "Fold enrichment" = "FoldEnrichment",
+         "P-value" = "pvalue",
+         "Adjusted p-value" = "p.adjust",
+         "Genes" = "geneID",
+         "Number of genes" = "Count")
+up_pathways_CD16 <- read.csv(paste0(results_dir, "up_GSEA_CD16.csv"))
+# Only include pvalue < 0.01 and rename variables
+up_pathways_CD16 <- up_pathways_CD16 %>%
+  filter(pvalue < 0.01) %>%
+  select("Pathway ID" = "ID",
+         "Fold enrichment" = "FoldEnrichment",
+         "P-value" = "pvalue",
+         "Adjusted p-value" = "p.adjust",
+         "Genes" = "geneID",
+         "Number of genes" = "Count")
+
+# Set caption
+caption <- "Pathways with significant changes in activity in jSSc CD16+ monocytes over time since ASCT, identified by performing GSEA on the genes in Supplementary Table 10 and sorted by p-value."
+
+# Get sheet #
+sheet_num <- length(wb$sheet_names) + 1
+# Generate sheet name
+sheet_name <- paste0("Table ", sheet_num, "꞉ long. CD16 mon. GSEA")
+
+# Column positions
+left_col  <- 1
+right_col <- ncol(down_pathways) + 2   # gap of 1 column between left/right tables
+
+# Row positions
+caption_row <- 1
+label_row   <- caption_row + 2    # +1 caption, +1 blank row
+data_row    <- label_row + 1
+
+# Add to workbook
+wb <- wb %>%
+  wb_add_worksheet(sheet_name) %>%
+  wb_add_title(sheet = sheet_name, x = paste0("Supplemental Table ", sheet_num, ": ", caption),
+               start_row = caption_row, start_col = left_col) %>%
+  # Left
+  wb_add_title(sheet = sheet_name, x = "Decreasing pathways over time since ASCT in jSSc CD16+ monocytes",
+               start_row = label_row, start_col = left_col) %>%
+  wb_add_table(sheet = sheet_name, x = down_pathways_CD16,
+               start_row = data_row,  start_col = left_col, bold_first_col = FALSE) %>%
+  # Right
+  wb_add_title(sheet = sheet_name, x = "Increasing pathways over time since ASCT in jSSc CD16+ monocytes",
+               start_row = label_row, start_col = right_col) %>%
+  wb_add_table(sheet = sheet_name, x = up_pathways_CD16,
+               start_row = data_row,  start_col = right_col, bold_first_col = FALSE)
+```
+
+13. Now we add the top 50 DEGs for each monocyte sub-cluster, as well as the markers we use to label each sub-cluster. 
 
 ```{r}
 # Set path
