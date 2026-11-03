@@ -27,6 +27,7 @@ Subcommands
 
 import argparse
 import csv
+import fnmatch
 import datetime as dt
 import hashlib
 import os
@@ -93,13 +94,23 @@ def md5_file(path, chunk=1 << 20):
 
 
 def md5_tree(path, skip_md5):
-    """{relative file path: md5} for a file or every file under a directory."""
-    path = Path(path)
-    files = [path] if path.is_file() else sorted(
-        p for p in path.rglob("*") if p.is_file() and p.name not in SKIP_NAMES)
+    """{relative file path: md5} for a regular file or every regular file
+    under a directory. Symlinks are never followed or hashed (their targets
+    are hashed where they actually live)."""
+    path = str(path)
+    if os.path.isfile(path) and not os.path.islink(path):
+        files = [path]
+    else:
+        files = []
+        for dirpath, _, filenames in os.walk(path, followlinks=False):
+            for n in filenames:
+                f = os.path.join(dirpath, n)
+                if n not in SKIP_NAMES and not os.path.islink(f):
+                    files.append(f)
+        files.sort()
     out = {}
     for f in files:
-        rel = "." if f == path else str(f.relative_to(path))
+        rel = "." if f == path else os.path.relpath(f, path)
         out[rel] = "SKIPPED" if skip_md5 else md5_file(f)
     return out
 
@@ -107,12 +118,28 @@ def md5_tree(path, skip_md5):
 # ----------------------------------------------------------------------------
 # rename
 # ----------------------------------------------------------------------------
-def plan_renames(root, rules):
+def is_excluded(rel, excludes):
+    """True if REL (relative to ROOT) or any of its ancestors matches an
+    --exclude glob, e.g. '*/SC_MULTI_CS' or 'data/raw_counts_rds'."""
+    parts = Path(rel).parts
+    for i in range(1, len(parts) + 1):
+        sub = os.path.join(*parts[:i])
+        if any(fnmatch.fnmatchcase(sub, pat) for pat in excludes):
+            return True
+    return False
+
+
+def plan_renames(root, rules, excludes=()):
     """Walk ROOT (without following symlinks) and collect matching paths."""
     plan = []
     for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
         rel_parent = os.path.relpath(dirpath, root)
         rel_parent = "" if rel_parent == "." else rel_parent
+        # Don't descend into (or rename) excluded folders
+        dirnames[:] = [d for d in dirnames
+                       if not is_excluded(os.path.join(rel_parent, d), excludes)]
+        filenames = [f for f in filenames
+                     if not is_excluded(os.path.join(rel_parent, f), excludes)]
         # Scope regexes are matched against the absolute parent path so that
         # e.g. "(^|/)FASTQs$" works no matter where ROOT is.
         abs_parent = str(Path(dirpath).resolve())
@@ -135,8 +162,41 @@ def plan_renames(root, rules):
 def final_rel(rel, renamed):
     """Final relative path of REL after all renames (including ancestors)."""
     parts = Path(rel).parts
+    if not parts:
+        return ""
     return os.path.join(*[renamed.get(os.path.join(*parts[: i + 1]), parts[i])
                           for i in range(len(parts))])
+
+
+def symlinks_that_break(root, plan, excludes):
+    """Find working symlinks anywhere under ROOT that would stop pointing at
+    the same file after the renames. Returns (outside_excluded, inside_excluded)."""
+    renamed = {p["rel"]: p["new"] for p in plan}
+    outside, inside = [], []
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        for name in dirnames + filenames:
+            link = os.path.join(dirpath, name)
+            if not os.path.islink(link) or not os.path.exists(link):
+                continue  # not a symlink, or already broken before we start
+            target = os.readlink(link)
+            rel_dir = os.path.relpath(dirpath, root)
+            rel_dir = "" if rel_dir == "." else rel_dir
+            old_abs = os.path.normpath(target if os.path.isabs(target)
+                                       else os.path.join(dirpath, target))
+            # Where the target will live after renaming
+            if old_abs == root or old_abs.startswith(root + os.sep):
+                expected = os.path.join(root, final_rel(os.path.relpath(old_abs, root), renamed))
+            else:
+                expected = old_abs
+            # Where the (possibly moved) link will point after renaming
+            new_dir = os.path.join(root, final_rel(rel_dir, renamed))
+            resolved = os.path.normpath(target if os.path.isabs(target)
+                                        else os.path.join(new_dir, target))
+            if os.path.normpath(expected) != resolved:
+                rel_link = os.path.join(rel_dir, name)
+                (inside if is_excluded(rel_link, excludes) else outside).append(
+                    f"{rel_link} -> {target}")
+    return outside, inside
 
 
 def check_plan(root, plan):
@@ -195,9 +255,12 @@ def do_rename(args):
     log(f"sample_swap.py rename  mode={mode}  {dt.datetime.now().isoformat(timespec='seconds')}")
     log(f"root:    {root}")
     log(f"mapping: {os.path.abspath(args.mapping)}  (md5 {md5_file(args.mapping)})")
+    excludes = args.exclude or []
+    for pat in excludes:
+        log(f"exclude: {pat}")
     log()
 
-    plan = plan_renames(root, rules)
+    plan = plan_renames(root, rules, excludes)
     if not plan:
         log("Nothing matched. No changes.")
         log_fh.close()
@@ -210,6 +273,13 @@ def do_rename(args):
     log()
 
     problems = check_plan(root, plan)
+    broken_out, broken_in = symlinks_that_break(root, plan, excludes)
+    for b in broken_out:
+        problems.append(f"symlink would break: {b}")
+    if broken_in:
+        log(f"NOTE: {len(broken_in)} symlink(s) inside excluded folders will stop "
+            f"resolving because a parent folder is renamed (listed at the end).")
+        log()
     if problems:
         log("ABORTING, plan problems:")
         for pr in problems:
@@ -228,8 +298,15 @@ def do_rename(args):
     for p in tops:
         before[p["rel"]] = md5_tree(os.path.join(root, p["rel"]), args.skip_md5)
 
+    def log_broken_inside():
+        if broken_in:
+            log(f"\nSymlinks inside excluded folders that will stop resolving ({len(broken_in)}):")
+            for b in broken_in:
+                log(f"  {b}")
+
     if args.dry_run:
         write_manifest(manifest_path, root, tops, plan, before, None)
+        log_broken_inside()
         log(f"\nDRY RUN: nothing renamed.\nLog:      {log_path}\nManifest: {manifest_path}")
         log_fh.close()
         return 0
@@ -271,6 +348,7 @@ def do_rename(args):
             log(f"  MISMATCH: {p['rel']} -> {os.path.relpath(new_top, root)}")
     write_manifest(manifest_path, root, tops, plan, before, after, state)
     log("All md5 checksums match." if ok else "md5 MISMATCH, see above.")
+    log_broken_inside()
     log(f"\nLog:      {log_path}\nManifest: {manifest_path}")
     log_fh.close()
     return 0 if ok else 1
@@ -370,6 +448,9 @@ def main():
     r.add_argument("--skip-md5", action="store_true",
                    help="don't hash files (e.g. very large FASTQs); not recommended")
     r.add_argument("--log-dir", help="default: ROOT/sample_swap_logs")
+    r.add_argument("--exclude", action="append", metavar="GLOB",
+                   help="path (relative to ROOT) to leave alone, with everything "
+                        "inside it; glob, repeatable, e.g. '*/SC_MULTI_CS'")
 
     t = sub.add_parser("text", help="swap labels inside text files")
     t.add_argument("files", nargs="+")
