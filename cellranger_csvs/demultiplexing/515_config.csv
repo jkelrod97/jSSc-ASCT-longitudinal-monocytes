@@ -1,6 +1,6 @@
 [gene-expression]
 reference,/home/jelrod/software/refdata-gex-GRCh38-2024-A
-cmo-set,/home/jelrod/scl-CITE-SEQ/cellranger_csvs/5p_hashing_dmux_cmo-set.csv
+cmo-set,/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/5p_hashing_dmux_cmo-set.csv
 create-bam,true 
 
 [libraries]
