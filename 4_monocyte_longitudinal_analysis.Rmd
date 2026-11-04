@@ -1992,4 +1992,3 @@ ggplot(jaccard_df, aes(Var2, Var1, fill = value)) +
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/pathway_jaccard.png"), jaccard_plot, width = 10, height = 7)
 ```
 
-

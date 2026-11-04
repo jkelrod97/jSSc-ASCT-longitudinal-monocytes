@@ -43,12 +43,12 @@ update_cell_types <- function(df, cluster, cell_type = NA) {
 We load in the monocytes and cluster them. 
 
 ```{r}
-# # scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_10.h5seurat"))
-# # monocytes <- subset(scler_pbmc, cell_type == "monocyte")
-# # 
-# # monocytes <- sub_cluster(monocytes,
-# #                          res = 0.8)
-# # SaveH5Seurat(monocytes, paste0(project_path, "data/h5seurat/monocytes.h5seurat"))
+# scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_10.h5seurat"))
+# monocytes <- subset(scler_pbmc, cell_type == "monocyte")
+# 
+# monocytes <- sub_cluster(monocytes,
+#                          res = 0.8)
+# SaveH5Seurat(monocytes, paste0(project_path, "data/h5seurat/monocytes.h5seurat"))
 ```
 
 Now we're going to annotate the monocytes.
