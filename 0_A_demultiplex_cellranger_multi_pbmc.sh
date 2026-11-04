@@ -1,8 +1,13 @@
-# NOTE (2026-11-03): Sample labels H1-H4 and 594 baseline/six/twelve/twen4 were found to be
+# NOTE (2026-11-04): Sample labels H1-H4 and 594 baseline/six/twelve/twen4 were found to be
 # swapped (whole pool: the library originally labelled "594" is the healthy pool and vice versa).
+# Additionally, the hashtags used to label subject 594 at six and twelve months were swapped.
+#
 # All labels in this repository, the config CSVs, the FASTQ file names, and the data folders have
 # been corrected, so the labels below refer to the correct samples. The original sequencing library
 # IDs (CKDL...) stay attached to their data. See sample_swap.csv and sample_swap.py.
+#
+# Due to this issue, cellranger was rerun for subject 594 and the healthy controls. It was NOT rerun
+# for subjects 515 and 591, as these were unaffected by the mixup.
 #
 # In this script, we demultiplex each PBMC library using cellranger multi. 
 #
