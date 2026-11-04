@@ -34,8 +34,8 @@ leviathan1
 # Start tmux session
 tmux 
 cellranger multi --id=demultiplexed_samples \
---csv=/home/jelrod/scl-CITE-SEQ/cellranger_csvs/591_config.csv \
---output-dir=/home/jelrod/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/591
+--csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/591_config.csv \
+--output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026/591
 
 # Sample 515
 
@@ -44,8 +44,8 @@ leviathan2
 # Start tmux session
 tmux 
 cellranger multi --id=demultiplexed_samples_2 \
---csv=/home/jelrod/scl-CITE-SEQ/cellranger_csvs/515_config.csv \
---output-dir=/home/jelrod/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/515
+--csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/515_config.csv \
+--output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026/515
 
 # Sample 594
 
@@ -54,8 +54,8 @@ leviathan3
 # Start tmux session
 tmux 
 cellranger multi --id=demultiplexed_samples_3 \
---csv=/home/jelrod/scl-CITE-SEQ/cellranger_csvs/594_config.csv \
---output-dir=/home/jelrod/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/594
+--csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/594_config.csv \
+--output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026/594
 
 # Healthy controls
 
@@ -64,5 +64,5 @@ leviathan4
 # Start tmux session
 tmux 
 cellranger multi --id=demultiplexed_samples_4 \
---csv=/home/jelrod/scl-CITE-SEQ/cellranger_csvs/H_config.csv \
---output-dir=/home/jelrod/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/H
+--csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/H_config.csv \
+--output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026/H
