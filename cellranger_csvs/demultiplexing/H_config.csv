@@ -11,7 +11,7 @@ H_PLX_CKDL240024519-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/FASTQs/H_PLX,Mul
 
 [samples]
 sample_id,cmo_ids
-baseline,Hash-tag1
-six_months,Hash-tag2
-twelve_months,Hash-tag3
-twen4_months,Hash-tag4
+1,Hash-tag1
+2,Hash-tag2
+3,Hash-tag3
+4,Hash-tag4
