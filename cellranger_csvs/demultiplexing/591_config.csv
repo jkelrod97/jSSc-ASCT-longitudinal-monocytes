@@ -5,8 +5,8 @@ create-bam,true
 
 [libraries]
 fastq_id,fastqs,feature_types
-591_GEX_CKDL240024509-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/591_GEX,Gene Expression
-591_PLX_CKDL240024521-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/591_PLX,Multiplexing Capture
+591_GEX_CKDL240024509-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/FASTQs/591_GEX,Gene Expression
+591_PLX_CKDL240024521-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/FASTQs/591_PLX,Multiplexing Capture
 
 
 [samples]
