@@ -1,13 +1,7 @@
-# NOTE (2026-11-04): Sample labels H1-H4 and 594 baseline/six/twelve/twen4 were found to be
-# swapped (whole pool: the library originally labelled "594" is the healthy pool and vice versa).
-# Additionally, the hashtags used to label subject 594 at six and twelve months were swapped.
-#
-# All labels in this repository, the config CSVs, the FASTQ file names, and the data folders have
+# NOTE (2026-11-05): Subject labels H and 594 were found to be
+# swapped. All labels in this repository, the config CSVs, the FASTQ file names, and the data folders have
 # been corrected, so the labels below refer to the correct samples. The original sequencing library
-# IDs (CKDL...) stay attached to their data. See sample_swap.csv and sample_swap.py.
-#
-# Due to this issue, cellranger was rerun for subject 594 and the healthy controls. It was NOT rerun
-# for subjects 515 and 591, as these were unaffected by the mixup.
+# IDs (CKDL...) stay attached to their data. Corrected files are marked with an r. 
 #
 # In this script, we demultiplex each PBMC library using cellranger multi. 
 #
@@ -17,7 +11,9 @@
 # Note that the paths and folders referenced here refer to remote paths with a different
 # file structure than appears in this repository. Config CSVs referenced here are found in
 # cellranger_csvs/demultiplexing. The HTO barcodes used for demultiplexing are defined in
-# 5p_hashing_dmux_cmo-set.csv, which is found in the same subfolder. 
+# 5p_hashing_dmux_cmo-set.csv, which is found in the same subfolder. The hashtags used to 
+# label subject 594 at six and twelve months were swapped, and this is reflected in the
+# config csv.
 #
 # This script is followed up by 0_B_align_cellranger_multi_pbmc.sh, where we will merge our
 # protein (ADT), T cell receptor (TCR), and B cell receptor (BCR) data with our demultiplexed 
@@ -48,21 +44,23 @@ cellranger multi --id=demultiplexed_samples_2 \
 --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026/515
 
 # Sample 594
+# (r marks corrected sample IDs)
 
 # Remote server alias
 leviathan3
 # Start tmux session
 tmux 
 cellranger multi --id=demultiplexed_samples_3 \
---csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/594_config.csv \
---output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026/594
+--csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/594_r_config.csv \
+--output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026/594_r
 
 # Healthy controls
+# (r marks corrected sample IDs)
 
 # Remote server alias
 leviathan4
 # Start tmux session
 tmux 
 cellranger multi --id=demultiplexed_samples_4 \
---csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/H_config.csv \
---output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026/H
+--csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/H_r_config.csv \
+--output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026/H_r
