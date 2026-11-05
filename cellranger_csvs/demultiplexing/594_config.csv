@@ -5,8 +5,8 @@ create-bam,true ,
 ,,
 [libraries],,
 fastq_id,fastqs,feature_types
-594_GEX_CKDL240024508-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/FASTQs/594_GEX,Gene Expression
-594_PLX_CKDL240024520-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/FASTQs/594_PLX,Multiplexing Capture
+594_r_GEX_CKDL240024508-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/594_r_GEX,Gene Expression
+594_r_PLX_CKDL240024520-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/594_r_PLX,Multiplexing Capture
 ,,
 ,,
 [samples],,
