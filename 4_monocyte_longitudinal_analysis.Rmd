@@ -41,7 +41,8 @@ We run the model on all the patient monocytes.
 
 ```{r}
 # Read in monocytes
-monocytes <- LoadH5Seurat(paste0(project_path, "data/h5seurat/monocytes_2.h5seurat"))
+# (not annotated; can replace with annotated later)
+monocytes <- LoadH5Seurat(paste0(project_path, "data/h5seurat/monocytes.h5seurat"))
 
 # Subset out patient monocytes
 SSc_monocytes <- subset(monocytes, health == "SSc")
@@ -122,9 +123,9 @@ gsea <- lapply(names(results_list),
 
 # View results
 # DOWN
-gsea$DOWN@result %>% head()
+gsea$DOWN@result %>% head(20)
 # UP
-gsea$UP@result %>% head()
+gsea$UP@result %>% head(20)
 ```
 
 Note from a reviewer: Do these genes behave similarly in classical vs non-classical monocytes, or are there subsets that are restricted to one of the two large monocyte subpopulations seen?

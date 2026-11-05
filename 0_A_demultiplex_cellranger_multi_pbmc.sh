@@ -42,11 +42,11 @@ cellranger=/home/jelrod/software/cellranger-8.0.1/bin/cellranger
 
 # Sample 591
 
-read -p "Server for 591: " server
-ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 591 \
-"'$cellranger multi --id=demultiplexed_samples \
---csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/591_config.csv \
---output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026/591'"
+# read -p "Server for 591: " server
+# ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 591 \
+# "'$cellranger multi --id=demultiplexed_samples \
+# --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/591_config.csv \
+# --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026/591'"
 
 # Sample 515
 
@@ -65,11 +65,11 @@ ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 594_r \
 --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/594_r_config.csv \
 --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026/594_r'"
 
-# Healthy controls
-# (r marks corrected sample IDs)
+# # Healthy controls
+# # (r marks corrected sample IDs)
 
-read -p "Server for H_r: " server
-ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s H_r \
-"'$cellranger multi --id=demultiplexed_samples_4 \
---csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/H_r_config.csv \
---output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026/H_r'"
+# read -p "Server for H_r: " server
+# ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s H_r \
+# "'$cellranger multi --id=demultiplexed_samples_4 \
+# --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/H_r_config.csv \
+# --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026/H_r'"
