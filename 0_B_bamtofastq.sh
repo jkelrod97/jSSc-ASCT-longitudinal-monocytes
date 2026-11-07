@@ -22,12 +22,12 @@
 # Input BAMs are read from:
 #   cellranger_final_2026/<library>/outs/per_sample_outs/<time point>/count/sample_alignments.bam
 # Output FASTQs are written to:
-#   cellranger_last_step_2026/FASTQs/<sample>
+#   bamtofastq_2026/FASTQs/<sample>
 # Both folders are under /home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output.
 # Note that these are remote paths with a different file structure than appears in this
 # repository.
 #
-# This script is a copy of 0_B_bamtofastq.sh, changed on 2026-11-07 with help from Claude
+# This script was changed on 2026-11-07 with help from Claude
 # (Anthropic, Claude Opus 5.5): previously each sample was started by hand (log in to a hydra,
 # start tmux, run bamtofastq); now the script asks for the servers and starts every run itself,
 # in the same way as 0_A_demultiplex_cellranger_multi_pbmc.sh. The file paths were also updated
@@ -38,7 +38,7 @@
 cellranger=/home/jelrod/software/cellranger-8.0.1/bin/cellranger
 
 bam_dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026
-fastq_dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_last_step_2026/FASTQs
+fastq_dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/bamtofastq_2026/FASTQs
 
 # For one sample: ask for a server, then ssh there and start bamtofastq in a detached (-d)
 # tmux session named after the sample. (ssh -n stops ssh from reading what you type at the
@@ -66,22 +66,22 @@ run_bamtofastq 515_baseline 515 baseline
 run_bamtofastq 515_six      515 six_months
 run_bamtofastq 515_twen4    515 twen4_months
 
-# Sample 591
-run_bamtofastq 591_baseline 591 baseline
-run_bamtofastq 591_six      591 six_months
-run_bamtofastq 591_twelve   591 twelve_months
-run_bamtofastq 591_twen4    591 twen4_months
+# # Sample 591
+# run_bamtofastq 591_baseline 591 baseline
+# run_bamtofastq 591_six      591 six_months
+# run_bamtofastq 591_twelve   591 twelve_months
+# run_bamtofastq 591_twen4    591 twen4_months
 
-# Sample 594
-# (r marks corrected sample IDs)
-run_bamtofastq 594_r_baseline 594_r baseline
-run_bamtofastq 594_r_six      594_r six_months
-run_bamtofastq 594_r_twelve   594_r twelve_months
-run_bamtofastq 594_r_twen4    594_r twen4_months
+# # Sample 594
+# # (r marks corrected sample IDs)
+# run_bamtofastq 594_r_baseline 594_r baseline
+# run_bamtofastq 594_r_six      594_r six_months
+# run_bamtofastq 594_r_twelve   594_r twelve_months
+# run_bamtofastq 594_r_twen4    594_r twen4_months
 
-# Healthy controls
-# (r marks corrected sample IDs; in H_r_config.csv the four controls are named 1-4)
-run_bamtofastq H_r_1 H_r 1
-run_bamtofastq H_r_2 H_r 2
-run_bamtofastq H_r_3 H_r 3
-run_bamtofastq H_r_4 H_r 4
+# # Healthy controls
+# # (r marks corrected sample IDs; in H_r_config.csv the four controls are named 1-4)
+# run_bamtofastq H_r_1 H_r 1
+# run_bamtofastq H_r_2 H_r 2
+# run_bamtofastq H_r_3 H_r 3
+# run_bamtofastq H_r_4 H_r 4
