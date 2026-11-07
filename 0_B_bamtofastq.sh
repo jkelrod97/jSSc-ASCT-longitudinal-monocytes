@@ -12,8 +12,10 @@
 # --reads-per-fastq=2200000000 keeps the output FASTQs from being split up.
 #
 # bamtofastq is fast, so all 15 samples run one after another on a single remote server.
-# This script asks which leviathan to use (type 5 for leviathan5), then starts the runs there
-# in one detached tmux session named bamtofastq, so they keep going after you log off.
+# This script asks which leviathan to use (type 5 for leviathan5). It copies the commands
+# below to run_bamtofastq.sh in the FASTQs folder on the server, then runs that file there
+# in one detached tmux session named bamtofastq, so the runs keep going after you log off.
+# (tmux limits how long a command can be, so the commands are sent as a file.)
 # Run it with:
 #   bash 0_B_bamtofastq_copy.sh
 # To check on the runs, ssh to that server and run `tmux attach -t bamtofastq` (Ctrl+b then d
@@ -39,6 +41,14 @@
 # itself. The file paths were also updated to the new folder layout. The bamtofastq options
 # are otherwise unchanged.
 
+fastq_dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_last_step_2026/FASTQs
+
+read -p "Server for bamtofastq: " server
+
+# Step 1: create the FASTQs folder on the server and copy the commands between the two
+# EOF lines into run_bamtofastq.sh there. ('EOF' is quoted, so nothing in it is changed
+# on the way; it all runs on the server.)
+ssh jelrod@leviathan$server.stat.cmu.edu "mkdir -p $fastq_dir && cat > $fastq_dir/run_bamtofastq.sh" <<'EOF'
 # Full path to cellranger, because the tmux session may not load the PATH from your .bashrc.
 # bamtofastq is run as a cellranger subcommand (cellranger bamtofastq).
 cellranger=/home/jelrod/software/cellranger-8.0.1/bin/cellranger
@@ -78,22 +88,21 @@ samples=(
   "H_r_4 H_r 4"
 )
 
-# Build one command that runs every sample in turn. Samples are joined with ; rather than &&,
-# so a failed sample does not stop the ones after it. The FASTQs folder is created first if
-# it does not exist yet.
-commands="mkdir -p $fastq_dir"
+# Run every sample in turn. A failed sample is logged and does not stop the ones after it.
 for entry in "${samples[@]}"; do
   read -r sample library timepoint <<< "$entry"
-  commands="$commands; echo \"\$(date): starting $sample\" | tee -a $progress_log; \
-$cellranger bamtofastq --reads-per-fastq=2200000000 \
-$bam_dir/$library/outs/per_sample_outs/$timepoint/count/sample_alignments.bam \
-$fastq_dir/$sample > $fastq_dir/${sample}_bamtofastq.log 2>&1 \
-&& echo \"\$(date): $sample finished\" | tee -a $progress_log \
-|| echo \"\$(date): $sample FAILED, see ${sample}_bamtofastq.log\" | tee -a $progress_log"
+  echo "$(date): starting $sample" | tee -a $progress_log
+  if $cellranger bamtofastq --reads-per-fastq=2200000000 \
+    $bam_dir/$library/outs/per_sample_outs/$timepoint/count/sample_alignments.bam \
+    $fastq_dir/$sample > $fastq_dir/${sample}_bamtofastq.log 2>&1; then
+    echo "$(date): $sample finished" | tee -a $progress_log
+  else
+    echo "$(date): $sample FAILED, see ${sample}_bamtofastq.log" | tee -a $progress_log
+  fi
 done
-commands="$commands; echo \"\$(date): all samples done\" | tee -a $progress_log"
+echo "$(date): all samples done" | tee -a $progress_log
+EOF
 
-# Ask for a server, then ssh there and start the runs in a detached (-d) tmux session.
+# Step 2: start run_bamtofastq.sh on the server in a detached (-d) tmux session.
 # (ssh -n stops ssh from reading from the keyboard.)
-read -p "Server for bamtofastq: " server
-ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s bamtofastq "'$commands'"
+ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s bamtofastq "'bash $fastq_dir/run_bamtofastq.sh'"
