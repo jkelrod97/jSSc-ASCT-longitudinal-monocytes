@@ -1,115 +1,87 @@
-# We have 16 BAM files--12 patient/time point combos and 4 healthy controls.
-# We use bamtofastq --reads-per-fastq=2200000000 to convert these to FASTQ files
-# First run--stored in folder cellranger_multi_with_bam
+# NOTE (2026-11-05): Subject labels H and 594 were found to be
+# swapped. All labels in this repository, the config CSVs, the FASTQ file names, and the data folders have
+# been corrected, so the labels below refer to the correct samples. The original sequencing library
+# IDs (CKDL...) stay attached to their data. Corrected files are marked with an r.
 #
-# Updates: We only have 15 valid BAM files (none for sample 15, twelve months)
-# Added bamtofastq to path, so I was able to remove cellranger prefix
-# Added in --reads-per-fastq=2200000000 so that output FASTQs will not be split up
-# Updating available hydras and tmux sessions as I go
-# Second run--stored in folder cellranger_multi_with_bam_2
+# In this script, we convert the demultiplexed BAM files made by
+# 0_A_demultiplex_cellranger_multi_pbmc.sh back to FASTQ files with bamtofastq, so that each
+# sample's gene expression reads can be aligned on their own in the next step.
+#
+# We have 15 valid BAM files: 11 patient/time point combos and 4 healthy controls. There is
+# no BAM for 515 at twelve months, because no cells were mapped to that sample.
+# --reads-per-fastq=2200000000 keeps the output FASTQs from being split up.
+#
+# We run bamtofastq on a distinct remote server for each sample. This script asks which
+# leviathan to use for each sample (type 5 for leviathan5), then starts bamtofastq there
+# in a detached tmux session, so the run keeps going after you log off. Run it with:
+#   bash 0_B_bamtofastq_copy.sh
+# To check on a run, ssh to its server and run `tmux attach -t 515_baseline` (Ctrl+b then d
+# to leave). The tmux session closes when bamtofastq finishes; its output is also saved to
+# <sample>_bamtofastq.log in the FASTQs folder.
+#
+# Input BAMs are read from:
+#   cellranger_final_2026/<library>/outs/per_sample_outs/<time point>/count/sample_alignments.bam
+# Output FASTQs are written to:
+#   cellranger_last_step_2026/FASTQs/<sample>
+# Both folders are under /home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output.
+# Note that these are remote paths with a different file structure than appears in this
+# repository.
+#
+# This script is a copy of 0_B_bamtofastq.sh, changed on 2026-11-07 with help from Claude
+# (Anthropic, Claude Opus 5.5): previously each sample was started by hand (log in to a hydra,
+# start tmux, run bamtofastq); now the script asks for the servers and starts every run itself,
+# in the same way as 0_A_demultiplex_cellranger_multi_pbmc.sh. The file paths were also updated
+# to the new folder layout. The bamtofastq options are otherwise unchanged.
 
-# HYDRA 1
-ssh jelrod@hydra1.stat.cmu.edu
-# TMUX SESSION 14
-tmux
-# 515 / BASELINE
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/515/outs/per_sample_outs/baseline/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/515_baseline
-# TMUX SESSION 15
-tmux
-# 515 / SIX MONTHS
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/515/outs/per_sample_outs/six_months/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/515_six
+# Full path to cellranger, because the tmux session may not load the PATH from your .bashrc.
+# bamtofastq is run as a cellranger subcommand (cellranger bamtofastq).
+cellranger=/home/jelrod/software/cellranger-8.0.1/bin/cellranger
 
+bam_dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026
+fastq_dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_last_step_2026/FASTQs
 
-# 515 / TWELVE MONTHS 
-# NO CELLS WERE MAPPED TO THIS SAMPLE
+# For one sample: ask for a server, then ssh there and start bamtofastq in a detached (-d)
+# tmux session named after the sample. (ssh -n stops ssh from reading what you type at the
+# next prompt.) The FASTQs folder is created first if it does not exist yet; the sample's own
+# output folder must not exist yet, or bamtofastq will refuse to run.
+#   $1 = sample name (used for the output folder and the tmux session)
+#   $2 = library folder in cellranger_final_2026
+#   $3 = time point folder in per_sample_outs
+run_bamtofastq() {
+  sample=$1
+  library=$2
+  timepoint=$3
+  read -p "Server for $sample: " server
+  ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s $sample \
+  "'mkdir -p $fastq_dir && $cellranger bamtofastq --reads-per-fastq=2200000000 \
+$bam_dir/$library/outs/per_sample_outs/$timepoint/count/sample_alignments.bam \
+$fastq_dir/$sample 2>&1 | tee $fastq_dir/${sample}_bamtofastq.log'"
+}
 
-# HYDRA 3
-ssh jelrod@hydra3.stat.cmu.edu
-# TMUX SESSION 19
-tmux
-# 515 / TWENTY-FOUR MONTHS
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/515/outs/per_sample_outs/twen4_months/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/515_twen4
-# TMUX SESSION 20
-tmux
-# 591 / BASELINE
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/591/outs/per_sample_outs/baseline/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/591_baseline
+# To skip a sample, comment out its line.
 
-# HYDRA 4
-ssh jelrod@hydra4.stat.cmu.edu
-# TMUX SESSION 2
-tmux
-# 591 / SIX MONTHS
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/591/outs/per_sample_outs/six_months/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/591_six
-# TMUX SESSION 3
-tmux
-# 591 / TWELVE MONTHS
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/591/outs/per_sample_outs/twelve_months/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/591_twelve
+# Sample 515
+# (515 / twelve months has no BAM: no cells were mapped to this sample)
+run_bamtofastq 515_baseline 515 baseline
+run_bamtofastq 515_six      515 six_months
+run_bamtofastq 515_twen4    515 twen4_months
 
-# HYDRA 6
-ssh jelrod@hydra6.stat.cmu.edu
-# TMUX SESSION 1
-tmux
-# 591 / TWENTY-FOUR MONTHS
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/591/outs/per_sample_outs/twen4_months/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/591_twen4
-# TMUX SESSION 2
-tmux
-# 594 / BASELINE
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/594/outs/per_sample_outs/baseline/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/594_baseline
-# TMUX SESSION 3
-tmux
-# 594 / SIX MONTHS
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/594/outs/per_sample_outs/six_months/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/594_six
+# Sample 591
+run_bamtofastq 591_baseline 591 baseline
+run_bamtofastq 591_six      591 six_months
+run_bamtofastq 591_twelve   591 twelve_months
+run_bamtofastq 591_twen4    591 twen4_months
 
-# HYDRA 1
-ssh jelrod@hydra1.stat.cmu.edu
-# TMUX SESSION 16
-tmux
-# 594 / TWELVE MONTHS
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/594/outs/per_sample_outs/twelve_months/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/594_twelve
+# Sample 594
+# (r marks corrected sample IDs)
+run_bamtofastq 594_r_baseline 594_r baseline
+run_bamtofastq 594_r_six      594_r six_months
+run_bamtofastq 594_r_twelve   594_r twelve_months
+run_bamtofastq 594_r_twen4    594_r twen4_months
 
-# HYDRA 10
-ssh jelrod@hydra10.stat.cmu.edu
-# TMUX SESSION 2
-tmux
-# 594 / TWENTY-FOUR MONTHS
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/594/outs/per_sample_outs/twen4_months/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/594_twen4
-
-# HYDRA 11
-ssh jelrod@hydra11.stat.cmu.edu
-# TMUX SESSION 1
-tmux
-# H / BASELINE (HEALTHY CONTROL 1)
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/H/outs/per_sample_outs/baseline/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/H_1
-
-# HYDRA 12
-ssh jelrod@hydra12.stat.cmu.edu
-# TMUX SESSION 1
-tmux
-# H / SIX MONTHS (HEALTHY CONTROL 2)
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/H/outs/per_sample_outs/six_months/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/H_2
-
-# HYDRA 13
-ssh jelrod@hydra13.stat.cmu.edu
-# TMUX SESSION 2
-tmux
-# H / TWELVE MONTHS (HEALTHY CONTROL 3)
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/H/outs/per_sample_outs/twelve_months/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/H_3
-# TMUX SESSION 3
-tmux
-# H / TWENTY-FOUR MONTHS (HEALTHY CONTROL 4)
-bamtofastq --reads-per-fastq=2200000000 ~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam/H/outs/per_sample_outs/twen4_months/count/sample_alignments.bam \
-~/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/H_4
+# Healthy controls
+# (r marks corrected sample IDs; in H_r_config.csv the four controls are named 1-4)
+run_bamtofastq H_r_1 H_r 1
+run_bamtofastq H_r_2 H_r 2
+run_bamtofastq H_r_3 H_r 3
+run_bamtofastq H_r_4 H_r 4
