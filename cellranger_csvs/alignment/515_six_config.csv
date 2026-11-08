@@ -12,7 +12,7 @@ reference,/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/ref_vdj/refdata-cell
 
 [libraries]
 fastq_id,fastqs,feature_types
-bamtofastq,/home/jelrod/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/515_six/demultiplexed_samples_2_0_1_22CT32LT4,Gene Expression
+bamtofastq,/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/bamtofastq_2026/515_six,Gene Expression
 515_PLX_CKDL240024522-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/515_PLX,Antibody Capture
 515_TCR_CKDL240024514-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/515_TCR,VDJ-T
 515_BCR_CKDL240024518-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/515_BCR,VDJ-B

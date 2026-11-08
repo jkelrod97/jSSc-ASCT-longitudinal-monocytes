@@ -1,6 +1,6 @@
 [gene-expression]
 reference,/home/jelrod/software/refdata-gex-GRCh38-2024-A
-force-cells,2707
+force-cells,1755
 check-library-compatibility,false
 create-bam,true 
 
@@ -12,7 +12,7 @@ reference,/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/ref_vdj/refdata-cell
 
 [libraries]
 fastq_id,fastqs,feature_types
-bamtofastq,/home/jelrod/scl-CITE-SEQ/cellranger_output/cellranger_multi_with_bam_2/FASTQs/H_1/demultiplexed_samples_4_0_1_22CT32LT4,Gene Expression
-H_PLX_CKDL240024519-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/H_PLX,Antibody Capture
-H_TCR_CKDL240024511-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/H_TCR,VDJ-T
-H_BCR_CKDL240024515-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/H_BCR,VDJ-B
+bamtofastq,/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/bamtofastq_2026/H_r_3,Gene Expression
+H_r_PLX_CKDL240024519-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/H_r_PLX,Antibody Capture
+H_r_TCR_CKDL240024511-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/H_r_TCR,VDJ-T
+H_r_BCR_CKDL240024515-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/H_r_BCR,VDJ-B
