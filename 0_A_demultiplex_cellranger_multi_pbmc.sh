@@ -20,11 +20,12 @@
 # label subject 594 at six and twelve months were swapped, and this is reflected in the
 # config csv.
 #
-# This script is followed up by 0_B_align_cellranger_multi_pbmc.sh, where we will merge our
+# This script is followed up by 0_B_bamtofastq.sh, which converts the demultiplexed BAM files
+# back to FASTQ files, and then by 0_C_align_cellranger_multi_pbmc.sh, where we will merge our
 # protein (ADT), T cell receptor (TCR), and B cell receptor (BCR) data with our demultiplexed
 # gene expression (GEX data).
 #
-# A third script, 0_C_alignment_without_demultiplexing_for_denoising.sh, uses cellranger multi
+# A fourth script, 0_D_alignment_without_demultiplexing_for_denoising.sh, uses cellranger multi
 # to merge RNA, ADT, TCR, and BCR data without demultiplexing. This is necessary for ambient RNA
 # correction with SoupX and ADT denoising with the DSB algorithm.
 #

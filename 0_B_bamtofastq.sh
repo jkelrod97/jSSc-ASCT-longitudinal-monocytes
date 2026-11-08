@@ -5,7 +5,8 @@
 #
 # In this script, we convert the demultiplexed BAM files made by
 # 0_A_demultiplex_cellranger_multi_pbmc.sh back to FASTQ files with bamtofastq, so that each
-# sample's gene expression reads can be aligned on their own in the next step.
+# sample's gene expression reads can be aligned on their own in the next step,
+# 0_C_align_cellranger_multi_pbmc.sh.
 #
 # We have 15 valid BAM files: 11 patient/time point combos and 4 healthy controls. There is
 # no BAM for 515 at twelve months, because no cells were mapped to that sample.
@@ -22,7 +23,7 @@
 # there in one detached tmux session named bamtofastq, so the runs keep going after you log off.
 # (tmux limits how long a command can be, so the commands are sent as a file.)
 # Run it with:
-#   bash 0_B_bamtofastq_copy.sh
+#   bash 0_B_bamtofastq.sh
 # To check on the runs, ssh to that server and run `tmux attach -t bamtofastq` (Ctrl+b then d
 # to leave). The tmux session closes when the last sample finishes.
 #
@@ -40,7 +41,7 @@
 # Note that these are remote paths with a different file structure than appears in this
 # repository.
 #
-# This script is a copy of 0_B_bamtofastq.sh, changed on 2026-11-08 with help from Claude
+# On 2026-11-08 this script was changed with help from Claude
 # (Anthropic, Claude Opus 5.5): sample folders now sit directly in bamtofastq_2026 instead of a
 # FASTQs subfolder, only the gene expression FASTQs are kept, and log files are no longer saved.
 # The bamtofastq options are unchanged.

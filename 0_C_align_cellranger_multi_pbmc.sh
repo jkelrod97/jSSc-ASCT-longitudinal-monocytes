@@ -3,12 +3,12 @@
 # been corrected, so the labels below refer to the correct samples. The original sequencing library
 # IDs (CKDL...) stay attached to their data. Corrected files are marked with an r.
 #
-# This script is a follow-up to 0_A_demultiplex_cellranger_multi_pbmc.sh.
+# This script is a follow-up to 0_A_demultiplex_cellranger_multi_pbmc.sh and 0_B_bamtofastq.sh.
 #
 # We run cellranger on a distinct remote server for each library. This script asks which
 # leviathan to use for each library (type 5 for leviathan5), then starts cellranger there
 # in a detached tmux session, so the run keeps going after you log off. Run it with:
-#   bash 0_B_align_cellranger_multi_pbmc.sh
+#   bash 0_C_align_cellranger_multi_pbmc.sh
 # To check on a run, ssh to its server and run `tmux attach -t 515bas` (Ctrl+b then d to leave).
 # The tmux session closes when cellranger finishes; cellranger's own log is in the _log file
 # in that sample's output folder.
@@ -22,7 +22,7 @@
 # file structure than appears in this repository. Config CSVs referenced here are found in
 # cellranger_csvs/alignment.
 #
-# A third script, 0_C_alignment_without_demultiplexing_for_denoising.sh, uses cellranger multi
+# A fourth script, 0_D_alignment_without_demultiplexing_for_denoising.sh, uses cellranger multi
 # to merge RNA, ADT, TCR, and BCR data without demultiplexing. This is necessary for ambient RNA
 # correction with SoupX and ADT denoising with the DSB algorithm. 
 
