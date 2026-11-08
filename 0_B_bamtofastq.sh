@@ -30,7 +30,7 @@
 # Input BAMs are read from:
 #   cellranger_final_2026/<library>/outs/per_sample_outs/<time point>/count/sample_alignments.bam
 # Output FASTQs are written to:
-#   cellranger_last_step_2026/FASTQs/<sample>
+#   bamtofastq_2026/FASTQs/<sample>
 # Both folders are under /home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output.
 # Note that these are remote paths with a different file structure than appears in this
 # repository.
@@ -41,7 +41,7 @@
 # itself. The file paths were also updated to the new folder layout. The bamtofastq options
 # are otherwise unchanged.
 
-fastq_dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_last_step_2026/FASTQs
+fastq_dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/bamtofastq_2026/FASTQs
 
 read -p "Server for bamtofastq: " server
 
@@ -54,7 +54,7 @@ ssh jelrod@leviathan$server.stat.cmu.edu "mkdir -p $fastq_dir && cat > $fastq_di
 cellranger=/home/jelrod/software/cellranger-8.0.1/bin/cellranger
 
 bam_dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026
-fastq_dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_last_step_2026/FASTQs
+fastq_dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/bamtofastq_2026/FASTQs
 progress_log=$fastq_dir/bamtofastq_progress.log
 
 # Samples to convert, one per line: sample name (used for the output folder), library folder
