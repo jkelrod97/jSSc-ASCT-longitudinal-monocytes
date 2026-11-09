@@ -34,62 +34,62 @@ cellranger=/home/jelrod/software/cellranger-8.0.1/bin/cellranger
 # tmux session named after the sample. (ssh -n stops ssh from reading what you type at the
 # next prompt.)
 
-##############
-## SUBJECT 515
-##############
-
-# Baseline
-read -p "Server for 515_baseline: " server
-ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 515bas \
-"'$cellranger multi --id=515_baseline \
---csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/515_baseline_config.csv \
---output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/515_baseline'"
-
-# Six mo.
-read -p "Server for 515_six: " server
-ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 515six \
-"'$cellranger multi --id=515_six \
---csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/515_six_config.csv \
---output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/515_six'"
-
-# Twenty-four mo.
-read -p "Server for 515_twen4: " server
-ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 515twen4 \
-"'$cellranger multi --id=515_twen4 \
---csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/515_twen4_config.csv \
---output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/515_twen4'"
-
 # ##############
-# ## SUBJECT 591
+# ## SUBJECT 515
 # ##############
 
 # # Baseline
-# read -p "Server for 591_baseline: " server
-# ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 591bas \
-# "'$cellranger multi --id=591_baseline \
-# --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/591_baseline_config.csv \
-# --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/591_baseline'"
+# read -p "Server for 515_baseline: " server
+# ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 515bas \
+# "'$cellranger multi --id=515_baseline \
+# --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/515_baseline_config.csv \
+# --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/515_baseline'"
 
 # # Six mo.
-# read -p "Server for 591_six: " server
-# ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 591six \
-# "'$cellranger multi --id=591_six \
-# --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/591_six_config.csv \
-# --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/591_six'"
-
-# # Twelve mo.
-# read -p "Server for 591_twelve: " server
-# ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 591twelve \
-# "'$cellranger multi --id=591_twelve \
-# --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/591_twelve_config.csv \
-# --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/591_twelve'"
+# read -p "Server for 515_six: " server
+# ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 515six \
+# "'$cellranger multi --id=515_six \
+# --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/515_six_config.csv \
+# --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/515_six'"
 
 # # Twenty-four mo.
-# read -p "Server for 591_twen4: " server
-# ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 591twen4 \
-# "'$cellranger multi --id=591_twen4 \
-# --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/591_twen4_config.csv \
-# --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/591_twen4'"
+# read -p "Server for 515_twen4: " server
+# ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 515twen4 \
+# "'$cellranger multi --id=515_twen4 \
+# --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/515_twen4_config.csv \
+# --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/515_twen4'"
+
+##############
+## SUBJECT 591
+##############
+
+# Baseline
+read -p "Server for 591_baseline: " server
+ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 591bas \
+"'$cellranger multi --id=591_baseline \
+--csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/591_baseline_config.csv \
+--output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/591_baseline'"
+
+# Six mo.
+read -p "Server for 591_six: " server
+ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 591six \
+"'$cellranger multi --id=591_six \
+--csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/591_six_config.csv \
+--output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/591_six'"
+
+# Twelve mo.
+read -p "Server for 591_twelve: " server
+ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 591twelve \
+"'$cellranger multi --id=591_twelve \
+--csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/591_twelve_config.csv \
+--output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/591_twelve'"
+
+# Twenty-four mo.
+read -p "Server for 591_twen4: " server
+ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 591twen4 \
+"'$cellranger multi --id=591_twen4 \
+--csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/591_twen4_config.csv \
+--output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/591_twen4'"
 
 
 # ##############
