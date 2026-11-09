@@ -25,7 +25,7 @@ cellranger=/home/jelrod/software/cellranger-8.0.1/bin/cellranger
 
 read -p "Server for 515: " server
 ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 515 \
-"'cellranger multi --id=p515 \
+"'$cellranger multi --id=p515 \
 --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/config_csvs_denoise/515_config.csv \
 --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_denoise_2026/p515'"
 
@@ -35,7 +35,7 @@ ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 515 \
 
 read -p "Server for 591: " server
 ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 591 \
-"'cellranger multi --id=p591 \
+"'$cellranger multi --id=p591 \
 --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/config_csvs_denoise/591_config.csv \
 --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_denoise_2026/p591'"
 
@@ -45,7 +45,7 @@ ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 591 \
 
 read -p "Server for 594_r: " server
 ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 594_r \
-"'cellranger multi --id=p594_r \
+"'$cellranger multi --id=p594_r \
 --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/config_csvs_denoise/594_r_config.csv \
 --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_denoise_2026/p594_r'"
 
@@ -55,6 +55,6 @@ ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s 594_r \
 
 read -p "Server for H_r: " server
 ssh -n jelrod@leviathan$server.stat.cmu.edu tmux new-session -d -s H_r \
-"'cellranger multi --id=H_r \
+"'$cellranger multi --id=H_r \
 --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/config_csvs_denoise/H_r_config.csv \
 --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_denoise_2026/H_r'"

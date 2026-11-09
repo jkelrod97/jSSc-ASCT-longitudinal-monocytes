@@ -7,5 +7,5 @@ reference,/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/ref_antibodies/antib
 
 [libraries]
 fastq_id,fastqs,feature_types
-H_GEX_CKDL240024508-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/FASTQs/H_GEX,Gene Expression
-H_PLX_CKDL240024520-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/FASTQs/H_PLX,Antibody Capture
+594_r_GEX_CKDL240024508-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/594_r_GEX,Gene Expression
+594_r_PLX_CKDL240024520-1A_22CT32LT4,/home/jelrod/scl-CITE-SEQ/data/594_r_PLX,Antibody Capture
