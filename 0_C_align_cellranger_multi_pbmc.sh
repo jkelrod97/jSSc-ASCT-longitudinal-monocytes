@@ -136,19 +136,19 @@ cellranger=/home/jelrod/software/cellranger-8.0.1/bin/cellranger
 # --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/H1_r_config.csv \
 # --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/H1_r'"
 
-# # 2
-# read -p "Server for H2_r: " server
-# ssh -n jelrod@$server.stat.cmu.edu tmux new-session -d -s H2r \
-# "'$cellranger multi --id=H2_r \
-# --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/H2_r_config.csv \
-# --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/H2_r'"
+# 2
+read -p "Server for H2_r: " server
+ssh -n jelrod@$server.stat.cmu.edu tmux new-session -d -s H2r \
+"'$cellranger multi --id=H2_r \
+--csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/H2_r_config.csv \
+--output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/H2_r'"
 
-# 3
-read -p "Server for H3_r: " server
-ssh -n jelrod@$server.stat.cmu.edu tmux new-session -d -s H3r \
-"'$cellranger multi --id=H3_r \
---csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/H3_r_config.csv \
---output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/H3_r'"
+# # 3
+# read -p "Server for H3_r: " server
+# ssh -n jelrod@$server.stat.cmu.edu tmux new-session -d -s H3r \
+# "'$cellranger multi --id=H3_r \
+# --csv=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_csvs/final_configs/H3_r_config.csv \
+# --output-dir=/home/jelrod/scl-CITE-SEQ/preprocessing/alignment/cellranger/cellranger_output/cellranger_final_2026_step2/H3_r'"
 
 # # 4
 # read -p "Server for H4_r: " server
