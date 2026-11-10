@@ -85,6 +85,24 @@ patient_meta_data_treatments <- patient_meta_data_long %>%
 patient_meta_data <- patient_meta_data %>%
   select(-Treatment.prior.to.ASCT, -Major.manifestations) %>%
   left_join(patient_meta_data_treatments, by = "subject")
+
+# Read in healthy control meta data
+healthy_meta_data <- read.csv(paste0(project_path, "data/healthy_demographics.csv"))
+healthy_meta_data <- healthy_meta_data %>%
+  transmute(
+    # "H (1)", "H(2)", ... -> "H1", "H2", ... (matches subject with the _r removed,
+    # which is the key used to join meta data onto the Seurat object below)
+    subject = paste0("H", gsub("\\D", "", sample)),
+    age, # Age at time of sample (patients instead have age_transplant)
+    # Match the coding used in the patient meta data
+    sex = recode(sex, "Female" = "F", "Male" = "M"),
+    race = recode(race, "African-American" = "Black", "Caucasian" = "White"),
+    ethnicity = recode(ethnicity, "Non-hispanic" = "Non-Hispanic")
+  )
+
+# Combine patient and healthy control meta data (patient-only columns are NA for healthy controls)
+subject_meta_data <- bind_rows(patient_meta_data, healthy_meta_data) %>%
+  mutate(across(where(is.character), trimws)) # e.g. "White " -> "White"
 ```
 
 Now we load in the counts matrices:
@@ -246,11 +264,11 @@ scler_pbmc_r_all@meta.data <- scler_pbmc_r_all@meta.data %>%
   )
 
 
-### (g) Add other patient meta data (while retaining metadata rownames)
+### (g) Add other patient and healthy control meta data (while retaining metadata rownames)
 scler_pbmc_r_all@meta.data <- scler_pbmc_r_all@meta.data %>%
   tibble::rownames_to_column("cell_id") %>%
   mutate(subject_key = sub("_r$", "", subject)) %>%
-  left_join(patient_meta_data, by = c("subject_key" = "subject")) %>%
+  left_join(subject_meta_data, by = c("subject_key" = "subject")) %>%
   select(-subject_key) %>%
   tibble::column_to_rownames("cell_id")
 
