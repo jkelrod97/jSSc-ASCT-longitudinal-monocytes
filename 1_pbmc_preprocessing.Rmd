@@ -5,6 +5,8 @@ output: html_notebook
 
 In this notebook, we perform preprocessing and QC on our PBMC CITE-seq data. Multimodal clustering and cell type annotation are performed in a follow-up notebook, 2_pbmc_cell_type_annotation.Rmd. 
 
+Note 11/10/26: Previously, libraries for the healthy controls and subject 594 were mislabeled (i.e. they were swapped with one another). This issue has been corrected. Corrected files are marked with an _r.
+
 First, clear the environment and set the path where the project folder is saved.
 
 ```{r}
@@ -89,54 +91,54 @@ patient_meta_data$Major.manifestations <- NULL
 Now we load in the counts matrices:
 
 ```{r}
-###############################################################################
-# READ IN COUNTS MATRICES #####################################################
-###############################################################################
-
-# Get paths to cellranger multi output
-cellranger_paths <- list.files(paste0(project_path, "data/cellranger_output/cellranger_multi_demultiplexed"), full.names = TRUE)
-
-# Get sample names
-samp_names <- list.files(paste0(project_path, "data/cellranger_output/cellranger_multi_demultiplexed"))
-
-# Read 10x output
-cellranger_output <- lapply(cellranger_paths, Read10X)
-
-# GEX all in list
-gex_list <- lapply(cellranger_output, function(x){x$`Gene Expression`})
-
-# PLX all in list
-plx_list <- lapply(cellranger_output, function(x){x$`Antibody Capture`})
-
-# Save as RDS files
-mapply(saveRDS, gex_list, paste0(project_path, "data/RDS_files/counts/gex/", samp_names, "_gex.RDS"))
-mapply(saveRDS, plx_list, paste0(project_path, "data/RDS_files/counts/plx/", samp_names, "_plx.RDS"))
-
-# Read in RDS files
-gex_paths <- list.files(paste0(project_path, "data/RDS_files/counts/gex"), pattern = "\\.RDS$", full.names = TRUE)
-plx_paths <- list.files(paste0(project_path, "data/RDS_files/counts/plx"), pattern = "\\.RDS$", full.names = TRUE)
-
-# Read in counts
-gex_list <- lapply(gex_paths, readRDS)
-plx_list <- lapply(plx_paths, readRDS)
-
-# Remove underscores from antibody names (Seurat doesn't allow)
-plx_list <- lapply(plx_list, function(mat){rownames(mat) <- gsub("_", "-", rownames(mat)); mat})
-
-# Name elements according to corresponding sample
-gex_sample_ids <- sub("_gex\\.RDS$", "", basename(gex_paths))
-names(gex_list) <- gex_sample_ids
-
-plx_sample_ids <- sub("_plx\\.RDS$", "", basename(plx_paths))
-names(plx_list) <- plx_sample_ids
-
-# If sample IDs match (as they should), store in sample_ids object
-if (all(gex_sample_ids == plx_sample_ids)) {
-  sample_ids <- gex_sample_ids
-} else {stop("Sample IDs from gex and plx do not match.")}
+# ###############################################################################
+# # READ IN COUNTS MATRICES #####################################################
+# ###############################################################################
+# 
+# # # Get paths to cellranger multi output
+# # cellranger_paths <- list.files(paste0(project_path, "data/cellranger_output/cellranger_multi_demultiplexed"), full.names = TRUE)
+# # 
+# # # Get sample names
+# # samp_names <- list.files(paste0(project_path, "data/cellranger_output/cellranger_multi_demultiplexed"))
+# # 
+# # # Read 10x output
+# # cellranger_output <- lapply(cellranger_paths, Read10X)
+# # 
+# # # GEX all in list
+# # gex_list <- lapply(cellranger_output, function(x){x$`Gene Expression`})
+# # 
+# # # PLX all in list
+# # plx_list <- lapply(cellranger_output, function(x){x$`Antibody Capture`})
+# # 
+# # # Save as RDS files
+# # mapply(saveRDS, gex_list, paste0(project_path, "data/RDS_files/counts/gex/", samp_names, "_gex.RDS"))
+# # mapply(saveRDS, plx_list, paste0(project_path, "data/RDS_files/counts/plx/", samp_names, "_plx.RDS"))
+# 
+# # Read in RDS files
+# gex_paths <- list.files(paste0(project_path, "data/RDS_files/counts/gex"), pattern = "\\.RDS$", full.names = TRUE)
+# plx_paths <- list.files(paste0(project_path, "data/RDS_files/counts/plx"), pattern = "\\.RDS$", full.names = TRUE)
+# 
+# # Read in counts
+# gex_list <- lapply(gex_paths, readRDS)
+# plx_list <- lapply(plx_paths, readRDS)
+# 
+# # Remove underscores from antibody names (Seurat doesn't allow)
+# plx_list <- lapply(plx_list, function(mat){rownames(mat) <- gsub("_", "-", rownames(mat)); mat})
+# 
+# # Name elements according to corresponding sample
+# gex_sample_ids <- sub("_gex\\.RDS$", "", basename(gex_paths))
+# names(gex_list) <- gex_sample_ids
+# 
+# plx_sample_ids <- sub("_plx\\.RDS$", "", basename(plx_paths))
+# names(plx_list) <- plx_sample_ids
+# 
+# # If sample IDs match (as they should), store in sample_ids object
+# if (all(gex_sample_ids == plx_sample_ids)) {
+#   sample_ids <- gex_sample_ids
+# } else {stop("Sample IDs from gex and plx do not match.")}
 ```
 
-Now we create a Seruat object:
+Now we create a Seurat object:
 
 ```{r}
 ################################################################################
@@ -181,39 +183,37 @@ scler_plx_obj <- merge(scler_plx_list[[1]],
 scler_plx_joined <- JoinLayers(scler_plx_obj)
 
 #### PUT GEX AND PLX INTO ONE OBEJECT ##########################################
-scler_pbmc_all <- scler_gex_joined
-scler_pbmc_all[["ADT"]] <- scler_plx_joined[["ADT"]]
+scler_pbmc_r_all <- scler_gex_joined
+scler_pbmc_r_all[["ADT"]] <- scler_plx_joined[["ADT"]]
 
 ################################################################################
 ## ADD META DATA TO SEURAT OBJECTS #############################################
 ################################################################################
 
 ### (a) sample ID ##############################################################
-scler_pbmc_all$sample_id <- sub("_(?!.*_).*",
+scler_pbmc_r_all$sample_id <- sub("_(?!.*_).*",
                                    "",
-                                   rownames(scler_pbmc_all@meta.data),
+                                   rownames(scler_pbmc_r_all@meta.data),
                                    perl = TRUE)
 
 ### (b) subject ################################################################
-scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
+scler_pbmc_r_all@meta.data <- scler_pbmc_r_all@meta.data %>%
   mutate(
-    subject = case_when(
-      grepl("^H", sample_id) ~ sample_id,   # Healthy controls start with 'H'
-      TRUE ~ sub("_.*$", "", sample_id)     # Everyone else: drop everything after the first underscore
-    )
+    # Drop the timepoint suffix; healthy IDs (e.g. H1_r) have none and are kept as-is
+    subject = sub("_(baseline|six|twelve|twen4)$", "", sample_id)
   )
 
 ### (c) LIBRARY ################################################################
-scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
+scler_pbmc_r_all@meta.data <- scler_pbmc_r_all@meta.data %>%
   mutate(
     LIBRARY = case_when(
-      grepl("H", subject) ~ "H", # Healthy controls are part of 'H' library
-      TRUE ~ subject # Each patient has is a library
+      grepl("^H", subject) ~ "H_r", # Healthy controls are part of the 'H_r' library
+      TRUE ~ subject                # Each patient is a library (515, 591, 594_r)
     )
   )
 
 ### (d) health #################################################################
-scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
+scler_pbmc_r_all@meta.data <- scler_pbmc_r_all@meta.data %>%
   mutate(
     health = case_when(
       grepl("H", sample_id) ~ "healthy",
@@ -222,7 +222,7 @@ scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
   )
 
 ### (e) group
-scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
+scler_pbmc_r_all@meta.data <- scler_pbmc_r_all@meta.data %>%
   mutate(
     group = case_when(
       health == "healthy" ~ "healthy",
@@ -235,7 +235,7 @@ scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
   )
 
 ### (f) Add timepoint as a numeric variable for patients
-scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
+scler_pbmc_r_all@meta.data <- scler_pbmc_r_all@meta.data %>%
   mutate(
     timepoint = case_when(
       group == "healthy" ~ NA,
@@ -248,16 +248,18 @@ scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
 
 
 ### (g) Add other patient meta data (while retaining metadata rownames)
-scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
+scler_pbmc_r_all@meta.data <- scler_pbmc_r_all@meta.data %>%
   tibble::rownames_to_column("cell_id") %>%
-  left_join(patient_meta_data, by = "subject") %>%
+  mutate(subject_key = sub("_r$", "", subject)) %>%
+  left_join(patient_meta_data, by = c("subject_key" = "subject")) %>%
+  select(-subject_key) %>%
   tibble::column_to_rownames("cell_id")
 
 ################################################################################
 ## RENAME CELLS TO MATCH SAMPLE  ###############################################
 ################################################################################
 
-colnames(scler_pbmc_all) <- colnames(scler_pbmc_all) %>%
+colnames(scler_pbmc_r_all) <- colnames(scler_pbmc_r_all) %>%
   gsub("-1$", "", .) %>%                              # remove trailing -1
   gsub(".*_([0-9]+)_", "\\1-", .) %>%                 # patient: extract any numeric ID and add dash
   gsub("H[0-9]+_", "H-", .)                           # healthy: H1_, H2_ → H-
@@ -270,28 +272,26 @@ colnames(scler_pbmc_all) <- colnames(scler_pbmc_all) %>%
 # with SeuratDisk
 options(Seurat.object.assay.version = "v3")
 # Create object with RNA and metadata
-scler_pbmc <- CreateSeuratObject(counts = scler_pbmc_all@assays$RNA$counts,
-                                 meta.data = scler_pbmc_all@meta.data,
-                                 project = scler_pbmc_all@project.name)
+scler_pbmc_r <- CreateSeuratObject(counts = scler_pbmc_r_all@assays$RNA$counts,
+                                 meta.data = scler_pbmc_r_all@meta.data,
+                                 project = scler_pbmc_r_all@project.name)
 # Add ADT
-scler_pbmc[["ADT"]] <- CreateAssayObject(counts = scler_pbmc_all[["ADT"]]$counts)
+scler_pbmc_r[["ADT"]] <- CreateAssayObject(counts = scler_pbmc_r_all[["ADT"]]$counts)
 
 # Save as H5
-SaveH5Seurat(scler_pbmc,
-             paste0(project_path, "data/h5seurat/scler_pbmc_1"))
+SaveH5Seurat(scler_pbmc_r,
+             paste0(project_path, "data/h5seurat/scler_pbmc_r_1"))
 ```
 
-Due to a previous problem we had with mislabeled samples, we check to make sure the samples are labeled correctly.
-
-For now, we just make sure sex-linked gene expression is consistent. Can further verify with Monopogen.
+Due to a previous problem we had with mislabeled samples, we check to make sure that expression of sex-linked genes is consistent with our demographic information.
 
 ```{r}
-scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_1.h5seurat"))
+scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_1.h5seurat"))
 
 # First check that sex-linked genes expression is correct.
 # All samples from 515, as well as H3 should express Y linked genes
 # All samples from 591 and 594, as well as H1, H2, and  H4 should express X linked gene XIST
-DotPlot(scler_pbmc,
+DotPlot(scler_pbmc_r,
         features = c("XIST", # X-linked
                      "RPS4Y1", # Y-linked
                      "DDX3Y", # Y-linked
@@ -313,8 +313,8 @@ First, we extract the RNA and ADT counts matrices, filter out genes with > 50% z
 
 ```{r}
 # # Extract RNA and ADT
-# rna <- scler_pbmc@assays$RNA@counts
-# adt <- scler_pbmc@assays$ADT@counts
+# rna <- scler_pbmc_r@assays$RNA@counts
+# adt <- scler_pbmc_r@assays$ADT@counts
 # 
 # # Filter out genes with > 50% zeroes.
 # # Starting with 38606 genes
@@ -343,26 +343,26 @@ After removing multiplets, 34,138 cells remain.
 # composite_path <- paste0(project_path, "data/composite/multiplet_prediction.csv")
 # 
 # # Add sccomposite labels to Seurat object
-# scler_pbmc$multiplet_label <- read.csv(composite_path) %>% pull(multiplet_classification)
+# scler_pbmc_r$multiplet_label <- read.csv(composite_path) %>% pull(multiplet_classification)
 # 
 # # How many multiplets? 10,568
-# scler_pbmc$multiplet_label %>% sum()
+# scler_pbmc_r$multiplet_label %>% sum()
 # 
 # # What percentage of all cells are multiplets? 23.6%
-# (scler_pbmc$multiplet_label %>% sum()) / (scler_pbmc$multiplet_label %>% length()) * 100
+# (scler_pbmc_r$multiplet_label %>% sum()) / (scler_pbmc_r$multiplet_label %>% length()) * 100
 # 
 # # Remove multiplets
-# scler_pbmc <- subset(scler_pbmc, subset = multiplet_label == 0)
+# scler_pbmc_r <- subset(scler_pbmc_r, subset = multiplet_label == 0)
 # 
 # # How many remaining cells? 34,138
-# scler_pbmc$multiplet_label %>% length()
+# scler_pbmc_r$multiplet_label %>% length()
 # 
 # # Remove multiplet_label (all zero now)
-# scler_pbmc$multiplet_label <- NULL
+# scler_pbmc_r$multiplet_label <- NULL
 # 
 # # Save as H5
-# SaveH5Seurat(scler_pbmc,
-#              paste0(project_path, "data/h5seurat/scler_pbmc_2"))
+# SaveH5Seurat(scler_pbmc_r,
+#              paste0(project_path, "data/h5seurat/scler_pbmc_r_2"))
 ```
 
 
@@ -375,7 +375,7 @@ We remove 3 cells, resulting in 34,135 remaining.
 path_to_cellranger_denoise <- paste0(project_path, "data/cellranger_output/cellranger_pooled_for_denoising/")
 
 # Load (demultiplexed) Seurat object
-scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_2.h5seurat"))
+scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_2.h5seurat"))
 #
 # Subjects
 subjects <- list.files(paste0(path_to_cellranger_denoise, "raw"))
@@ -409,8 +409,8 @@ subjects <- list.files(paste0(path_to_cellranger_denoise, "raw"))
 #   print(paste0(subject, ": ", unique(prop_contamination)))
 # }
 # 
-# # Change dashes to underscores in scler_pbmc cell names
-# colnames(scler_pbmc) <- gsub("-", "_", colnames(scler_pbmc))
+# # Change dashes to underscores in scler_pbmc_r cell names
+# colnames(scler_pbmc_r) <- gsub("-", "_", colnames(scler_pbmc_r))
 # 
 # # Merge into one big matrix
 # counts_adj <- do.call(cbind, lapply(soup_wells, function(x){x$adj_counts}))
@@ -420,30 +420,30 @@ subjects <- list.files(paste0(path_to_cellranger_denoise, "raw"))
 # #   "H_AAACCTGAGAATGTGT"            -> "H_AAACCTGAGAATGTGT"
 # make_key <- function(x) paste(sub("_.*$", "", x), sub("^.*_", "", x), sep = "_")
 # 
-# seurat_keys <- make_key(Cells(scler_pbmc))
+# seurat_keys <- make_key(Cells(scler_pbmc_r))
 # soup_keys   <- make_key(colnames(counts_adj))
 # 
 # # Sanity check: keys must be unique on both sides, or matching is ambiguous
 # stopifnot(!anyDuplicated(seurat_keys), !anyDuplicated(soup_keys))
 # 
-# # Cells in scler_pbmc with no SoupX counts ("rescued" by cellranger multi)
-# extra_cells <- Cells(scler_pbmc)[!seurat_keys %in% soup_keys]
+# # Cells in scler_pbmc_r with no SoupX counts ("rescued" by cellranger multi)
+# extra_cells <- Cells(scler_pbmc_r)[!seurat_keys %in% soup_keys]
 # length(extra_cells)   # expect ~3; much more means something is still mismatched
 # 
-# scler_pbmc <- subset(scler_pbmc, cells = setdiff(Cells(scler_pbmc), extra_cells))
+# scler_pbmc_r <- subset(scler_pbmc_r, cells = setdiff(Cells(scler_pbmc_r), extra_cells))
 # 
-# # Reorder counts_adj columns to match scler_pbmc, then adopt scler_pbmc's names
-# counts_adj <- counts_adj[, match(make_key(Cells(scler_pbmc)), soup_keys)]
-# colnames(counts_adj) <- Cells(scler_pbmc)
+# # Reorder counts_adj columns to match scler_pbmc_r, then adopt scler_pbmc_r's names
+# counts_adj <- counts_adj[, match(make_key(Cells(scler_pbmc_r)), soup_keys)]
+# colnames(counts_adj) <- Cells(scler_pbmc_r)
 # 
 # # Genes must line up too before swapping in the counts
-# stopifnot(identical(rownames(counts_adj), rownames(scler_pbmc)))
+# stopifnot(identical(rownames(counts_adj), rownames(scler_pbmc_r)))
 # 
 # # Adjust original object
-# scler_pbmc[["RNA"]]$counts <- counts_adj
+# scler_pbmc_r[["RNA"]]$counts <- counts_adj
 # 
 # # Save as H5
-# SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_3"))
+# SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_3"))
 ```
 
 3) Quality control based on RNA and ADT features
@@ -457,7 +457,7 @@ After this filtering step, we retain 29,806 cells.
 # # ## LOAD SEURAT OBJECT #########################################################
 # # ################################################################################
 # 
-# scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_3.h5seurat"))
+# scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_3.h5seurat"))
 # 
 # # ################################################################################
 # # ## FILTERING AND QC ############################################################
@@ -466,82 +466,82 @@ After this filtering step, we retain 29,806 cells.
 # # 1. RNA #######################################################################
 # 
 # # Add metadata for percentage of mitochondrial and ribosomal DNA
-# scler_pbmc[["percent.mt"]] <- PercentageFeatureSet(scler_pbmc, pattern = "^MT-", assay = "RNA")
-# scler_pbmc[["percent.ribo"]] <- PercentageFeatureSet(scler_pbmc, pattern = "^RP[SL]", assay = "RNA")
+# scler_pbmc_r[["percent.mt"]] <- PercentageFeatureSet(scler_pbmc_r, pattern = "^MT-", assay = "RNA")
+# scler_pbmc_r[["percent.ribo"]] <- PercentageFeatureSet(scler_pbmc_r, pattern = "^RP[SL]", assay = "RNA")
 # 
 # # Now, look check violin plots for:
 # #    - nFeature_RNA: number of unique genes expressed per cell
 # #    - nCount_RNA: total number of RNA transcripts detected per cell
 # #    - percent.mt: percentage of reads that map to the mitochondrial genome, and
 # #    - percent.ribo: percentage of reads that map to the ribosomal genome.
-# VlnPlot(scler_pbmc, features = c("nFeature_RNA"), pt.size = 0, group.by = "sample_id")
-# VlnPlot(scler_pbmc, features = c("nCount_RNA"), pt.size = 0, group.by = "sample_id")
-# VlnPlot(scler_pbmc, features = c("percent.mt"), pt.size = 0, group.by = "sample_id")
-# VlnPlot(scler_pbmc, features = c("percent.ribo"), pt.size = 0, group.by = "sample_id")
+# VlnPlot(scler_pbmc_r, features = c("nFeature_RNA"), pt.size = 0, group.by = "sample_id")
+# VlnPlot(scler_pbmc_r, features = c("nCount_RNA"), pt.size = 0, group.by = "sample_id")
+# VlnPlot(scler_pbmc_r, features = c("percent.mt"), pt.size = 0, group.by = "sample_id")
+# VlnPlot(scler_pbmc_r, features = c("percent.ribo"), pt.size = 0, group.by = "sample_id")
 # 
 # # Identify cells as "outliers" if median absolute deviation for these metrics >= 3
 # # Adaptive thresholds are calculated separately for each library
-# qc.nCount_RNA <- isOutlier(scler_pbmc$nCount_RNA, log = TRUE, type = "both", batch = scler_pbmc$LIBRARY)
-# qc.nFeature_RNA  <- isOutlier(scler_pbmc$nFeature_RNA, log = TRUE, type="both", batch = scler_pbmc$LIBRARY)
-# qc.percent.mt <- isOutlier(scler_pbmc$percent.mt, log = FALSE, type = "higher", batch = scler_pbmc$LIBRARY)
-# qc.percent.ribo <- isOutlier(scler_pbmc$percent.ribo, log = FALSE, type = "higher", batch = scler_pbmc$LIBRARY)
+# qc.nCount_RNA <- isOutlier(scler_pbmc_r$nCount_RNA, log = TRUE, type = "both", batch = scler_pbmc_r$LIBRARY)
+# qc.nFeature_RNA  <- isOutlier(scler_pbmc_r$nFeature_RNA, log = TRUE, type="both", batch = scler_pbmc_r$LIBRARY)
+# qc.percent.mt <- isOutlier(scler_pbmc_r$percent.mt, log = FALSE, type = "higher", batch = scler_pbmc_r$LIBRARY)
+# qc.percent.ribo <- isOutlier(scler_pbmc_r$percent.ribo, log = FALSE, type = "higher", batch = scler_pbmc_r$LIBRARY)
 # 
 # # Indicator for whether a cell is an outlier by at least one of this metrics
-# scler_pbmc$outlier_status <- (qc.nCount_RNA | qc.nFeature_RNA | qc.percent.mt | qc.percent.ribo)
+# scler_pbmc_r$outlier_status <- (qc.nCount_RNA | qc.nFeature_RNA | qc.percent.mt | qc.percent.ribo)
 # 
 # # How many cells do we have before filtering?
-# print(paste0("cells before filtering: ", ncol(scler_pbmc))) # 34135
+# print(paste0("cells before filtering: ", ncol(scler_pbmc_r))) # 34135
 # 
 # # Remove outliers
-# scler_pbmc <- subset(scler_pbmc,
+# scler_pbmc_r <- subset(scler_pbmc_r,
 #                      outlier_status == F)
 # # Remove outlier_status variable
-# scler_pbmc$outlier_status <- NULL
+# scler_pbmc_r$outlier_status <- NULL
 # 
 # # How many cells do we have after filtering?
-# print(paste0("cells after filtering: ", ncol(scler_pbmc))) # 30405
+# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 30405
 # 
 # # Check plots again
-# VlnPlot(scler_pbmc, features = c("nFeature_RNA"), pt.size = 0, group.by = "sample_id")
-# VlnPlot(scler_pbmc, features = c("nCount_RNA"), pt.size = 0, group.by = "sample_id")
-# VlnPlot(scler_pbmc, features = c("percent.mt"), pt.size = 0, group.by = "sample_id")
-# VlnPlot(scler_pbmc, features = c("percent.ribo"), pt.size = 0, group.by = "sample_id")
+# VlnPlot(scler_pbmc_r, features = c("nFeature_RNA"), pt.size = 0, group.by = "sample_id")
+# VlnPlot(scler_pbmc_r, features = c("nCount_RNA"), pt.size = 0, group.by = "sample_id")
+# VlnPlot(scler_pbmc_r, features = c("percent.mt"), pt.size = 0, group.by = "sample_id")
+# VlnPlot(scler_pbmc_r, features = c("percent.ribo"), pt.size = 0, group.by = "sample_id")
 # 
 # # 2. ADT #######################################################################
 # 
-# VlnPlot(scler_pbmc, features = c("nFeature_ADT"), pt.size = 0, group.by = "sample_id")
-# VlnPlot(scler_pbmc, features = c("nCount_ADT"), pt.size = 0, group.by = "sample_id")
+# VlnPlot(scler_pbmc_r, features = c("nFeature_ADT"), pt.size = 0, group.by = "sample_id")
+# VlnPlot(scler_pbmc_r, features = c("nCount_ADT"), pt.size = 0, group.by = "sample_id")
 # 
 # # Identify cells as "outliers" if median absolute deviation for these metrics >= 3
 # # Adaptive thresholds are calculated separately for each library
-# qc.nCount_ADT <- isOutlier(scler_pbmc$nCount_ADT, log = FALSE, type = "both", batch = scler_pbmc$LIBRARY)
-# qc.nFeature_ADT  <- isOutlier(scler_pbmc$nFeature_ADT, log = FALSE, type="both", batch = scler_pbmc$LIBRARY)
+# qc.nCount_ADT <- isOutlier(scler_pbmc_r$nCount_ADT, log = FALSE, type = "both", batch = scler_pbmc_r$LIBRARY)
+# qc.nFeature_ADT  <- isOutlier(scler_pbmc_r$nFeature_ADT, log = FALSE, type="both", batch = scler_pbmc_r$LIBRARY)
 # 
 # # Indicator for whether a cell is an outlier by at least one of this metrics
-# scler_pbmc$outlier_status <- (qc.nCount_ADT | qc.nFeature_ADT)
+# scler_pbmc_r$outlier_status <- (qc.nCount_ADT | qc.nFeature_ADT)
 # 
 # # How many cells do we have before filtering?
-# print(paste0("cells before filtering: ", ncol(scler_pbmc))) # 30405
+# print(paste0("cells before filtering: ", ncol(scler_pbmc_r))) # 30405
 # 
 # # Remove outliers
-# scler_pbmc <- subset(scler_pbmc,
+# scler_pbmc_r <- subset(scler_pbmc_r,
 #                      outlier_status == F)
 # # Remove outlier_status variable
-# scler_pbmc$outlier_status <- NULL
+# scler_pbmc_r$outlier_status <- NULL
 # 
 # # How many cells do we have after filtering?
-# print(paste0("cells after filtering: ", ncol(scler_pbmc))) # 29805
+# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 29805
 # 
 # # Check plots again
-# VlnPlot(scler_pbmc, features = c("nFeature_ADT"), pt.size = 0, group.by = "sample_id")
-# VlnPlot(scler_pbmc, features = c("nCount_ADT"), pt.size = 0, group.by = "sample_id")
+# VlnPlot(scler_pbmc_r, features = c("nFeature_ADT"), pt.size = 0, group.by = "sample_id")
+# VlnPlot(scler_pbmc_r, features = c("nCount_ADT"), pt.size = 0, group.by = "sample_id")
 ```
 
 Isotope controls do not target any specific antigen, and are used to identify "sticky" cells. We filter out sticky cells that express too many of these non-specific antibodies. We retain 28,944 cells after this step.
 
 ```{r}
 # # Extract ADT counts matrix
-# ADT_counts <- scler_pbmc@assays$ADT@counts
+# ADT_counts <- scler_pbmc_r@assays$ADT@counts
 # # Extract isotype control names
 # isotype_ctls <- rownames(ADT_counts)[str_detect(rownames(ADT_counts), fixed("Iso", ignore_case = TRUE))]
 # # Extract counts for isotype controls
@@ -550,36 +550,36 @@ Isotope controls do not target any specific antigen, and are used to identify "s
 # # Add metadata for each isotype control
 # for(i in 1:length(rownames(isotype_ctl_data))){
 #   isotype_name <- rownames(isotype_ctl_data)[[i]]
-#   scler_pbmc <- AddMetaData(scler_pbmc,
+#   scler_pbmc_r <- AddMetaData(scler_pbmc_r,
 #                    unlist(isotype_ctl_data[isotype_name,]),
 #                    sprintf("%s",str_replace_all(isotype_name, "-", "_")))
 # }
 # 
 # # Add metadata for maximum isotype control percentage (highest percentage from the isotype control % features)
-# scler_pbmc <- AddMetaData(scler_pbmc, apply(isotype_ctl_data, 2, max), "isotype_ctl_max")
+# scler_pbmc_r <- AddMetaData(scler_pbmc_r, apply(isotype_ctl_data, 2, max), "isotype_ctl_max")
 # 
 # # Visualize with violin plot
-# VlnPlot(scler_pbmc, features = c("isotype_ctl_max"), pt.size = 0, group.by = "sample_id")
+# VlnPlot(scler_pbmc_r, features = c("isotype_ctl_max"), pt.size = 0, group.by = "sample_id")
 # 
 # # How many cells do we have before filtering?
-# print(paste0("cells before filtering: ", ncol(scler_pbmc))) # 29805
+# print(paste0("cells before filtering: ", ncol(scler_pbmc_r))) # 29805
 # 
 # # Find outliers usig adapative thresholds by library
-# qc.isotype_ctl_max <- isOutlier(scler_pbmc$isotype_ctl_max, log = FALSE, type = "higher", batch = scler_pbmc$LIBRARY)
+# qc.isotype_ctl_max <- isOutlier(scler_pbmc_r$isotype_ctl_max, log = FALSE, type = "higher", batch = scler_pbmc_r$LIBRARY)
 # # Add variable
-# scler_pbmc$outlier_status <- qc.isotype_ctl_max
+# scler_pbmc_r$outlier_status <- qc.isotype_ctl_max
 # # Remove outliers
-# scler_pbmc <- subset(scler_pbmc, outlier_status == F)
+# scler_pbmc_r <- subset(scler_pbmc_r, outlier_status == F)
 # # Remove variable
-# scler_pbmc$outlier_status <- NULL
+# scler_pbmc_r$outlier_status <- NULL
 # 
 # # How many cells do we have after filtering?
-# print(paste0("cells after filtering: ", ncol(scler_pbmc))) # 28943
+# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 28943
 # 
 # # Check isotype_ctl_max violin plot again:
-# VlnPlot(scler_pbmc, features = c("isotype_ctl_max"), pt.size = 0, group.by = "sample_id")
+# VlnPlot(scler_pbmc_r, features = c("isotype_ctl_max"), pt.size = 0, group.by = "sample_id")
 # # Save Seurat object
-# SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_4"))
+# SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_4"))
 ```
 
 We'll save these thresholds in a text file and as an RDS object for future reference.
@@ -611,10 +611,10 @@ We only consider expression in patients, as we do not include healthy controls i
 
 ```{r}
 # # Load Seurat object
-# scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_4.h5seurat"))
+# scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_4.h5seurat"))
 # 
 # # Take subset of just patients
-# patient_subset <- subset(scler_pbmc, health == "SSc")
+# patient_subset <- subset(scler_pbmc_r, health == "SSc")
 # 
 # # Aggregate expression by sample
 # pb_patient <- PseudobulkExpression(patient_subset,
@@ -638,16 +638,16 @@ We only consider expression in patients, as we do not include healthy controls i
 # keep_genes <- names(any_keep)[any_keep]
 # 
 # # How many genes before filtering? 38743
-# print(paste0("Genes before filtering: ", nrow(scler_pbmc)))
+# print(paste0("Genes before filtering: ", nrow(scler_pbmc_r)))
 # 
 # # Subset RNA assay
-# scler_pbmc[["RNA"]] <- subset(scler_pbmc[["RNA"]], features = keep_genes)
+# scler_pbmc_r[["RNA"]] <- subset(scler_pbmc_r[["RNA"]], features = keep_genes)
 # 
 # # How many genes after filtering? 18316
-# print(paste0("Genes after filtering: ", nrow(scler_pbmc)))
+# print(paste0("Genes after filtering: ", nrow(scler_pbmc_r)))
 # 
 # # Save H5
-# SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_5"))
+# SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_5"))
 ```
 
 After filtering, we have 18,316 genes.
@@ -658,17 +658,17 @@ We've now denoised and filtered the RNA data. Lets normalize and scale it.
 
 ```{r}
 # # Load Seurat object
-# scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_5.h5seurat"))
+# scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_5.h5seurat"))
 # 
 # # Set default assay to RNA (we will address ADT layer later)
-# DefaultAssay(scler_pbmc) <- "RNA"
+# DefaultAssay(scler_pbmc_r) <- "RNA"
 # # Normalize, find variable features (default 2000), and scale
-# scler_pbmc <- NormalizeData(scler_pbmc) %>%
+# scler_pbmc_r <- NormalizeData(scler_pbmc_r) %>%
 #   FindVariableFeatures() %>%
-#   ScaleData(features = rownames(scler_pbmc))
+#   ScaleData(features = rownames(scler_pbmc_r))
 # 
 # # Save as H5
-# SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_6"))
+# SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_6"))
 ```
 
 6) Denoise and normalize ADT data
@@ -682,7 +682,7 @@ For this step, we use the output from cellranger multi without demultiplexing (a
 # path_to_cellranger_denoise <- paste0(project_path, "data/cellranger_output/cellranger_pooled_for_denoising/")
 # 
 # # Load (demultiplexed) Seurat object
-# scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_6.h5seurat"))
+# scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_6.h5seurat"))
 # 
 # # Subjects
 # subjects <- list.files(paste0(path_to_cellranger_denoise, "raw"))
@@ -746,12 +746,12 @@ For this step, we use the output from cellranger multi without demultiplexing (a
 # mt.prop.higher <- lapply(mt.prop_cutoffs, function(x){x[2]})
 # 
 # # Get libraries
-# libraries <- unique(scler_pbmc$LIBRARY)
+# libraries <- unique(scler_pbmc_r$LIBRARY)
 # # Reorder to match raw and filtered wells
 # libraries <- libraries[match(sub("^p", "", names(raw_wells)), libraries)]
 # 
 # # List of Seurat objects subset by library
-# seurat_subsets <- lapply(libraries, function(lib){subset(scler_pbmc, LIBRARY == lib)}) %>%
+# seurat_subsets <- lapply(libraries, function(lib){subset(scler_pbmc_r, LIBRARY == lib)}) %>%
 #   setNames(libraries)
 # 
 # # Run DSB for each well/library
@@ -771,31 +771,31 @@ For this step, we use the output from cellranger multi without demultiplexing (a
 # adt_adj_mat <- do.call(cbind, adt_adj)
 # 
 # # Make sure order of rows and columns matches Seurat object
-# adt_adj_mat_sorted <- adt_adj_mat[rownames(scler_pbmc[["ADT"]]), colnames(scler_pbmc[["ADT"]])]
+# adt_adj_mat_sorted <- adt_adj_mat[rownames(scler_pbmc_r[["ADT"]]), colnames(scler_pbmc_r[["ADT"]])]
 # 
 # # Check dimensions and row/column names
-# stopifnot(all(rownames(adt_adj_mat_sorted) == rownames(scler_pbmc[["ADT"]])))
-# stopifnot(all(colnames(adt_adj_mat_sorted) == colnames(scler_pbmc[["ADT"]])))
+# stopifnot(all(rownames(adt_adj_mat_sorted) == rownames(scler_pbmc_r[["ADT"]])))
+# stopifnot(all(colnames(adt_adj_mat_sorted) == colnames(scler_pbmc_r[["ADT"]])))
 # 
 # # Update Seurat object with DSB normalized matrix
-# scler_pbmc[["DSB"]] <- Seurat::CreateAssayObject(data = adt_adj_mat_sorted)
+# scler_pbmc_r[["DSB"]] <- Seurat::CreateAssayObject(data = adt_adj_mat_sorted)
 # 
 # # Set DSB as default layer
-# DefaultAssay(scler_pbmc) <- "DSB"
+# DefaultAssay(scler_pbmc_r) <- "DSB"
 # 
 # # Scale DSB data
 # # Get isotype controls
-# isotype_ctls <- rownames(scler_pbmc[["DSB"]])[str_detect(rownames(scler_pbmc[["DSB"]]), fixed("Iso", ignore_case = TRUE))]
+# isotype_ctls <- rownames(scler_pbmc_r[["DSB"]])[str_detect(rownames(scler_pbmc_r[["DSB"]]), fixed("Iso", ignore_case = TRUE))]
 # # Get features from DSB layer (excluding isotype controls)
-# dsb_features <- setdiff(rownames(scler_pbmc[["DSB"]]), isotype_ctls)
+# dsb_features <- setdiff(rownames(scler_pbmc_r[["DSB"]]), isotype_ctls)
 # # Set features as variable features
-# VariableFeatures(scler_pbmc) <- dsb_features
+# VariableFeatures(scler_pbmc_r) <- dsb_features
 # # Scale
-# scler_pbmc <- scler_pbmc %>%
+# scler_pbmc_r <- scler_pbmc_r %>%
 #   ScaleData()
 # 
 # # Save Seurat object as H5
-# SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_7"))
+# SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_7"))
 ```
 
 Ok, so both the RNA and ADT are denoised, normalized, and scaled.
@@ -805,27 +805,27 @@ Ok, so both the RNA and ADT are denoised, normalized, and scaled.
 Now, we integrate the RNA data using harmony and the ADT data using RPCA to account for batch effects.
 
 ```{r}
-scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_7.h5seurat"))
+scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_7.h5seurat"))
 
 # Data integration
 
 # (1) RNA - Run Harmony
 # Set default assay
-DefaultAssay(scler_pbmc) <- "RNA"
+DefaultAssay(scler_pbmc_r) <- "RNA"
 # Run PCA
-scler_pbmc <- RunPCA(scler_pbmc, reduction.name = "pca_rna")
+scler_pbmc_r <- RunPCA(scler_pbmc_r, reduction.name = "pca_rna")
 # Set dimensions
 rna_dims <- 1:30
 # Integrate with harmony
-scler_pbmc <- RunHarmony(scler_pbmc, group.by.vars = "LIBRARY", reduction.use = "pca_rna", dims.use = rna_dims, verbose = TRUE)
+scler_pbmc_r <- RunHarmony(scler_pbmc_r, group.by.vars = "LIBRARY", reduction.use = "pca_rna", dims.use = rna_dims, verbose = TRUE)
 
 # (2) ADT - Run RPCA
 # Set default assay
-DefaultAssay(scler_pbmc) <- "DSB"
+DefaultAssay(scler_pbmc_r) <- "DSB"
 # Integrate with RPCA (Seurat integration)
-scler_pbmc <- run_rpca(scler_pbmc)
+scler_pbmc_r <- run_rpca(scler_pbmc_r)
 
 # Save integrated Seurat object
-SaveH5Seurat(scler_pbmc, paste0(project_path, "data/h5seurat/scler_pbmc_8"))
+SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_8"))
 ```
 
