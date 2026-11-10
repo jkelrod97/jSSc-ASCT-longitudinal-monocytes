@@ -36,239 +36,249 @@ Now, we prepare a Seurat object with one counts matrix for all samples, as well 
 
 Prior to preprocessing, we have 44,706 cells total. The sample for patient 515 at 12 months is missing due to quality issues. 
 
+We start with the metadata:
+
 ```{r}
-# ################################################################################
-# ## READ & PROCESS META DATA ####################################################
-# ################################################################################
-# 
-# # Read in patient meta data
-# patient_meta_data <- read.csv(paste0(project_path, "data/patient_meta_data.csv"))
-# # Remove blank rows
-# patient_meta_data <- patient_meta_data %>% filter(if_all(everything(), ~ . != "" & !is.na(.)))
-# # Rename columns as desired
-# patient_meta_data <- patient_meta_data %>%
-#   dplyr::rename(
-#     subject = "subject_id",
-#     race = "Race",
-#     ethnicity = "Ethnicity",
-#     sex = "Sex",
-#     age_transplant = "Age.at.time.of.ASCT..years.",
-#     age_onset = "Age.of.onset..years.",
-#     years_with_disease = "Disease.Duration.at.time.of.ASCT..years.",
-#     disease_subtype = "Disease.Subtype",
-#     auto_antibody_pos = "X....Auto.antibody.positivity",
-#     mRSS = "X....mRSS."
-#   )
-# 
-# # Turn subject from an integer into a character
-# patient_meta_data$subject <- as.character(patient_meta_data$subject)
-# 
-# # Separate treatments into individual rows
-# patient_meta_data_long <- patient_meta_data %>%
-#   separate_rows(Treatment.prior.to.ASCT, sep = ", ") %>%  # Split treatments into separate rows
-#   mutate(Treatment.prior.to.ASCT = trimws(Treatment.prior.to.ASCT))  # Trim spaces
-# 
-# # Create columns for each treatment
-# patient_meta_data_treatments <- patient_meta_data_long %>%
-#   mutate(value = TRUE) %>%  # Add a value column to indicate presence
-#   pivot_wider(names_from = Treatment.prior.to.ASCT,
-#               values_from = value,
-#               values_fill = list(value = FALSE))  # Fill with FALSE if not present
-# 
-# # Merge back with original metadata
-# patient_meta_data <- patient_meta_data %>%
-#   select(subject, race, ethnicity,sex, age_transplant, age_onset, years_with_disease, disease_subtype) %>%
-#   left_join(patient_meta_data_treatments, by = "subject")
-# 
-# # Remove major manifestations column
-# patient_meta_data$Major.manifestations <- NULL
-# 
-# ################################################################################
-# ## READ IN COUNTS MATRICES #####################################################
-# ################################################################################
-# #
-# # # Get paths to cellranger multi output
-# # cellranger_paths <- list.files(paste0(project_path, "data/cellranger_output/cellranger_multi_demultiplexed"), full.names = TRUE)
-# #
-# # # Get sample names
-# # samp_names <- list.files(paste0(project_path, "data/cellranger_output/cellranger_multi_demultiplexed"))
-# #
-# # # Read 10x output
-# # cellranger_output <- lapply(cellranger_paths, Read10X)
-# #
-# # # GEX all in list
-# # gex_list <- lapply(cellranger_output, function(x){x$`Gene Expression`})
-# #
-# # # PLX all in list
-# # plx_list <- lapply(cellranger_output, function(x){x$`Antibody Capture`})
-# #
-# # # Save as RDS files
-# # mapply(saveRDS, gex_list, paste0(project_path, "data/RDS_files/counts/gex/", samp_names, "_gex.RDS"))
-# # mapply(saveRDS, plx_list, paste0(project_path, "data/RDS_files/counts/plx/", samp_names, "_plx.RDS"))
-# 
-# # Read in RDS files
-# gex_paths <- list.files(paste0(project_path, "data/RDS_files/counts/gex"), pattern = "\\.RDS$", full.names = TRUE)
-# plx_paths <- list.files(paste0(project_path, "data/RDS_files/counts/plx"), pattern = "\\.RDS$", full.names = TRUE)
-# 
-# # Read in counts
-# gex_list <- lapply(gex_paths, readRDS)
-# plx_list <- lapply(plx_paths, readRDS)
-# 
-# # Remove underscores from antibody names (Seurat doesn't allow)
-# plx_list <- lapply(plx_list, function(mat){rownames(mat) <- gsub("_", "-", rownames(mat)); mat})
-# 
-# # Name elements according to corresponding sample
-# gex_sample_ids <- sub("_gex\\.RDS$", "", basename(gex_paths))
-# names(gex_list) <- gex_sample_ids
-# 
-# plx_sample_ids <- sub("_plx\\.RDS$", "", basename(plx_paths))
-# names(plx_list) <- plx_sample_ids
-# 
-# # If sample IDs match (as they should), store in sample_ids object
-# if (all(gex_sample_ids == plx_sample_ids)) {
-#   sample_ids <- gex_sample_ids
-# } else {stop("Sample IDs from gex and plx do not match.")}
-# 
-# ################################################################################
-# ## CREATE SEURAT OBJECT ########################################################
-# ################################################################################
-# 
-# # We need V5 to use JoinLayers later (but will have to create a v3 object
-# # to use with SeuratDisk)
-# options(Seurat.object.assay.version = "v5")
-# 
-# #### GEX #######################################################################
-# # List of Seurat objects (1 for each sample)
-# scler_gex_list <- lapply(gex_list,
-#                          CreateSeuratObject,
-#                          project = "scl-CITE-Seq",
-#                          assay = "RNA")
-# 
-# 
-# # Combine into one Seurat object
-# scler_gex_obj <- merge(scler_gex_list[[1]],
-#                         scler_gex_list[-1],
-#                         add.cell.ids = sample_ids,
-#                         project = "scl-CITE-Seq")
-# # Join layers
-# scler_gex_joined <- JoinLayers(scler_gex_obj)
-# 
-# #### PLX #######################################################################
-# # List of Seurat objects (1 for each sample)
-# scler_plx_list <- lapply(plx_list,
-#                          CreateSeuratObject,
-#                          project = "scl-CITE-Seq",
-#                          assay = "ADT")
-# 
-# 
-# # Combine into one Seurat object
-# scler_plx_obj <- merge(scler_plx_list[[1]],
-#                         scler_plx_list[-1],
-#                         add.cell.ids = sample_ids,
-#                         project = "scl-CITE-Seq")
-# 
-# # Join layers
-# scler_plx_joined <- JoinLayers(scler_plx_obj)
-# 
-# #### PUT GEX AND PLX INTO ONE OBEJECT ##########################################
-# scler_pbmc_all <- scler_gex_joined
-# scler_pbmc_all[["ADT"]] <- scler_plx_joined[["ADT"]]
-# 
-# ################################################################################
-# ## ADD META DATA TO SEURAT OBJECTS #############################################
-# ################################################################################
-# 
-# ### (a) sample ID ##############################################################
-# scler_pbmc_all$sample_id <- sub("_(?!.*_).*",
-#                                    "",
-#                                    rownames(scler_pbmc_all@meta.data),
-#                                    perl = TRUE)
-# 
-# ### (b) subject ################################################################
-# scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
-#   mutate(
-#     subject = case_when(
-#       grepl("^H", sample_id) ~ sample_id,   # Healthy controls start with 'H'
-#       TRUE ~ sub("_.*$", "", sample_id)     # Everyone else: drop everything after the first underscore
-#     )
-#   )
-# 
-# ### (c) LIBRARY ################################################################
-# scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
-#   mutate(
-#     LIBRARY = case_when(
-#       grepl("H", subject) ~ "H", # Healthy controls are part of 'H' library
-#       TRUE ~ subject # Each patient has is a library
-#     )
-#   )
-# 
-# ### (d) health #################################################################
-# scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
-#   mutate(
-#     health = case_when(
-#       grepl("H", sample_id) ~ "healthy",
-#       TRUE ~ "SSc"
-#     )
-#   )
-# 
-# ### (e) group
-# scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
-#   mutate(
-#     group = case_when(
-#       health == "healthy" ~ "healthy",
-#       grepl("baseline", sample_id) ~ "baseline",
-#       grepl("six", sample_id) ~ "six",
-#       grepl("twelve", sample_id) ~ "twelve",
-#       grepl("twen4", sample_id) ~ "twen4"
-#     ),
-#     group = factor(group, levels = c("healthy", "baseline", "six", "twelve", "twen4"))
-#   )
-# 
-# ### (f) Add timepoint as a numeric variable for patients
-# scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
-#   mutate(
-#     timepoint = case_when(
-#       group == "healthy" ~ NA,
-#       group == "baseline" ~ 0,
-#       group == "six" ~ 6,
-#       group == "twelve" ~ 12,
-#       group == "twen4" ~ 24
-#     )
-#   )
-# 
-# 
-# ### (g) Add other patient meta data (while retaining metadata rownames)
-# scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
-#   tibble::rownames_to_column("cell_id") %>%
-#   left_join(patient_meta_data, by = "subject") %>%
-#   tibble::column_to_rownames("cell_id")
-# 
-# ################################################################################
-# ## RENAME CELLS TO MATCH SAMPLE  ###############################################
-# ################################################################################
-# 
-# colnames(scler_pbmc_all) <- colnames(scler_pbmc_all) %>%
-#   gsub("-1$", "", .) %>%                              # remove trailing -1
-#   gsub(".*_([0-9]+)_", "\\1-", .) %>%                 # patient: extract any numeric ID and add dash
-#   gsub("H[0-9]+_", "H-", .)                           # healthy: H1_, H2_ → H-
-# 
-# ################################################################################
-# ## SAVE SERURAT OBJECT #########################################################
-# ################################################################################
-# 
-# # We need to turn this V5 Seurat object into a V3 Seurat object to be compatible
-# # with SeuratDisk
-# options(Seurat.object.assay.version = "v3")
-# # Create object with RNA and metadata
-# scler_pbmc <- CreateSeuratObject(counts = scler_pbmc_all@assays$RNA$counts,
-#                                  meta.data = scler_pbmc_all@meta.data,
-#                                  project = scler_pbmc_all@project.name)
-# # Add ADT
-# scler_pbmc[["ADT"]] <- CreateAssayObject(counts = scler_pbmc_all[["ADT"]]$counts)
-# 
-# # Save as H5
-# SaveH5Seurat(scler_pbmc,
-#              paste0(project_path, "data/h5seurat/scler_pbmc_1"))
+################################################################################
+## READ & PROCESS META DATA ####################################################
+################################################################################
+
+# Read in patient meta data
+patient_meta_data <- read.csv(paste0(project_path, "data/patient_meta_data.csv"))
+# Remove blank rows
+patient_meta_data <- patient_meta_data %>% filter(if_all(everything(), ~ . != "" & !is.na(.)))
+# Rename columns as desired
+patient_meta_data <- patient_meta_data %>%
+  dplyr::rename(
+    subject = "subject_id",
+    race = "Race",
+    ethnicity = "Ethnicity",
+    sex = "Sex",
+    age_transplant = "Age.at.time.of.ASCT..years.",
+    age_onset = "Age.of.onset..years.",
+    years_with_disease = "Disease.Duration.at.time.of.ASCT..years.",
+    disease_subtype = "Disease.Subtype",
+    auto_antibody_pos = "X....Auto.antibody.positivity",
+    mRSS = "X....mRSS."
+  )
+
+# Turn subject from an integer into a character
+patient_meta_data$subject <- as.character(patient_meta_data$subject)
+
+# Separate treatments into individual rows
+patient_meta_data_long <- patient_meta_data %>%
+  separate_rows(Treatment.prior.to.ASCT, sep = ", ") %>%  # Split treatments into separate rows
+  mutate(Treatment.prior.to.ASCT = trimws(Treatment.prior.to.ASCT))  # Trim spaces
+
+# Create columns for each treatment
+patient_meta_data_treatments <- patient_meta_data_long %>%
+  mutate(value = TRUE) %>%  # Add a value column to indicate presence
+  pivot_wider(names_from = Treatment.prior.to.ASCT,
+              values_from = value,
+              values_fill = list(value = FALSE))  # Fill with FALSE if not present
+
+# Merge back with original metadata
+patient_meta_data <- patient_meta_data %>%
+  select(subject, race, ethnicity,sex, age_transplant, age_onset, years_with_disease, disease_subtype) %>%
+  left_join(patient_meta_data_treatments, by = "subject")
+
+# Remove major manifestations column
+patient_meta_data$Major.manifestations <- NULL
+```
+
+Now we load in the counts matrices:
+
+```{r}
+###############################################################################
+# READ IN COUNTS MATRICES #####################################################
+###############################################################################
+
+# Get paths to cellranger multi output
+cellranger_paths <- list.files(paste0(project_path, "data/cellranger_output/cellranger_multi_demultiplexed"), full.names = TRUE)
+
+# Get sample names
+samp_names <- list.files(paste0(project_path, "data/cellranger_output/cellranger_multi_demultiplexed"))
+
+# Read 10x output
+cellranger_output <- lapply(cellranger_paths, Read10X)
+
+# GEX all in list
+gex_list <- lapply(cellranger_output, function(x){x$`Gene Expression`})
+
+# PLX all in list
+plx_list <- lapply(cellranger_output, function(x){x$`Antibody Capture`})
+
+# Save as RDS files
+mapply(saveRDS, gex_list, paste0(project_path, "data/RDS_files/counts/gex/", samp_names, "_gex.RDS"))
+mapply(saveRDS, plx_list, paste0(project_path, "data/RDS_files/counts/plx/", samp_names, "_plx.RDS"))
+
+# Read in RDS files
+gex_paths <- list.files(paste0(project_path, "data/RDS_files/counts/gex"), pattern = "\\.RDS$", full.names = TRUE)
+plx_paths <- list.files(paste0(project_path, "data/RDS_files/counts/plx"), pattern = "\\.RDS$", full.names = TRUE)
+
+# Read in counts
+gex_list <- lapply(gex_paths, readRDS)
+plx_list <- lapply(plx_paths, readRDS)
+
+# Remove underscores from antibody names (Seurat doesn't allow)
+plx_list <- lapply(plx_list, function(mat){rownames(mat) <- gsub("_", "-", rownames(mat)); mat})
+
+# Name elements according to corresponding sample
+gex_sample_ids <- sub("_gex\\.RDS$", "", basename(gex_paths))
+names(gex_list) <- gex_sample_ids
+
+plx_sample_ids <- sub("_plx\\.RDS$", "", basename(plx_paths))
+names(plx_list) <- plx_sample_ids
+
+# If sample IDs match (as they should), store in sample_ids object
+if (all(gex_sample_ids == plx_sample_ids)) {
+  sample_ids <- gex_sample_ids
+} else {stop("Sample IDs from gex and plx do not match.")}
+```
+
+Now we create a Seruat object:
+
+```{r}
+################################################################################
+## CREATE SEURAT OBJECT ########################################################
+################################################################################
+
+# We need V5 to use JoinLayers later (but will have to create a v3 object
+# to use with SeuratDisk)
+options(Seurat.object.assay.version = "v5")
+
+#### GEX #######################################################################
+# List of Seurat objects (1 for each sample)
+scler_gex_list <- lapply(gex_list,
+                         CreateSeuratObject,
+                         project = "scl-CITE-Seq",
+                         assay = "RNA")
+
+
+# Combine into one Seurat object
+scler_gex_obj <- merge(scler_gex_list[[1]],
+                        scler_gex_list[-1],
+                        add.cell.ids = sample_ids,
+                        project = "scl-CITE-Seq")
+# Join layers
+scler_gex_joined <- JoinLayers(scler_gex_obj)
+
+#### PLX #######################################################################
+# List of Seurat objects (1 for each sample)
+scler_plx_list <- lapply(plx_list,
+                         CreateSeuratObject,
+                         project = "scl-CITE-Seq",
+                         assay = "ADT")
+
+
+# Combine into one Seurat object
+scler_plx_obj <- merge(scler_plx_list[[1]],
+                        scler_plx_list[-1],
+                        add.cell.ids = sample_ids,
+                        project = "scl-CITE-Seq")
+
+# Join layers
+scler_plx_joined <- JoinLayers(scler_plx_obj)
+
+#### PUT GEX AND PLX INTO ONE OBEJECT ##########################################
+scler_pbmc_all <- scler_gex_joined
+scler_pbmc_all[["ADT"]] <- scler_plx_joined[["ADT"]]
+
+################################################################################
+## ADD META DATA TO SEURAT OBJECTS #############################################
+################################################################################
+
+### (a) sample ID ##############################################################
+scler_pbmc_all$sample_id <- sub("_(?!.*_).*",
+                                   "",
+                                   rownames(scler_pbmc_all@meta.data),
+                                   perl = TRUE)
+
+### (b) subject ################################################################
+scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
+  mutate(
+    subject = case_when(
+      grepl("^H", sample_id) ~ sample_id,   # Healthy controls start with 'H'
+      TRUE ~ sub("_.*$", "", sample_id)     # Everyone else: drop everything after the first underscore
+    )
+  )
+
+### (c) LIBRARY ################################################################
+scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
+  mutate(
+    LIBRARY = case_when(
+      grepl("H", subject) ~ "H", # Healthy controls are part of 'H' library
+      TRUE ~ subject # Each patient has is a library
+    )
+  )
+
+### (d) health #################################################################
+scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
+  mutate(
+    health = case_when(
+      grepl("H", sample_id) ~ "healthy",
+      TRUE ~ "SSc"
+    )
+  )
+
+### (e) group
+scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
+  mutate(
+    group = case_when(
+      health == "healthy" ~ "healthy",
+      grepl("baseline", sample_id) ~ "baseline",
+      grepl("six", sample_id) ~ "six",
+      grepl("twelve", sample_id) ~ "twelve",
+      grepl("twen4", sample_id) ~ "twen4"
+    ),
+    group = factor(group, levels = c("healthy", "baseline", "six", "twelve", "twen4"))
+  )
+
+### (f) Add timepoint as a numeric variable for patients
+scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
+  mutate(
+    timepoint = case_when(
+      group == "healthy" ~ NA,
+      group == "baseline" ~ 0,
+      group == "six" ~ 6,
+      group == "twelve" ~ 12,
+      group == "twen4" ~ 24
+    )
+  )
+
+
+### (g) Add other patient meta data (while retaining metadata rownames)
+scler_pbmc_all@meta.data <- scler_pbmc_all@meta.data %>%
+  tibble::rownames_to_column("cell_id") %>%
+  left_join(patient_meta_data, by = "subject") %>%
+  tibble::column_to_rownames("cell_id")
+
+################################################################################
+## RENAME CELLS TO MATCH SAMPLE  ###############################################
+################################################################################
+
+colnames(scler_pbmc_all) <- colnames(scler_pbmc_all) %>%
+  gsub("-1$", "", .) %>%                              # remove trailing -1
+  gsub(".*_([0-9]+)_", "\\1-", .) %>%                 # patient: extract any numeric ID and add dash
+  gsub("H[0-9]+_", "H-", .)                           # healthy: H1_, H2_ → H-
+
+################################################################################
+## SAVE SERURAT OBJECT #########################################################
+################################################################################
+
+# We need to turn this V5 Seurat object into a V3 Seurat object to be compatible
+# with SeuratDisk
+options(Seurat.object.assay.version = "v3")
+# Create object with RNA and metadata
+scler_pbmc <- CreateSeuratObject(counts = scler_pbmc_all@assays$RNA$counts,
+                                 meta.data = scler_pbmc_all@meta.data,
+                                 project = scler_pbmc_all@project.name)
+# Add ADT
+scler_pbmc[["ADT"]] <- CreateAssayObject(counts = scler_pbmc_all[["ADT"]]$counts)
+
+# Save as H5
+SaveH5Seurat(scler_pbmc,
+             paste0(project_path, "data/h5seurat/scler_pbmc_1"))
 ```
 
 Due to a previous problem we had with mislabeled samples, we check to make sure the samples are labeled correctly.
