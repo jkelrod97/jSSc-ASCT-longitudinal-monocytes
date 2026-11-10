@@ -67,8 +67,10 @@ patient_meta_data <- patient_meta_data %>%
 # Turn subject from an integer into a character
 patient_meta_data$subject <- as.character(patient_meta_data$subject)
 
-# Separate treatments into individual rows
+# Separate treatments into individual rows (keep only subject + treatment, so the
+# join below adds just the treatment columns and doesn't duplicate the rest as .x/.y)
 patient_meta_data_long <- patient_meta_data %>%
+  select(subject, Treatment.prior.to.ASCT) %>%
   separate_rows(Treatment.prior.to.ASCT, sep = ", ") %>%  # Split treatments into separate rows
   mutate(Treatment.prior.to.ASCT = trimws(Treatment.prior.to.ASCT))  # Trim spaces
 
@@ -79,13 +81,10 @@ patient_meta_data_treatments <- patient_meta_data_long %>%
               values_from = value,
               values_fill = list(value = FALSE))  # Fill with FALSE if not present
 
-# Merge back with original metadata
+# Merge back with original metadata (dropping the raw treatment and major manifestations columns)
 patient_meta_data <- patient_meta_data %>%
-  select(subject, race, ethnicity,sex, age_transplant, age_onset, years_with_disease, disease_subtype) %>%
+  select(-Treatment.prior.to.ASCT, -Major.manifestations) %>%
   left_join(patient_meta_data_treatments, by = "subject")
-
-# Remove major manifestations column
-patient_meta_data$Major.manifestations <- NULL
 ```
 
 Now we load in the counts matrices:
@@ -265,7 +264,7 @@ colnames(scler_pbmc_r_all) <- colnames(scler_pbmc_r_all) %>%
   gsub("H[0-9]+_", "H-", .)                           # healthy: H1_, H2_ → H-
 
 ################################################################################
-## SAVE SERURAT OBJECT #########################################################
+## SAVE SEURAT OBJECT #########################################################
 ################################################################################
 
 # We need to turn this V5 Seurat object into a V3 Seurat object to be compatible
