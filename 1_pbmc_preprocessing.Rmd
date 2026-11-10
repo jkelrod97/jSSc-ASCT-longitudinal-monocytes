@@ -308,17 +308,35 @@ scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_1.
 # First check that sex-linked genes expression is correct.
 # All samples from 515, as well as H3 should express Y linked genes
 # All samples from 591 and 594, as well as H1, H2, and  H4 should express X linked gene XIST
-DotPlot(scler_pbmc_r,
-        features = c("XIST", # X-linked
-                     "RPS4Y1", # Y-linked
-                     "DDX3Y", # Y-linked
-                     "KDM5D", # Y-linked
-                     "EIF1AY", # Y-linked
-                     "UTY", # Y-linked
-                     "ZFY"), # Y-linked
-        group.by = "sample_id",
-        dot.scale = 10) +
-  coord_flip() + 
+sex_dotplot <- DotPlot(scler_pbmc_r,
+                       features = c("XIST", # X-linked
+                                    "RPS4Y1", # Y-linked
+                                    "DDX3Y", # Y-linked
+                                    "KDM5D", # Y-linked
+                                    "EIF1AY", # Y-linked
+                                    "UTY", # Y-linked
+                                    "ZFY"), # Y-linked
+                       group.by = "sample_id",
+                       dot.scale = 10)
+
+# Color dots by the recorded sex of each sample (pink = female, blue = male), so a
+# mismatch between recorded sex and sex-linked gene expression stands out.
+# Transparency shows scaled average expression; size shows percent expressed.
+dot_data <- sex_dotplot$data
+sample_sex <- scler_pbmc_r@meta.data %>% distinct(sample_id, sex)
+dot_data$sex <- sample_sex$sex[match(dot_data$id, sample_sex$sample_id)]
+
+ggplot(dot_data, aes(x = features.plot, y = id,
+                     size = pct.exp, colour = sex, alpha = avg.exp.scaled)) +
+  geom_point() +
+  scale_radius(range = c(0, 10), name = "Percent Expressed") +
+  scale_colour_manual(values = c(F = "hotpink", M = "dodgerblue"),
+                      labels = c(F = "Female", M = "Male"),
+                      name = "Sex") +
+  scale_alpha(range = c(0.15, 1), name = "Average Expression") +
+  labs(x = "Features", y = "sample_id") +
+  cowplot::theme_cowplot() +
+  coord_flip() +
   RotatedAxis()
 ```
 
