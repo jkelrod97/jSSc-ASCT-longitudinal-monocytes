@@ -645,44 +645,44 @@ We will filter genes that are lowly expressed as well. Before filtering, we have
 We only consider expression in patients, as we do not include healthy controls in our longitudinal model.
 
 ```{r}
-# # Load Seurat object
-# scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_4.h5seurat"))
-# 
-# # Take subset of just patients
-# patient_subset <- subset(scler_pbmc_r, health == "SSc")
-# 
-# # Aggregate expression by sample
-# pb_patient <- PseudobulkExpression(patient_subset,
-#                      group.by = "sample_id",
-#                      return.seurat = F,
-#                      layer = "counts",
-#                      method = "aggregate") %>%
-#     .[["RNA"]] %>% suppressWarnings()
-# # Convert to CPM
-# pb_patient_cpm <- sweep(pb_patient, 2, colSums(pb_patient), "/") * 10e6
-# 
-# # Get timepoint vector
-# agg_timepoint <- sub("^.*-", "", colnames(pb_patient))
-# 
-# # Get a list of genes that has a count >= 3 for at least two patients at at least one time point.
-# baseline_keep <- (pb_patient_cpm[, agg_timepoint == "baseline"] > 3) %>% rowSums() >= 2
-# six_keep <- (pb_patient_cpm[, agg_timepoint == "six"] > 3) %>% rowSums() >= 2
-# twelve_keep <- (pb_patient_cpm[, agg_timepoint == "twelve"] > 3) %>% rowSums() >= 2
-# twen4_keep <- (pb_patient_cpm[, agg_timepoint == "twen4"] > 3) %>% rowSums() >= 2
-# any_keep <- baseline_keep | six_keep | twelve_keep | twen4_keep
-# keep_genes <- names(any_keep)[any_keep]
-# 
-# # How many genes before filtering? 38743
-# print(paste0("Genes before filtering: ", nrow(scler_pbmc_r)))
-# 
-# # Subset RNA assay
-# scler_pbmc_r[["RNA"]] <- subset(scler_pbmc_r[["RNA"]], features = keep_genes)
-# 
-# # How many genes after filtering? 18316
-# print(paste0("Genes after filtering: ", nrow(scler_pbmc_r)))
-# 
-# # Save H5
-# SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_5"))
+# Load Seurat object
+scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_4.h5seurat"))
+
+# Take subset of just patients
+patient_subset <- subset(scler_pbmc_r, health == "SSc")
+
+# Aggregate expression by sample
+pb_patient <- PseudobulkExpression(patient_subset,
+                     group.by = "sample_id",
+                     return.seurat = F,
+                     layer = "counts",
+                     method = "aggregate") %>%
+    .[["RNA"]] %>% suppressWarnings()
+# Convert to CPM
+pb_patient_cpm <- sweep(pb_patient, 2, colSums(pb_patient), "/") * 10e6
+
+# Get timepoint vector
+agg_timepoint <- sub("^.*-", "", colnames(pb_patient))
+
+# Get a list of genes that has a count >= 3 for at least two patients at at least one time point.
+baseline_keep <- (pb_patient_cpm[, which(agg_timepoint == "baseline")] > 3) %>% as.matrix() %>% rowSums() >= 2
+six_keep <- (pb_patient_cpm[, which(agg_timepoint == "six")] > 3) %>% as.matrix() %>% rowSums() >= 2
+twelve_keep <- (pb_patient_cpm[, which(agg_timepoint == "twelve")] > 3) %>% as.matrix() %>% rowSums() >= 2
+twen4_keep <- (pb_patient_cpm[, which(agg_timepoint == "twen4")] > 3) %>% as.matrix() %>% rowSums() >= 2
+any_keep <- baseline_keep | six_keep | twelve_keep | twen4_keep
+keep_genes <- names(any_keep)[any_keep]
+
+# How many genes before filtering? 38606
+print(paste0("Genes before filtering: ", nrow(scler_pbmc_r)))
+
+# Subset RNA assay
+scler_pbmc_r[["RNA"]] <- subset(scler_pbmc_r[["RNA"]], features = keep_genes)
+
+# How many genes after filtering? 18374
+print(paste0("Genes after filtering: ", nrow(scler_pbmc_r)))
+
+# Save H5
+SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_5"))
 ```
 
 After filtering, we have 18,316 genes.
