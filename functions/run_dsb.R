@@ -70,7 +70,8 @@ run_dsb <- function(raw_counts = NULL,
              prot.size <  prot.size.max &
              rna.size > rna.size.min &
              rna.size < rna.size.max &
-             mt.prop < mt.prop.max) %>% 
+             mt.prop < mt.prop.max &
+             drop.class == "background") %>% 
     rownames()
   
   # Get background ADT matrix

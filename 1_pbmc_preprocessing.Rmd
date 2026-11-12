@@ -718,124 +718,118 @@ Now, let's denoise and normalize the ADT data with DSB. We set denoise.counts = 
 For this step, we use the output from cellranger multi without demultiplexing (as we did when we ran SoupX for the ambient RNA correction).
 
 ```{r}
-# # Path where cellranger_count outputs are saved
-# path_to_cellranger_denoise <- paste0(project_path, "data/cellranger_output/cellranger_pooled_for_denoising/")
-# 
-# # Load (demultiplexed) Seurat object
-# scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_6.h5seurat"))
-# 
-# # Subjects
-# subjects <- list.files(paste0(path_to_cellranger_denoise, "raw"))
-# 
-# # Load data for raw and filtered wells
-# raw_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_denoise, "raw/", subject))})
-# filtered_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_denoise, "filtered/", subject))})
-# 
-# # Name accordingly
-# names(raw_wells) <- names(filtered_wells) <- subjects
-# 
-# # Look at distribution of droplets for each well
-# dsb_plots <- mapply(plot_dsb, raw_wells, filtered_wells,
-#        SIMPLIFY = F)
-# # Name accordingly
-# names(dsb_plots) <- subjects
-# 
-# # Get data classifying cells as background/cell
-# dsb_data <- mapply(dsb_md, raw_wells, filtered_wells,
-#                    SIMPLIFY = F)
-# # Name accordingly
-# names(dsb_data) <- subjects
-# 
-# # Get cutoffs using scater
-# 
-# # RNA size
-# rna.size_cutoffs <- lapply(subjects,
-#                            function(subject){
-#                              isOutlier((dsb_data[[subject]] %>% filter(drop.class == "cell") %>% pull(rna.size)),
-#           log = TRUE,
-#           type = "both") %>% attr("thresholds")
-#           })
-# # Name accordingly
-# names(rna.size_cutoffs) <- subjects
-# # Get lower and upper cutoffs
-# rna.lower <- lapply(rna.size_cutoffs, function(x){x[1]}); rna.higher <- lapply(rna.size_cutoffs, function(x){x[2]})
-# 
-# # ADT size
-# prot.size_cutoffs <- lapply(subjects,
-#                            function(subject){
-#                              isOutlier((dsb_data[[subject]] %>% filter(drop.class == "cell") %>% pull(prot.size)),
-#           log = TRUE,
-#           type = "both") %>% attr("thresholds")
-#           })
-# # Name accordingly
-# names(prot.size_cutoffs) <- subjects
-# # Get lower and upper cutoffs
-# prot.lower <- lapply(prot.size_cutoffs, function(x){x[1]}); prot.higher <- lapply(prot.size_cutoffs, function(x){x[2]})
-# 
-# 
-# # Pct mt (mitochondrial DNA) max
-# mt.prop_cutoffs <- lapply(subjects,
-#                            function(subject){
-#                              isOutlier((dsb_data[[subject]] %>% filter(drop.class == "cell") %>% pull(mt.prop)),
-#           log = FALSE,
-#           type = "higher") %>% attr("thresholds")
-#           })
-# # Name accordingly
-# names(mt.prop_cutoffs) <- subjects
-# # Get lower and upper cutoffs
-# mt.prop.higher <- lapply(mt.prop_cutoffs, function(x){x[2]})
-# 
-# # Get libraries
-# libraries <- unique(scler_pbmc_r$LIBRARY)
-# # Reorder to match raw and filtered wells
-# libraries <- libraries[match(sub("^p", "", names(raw_wells)), libraries)]
-# 
-# # List of Seurat objects subset by library
-# seurat_subsets <- lapply(libraries, function(lib){subset(scler_pbmc_r, LIBRARY == lib)}) %>%
-#   setNames(libraries)
-# 
-# # Run DSB for each well/library
-# adt_adj <- mapply(run_dsb,
-#                   raw_wells, filtered_wells, seurat_subsets, libraries,
-#                   prot.size.min = prot.lower,
-#                   prot.size.max = prot.higher,
-#                   rna.size.min = rna.lower,
-#                   rna.size.max = rna.higher,
-#                   mt.prop.max = mt.prop.higher,
-#                   SIMPLIFY = F,
-#                   MoreArgs = list(denoise.counts = FALSE,
-#                                   define.pseudocount = TRUE,
-#                                   pseudocount.use = 1))
-# 
-# # Put adjusted ADT into one big matrix
-# adt_adj_mat <- do.call(cbind, adt_adj)
-# 
-# # Make sure order of rows and columns matches Seurat object
-# adt_adj_mat_sorted <- adt_adj_mat[rownames(scler_pbmc_r[["ADT"]]), colnames(scler_pbmc_r[["ADT"]])]
-# 
-# # Check dimensions and row/column names
-# stopifnot(all(rownames(adt_adj_mat_sorted) == rownames(scler_pbmc_r[["ADT"]])))
-# stopifnot(all(colnames(adt_adj_mat_sorted) == colnames(scler_pbmc_r[["ADT"]])))
-# 
-# # Update Seurat object with DSB normalized matrix
-# scler_pbmc_r[["DSB"]] <- Seurat::CreateAssayObject(data = adt_adj_mat_sorted)
-# 
-# # Set DSB as default layer
-# DefaultAssay(scler_pbmc_r) <- "DSB"
-# 
-# # Scale DSB data
-# # Get isotype controls
-# isotype_ctls <- rownames(scler_pbmc_r[["DSB"]])[str_detect(rownames(scler_pbmc_r[["DSB"]]), fixed("Iso", ignore_case = TRUE))]
-# # Get features from DSB layer (excluding isotype controls)
-# dsb_features <- setdiff(rownames(scler_pbmc_r[["DSB"]]), isotype_ctls)
-# # Set features as variable features
-# VariableFeatures(scler_pbmc_r) <- dsb_features
-# # Scale
-# scler_pbmc_r <- scler_pbmc_r %>%
-#   ScaleData()
-# 
-# # Save Seurat object as H5
-# SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_7"))
+# Path where cellranger_count outputs are saved
+path_to_cellranger_denoise <- paste0(project_path, "data/cellranger_output/cellranger_pooled_for_denoising/")
+
+# Load (demultiplexed) Seurat object
+scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_6.h5seurat"))
+
+# Subjects
+subjects <- list.files(paste0(path_to_cellranger_denoise, "raw"))
+
+# Load data for raw and filtered wells
+raw_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_denoise, "raw/", subject))})
+filtered_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_denoise, "filtered/", subject))})
+
+# Name accordingly
+names(raw_wells) <- names(filtered_wells) <- subjects
+
+# Look at distribution of droplets for each well
+dsb_plots <- mapply(plot_dsb, raw_wells, filtered_wells,
+       SIMPLIFY = F)
+# Name accordingly
+names(dsb_plots) <- subjects
+
+# Get data classifying cells as background/cell
+dsb_data <- mapply(dsb_md, raw_wells, filtered_wells,
+                   SIMPLIFY = F)
+# Name accordingly
+names(dsb_data) <- subjects
+
+# Get cutoffs by manually examining plots
+
+# RNA size
+rna.size_cutoffs <- list(H_r = c("lower" = 0, "higher" = 3.2),
+                         p515 = c("lower" = 0, "higher" = 3.2),
+                         p591 = c("lower" = 0, "higher" = 3.2),
+                         p594_r = c("lower" = 0, "higher" = 3.2))
+# Name accordingly
+names(rna.size_cutoffs) <- subjects
+# Get lower and upper cutoffs
+rna.lower <- lapply(rna.size_cutoffs, function(x){x[1]}); rna.higher <- lapply(rna.size_cutoffs, function(x){x[2]})
+
+# ADT size
+prot.size_cutoffs <- list(H_r = c("lower" = 0, "higher" = 3.5),
+                          p515 = c("lower" = 0, "higher" = 3.5),
+                          p591 = c("lower" = 0, "higher" = 3.5),
+                          p594_r = c("lower" = 0, "higher" = 3.5))
+# Name accordingly
+names(prot.size_cutoffs) <- subjects
+# Get lower and upper cutoffs
+prot.lower <- lapply(prot.size_cutoffs, function(x){x[1]}); prot.higher <- lapply(prot.size_cutoffs, function(x){x[2]})
+
+
+# Pct mt (mitochondrial DNA) max
+mt.prop_cutoffs <- list(H_r = c("lower" = 0, "upper" = 1),
+                        p515 = c("lower" = 0, "upper" = 1),
+                        p591 = c("lower" = 0, "upper" = 1),
+                        p594_r = c("lower" = 0, "upper" = 1))
+# Name accordingly
+names(mt.prop_cutoffs) <- subjects
+# Get lower and upper cutoffs
+mt.prop.higher <- lapply(mt.prop_cutoffs, function(x){x[2]})
+
+# Get libraries
+libraries <- unique(scler_pbmc_r$LIBRARY)
+# Reorder to match raw and filtered wells
+libraries <- libraries[match(sub("^p", "", names(raw_wells)), libraries)]
+
+# List of Seurat objects subset by library
+seurat_subsets <- lapply(libraries, function(lib){subset(scler_pbmc_r, LIBRARY == lib)}) %>%
+  setNames(libraries)
+
+# Run DSB for each well/library
+adt_adj <- mapply(run_dsb,
+                  raw_wells, filtered_wells, seurat_subsets, libraries,
+                  prot.size.min = prot.lower,
+                  prot.size.max = prot.higher,
+                  rna.size.min = rna.lower,
+                  rna.size.max = rna.higher,
+                  mt.prop.max = mt.prop.higher,
+                  SIMPLIFY = F,
+                  MoreArgs = list(denoise.counts = FALSE,
+                                  define.pseudocount = TRUE,
+                                  pseudocount.use = 1))
+
+# Put adjusted ADT into one big matrix
+adt_adj_mat <- do.call(cbind, adt_adj)
+
+# Make sure order of rows and columns matches Seurat object
+adt_adj_mat_sorted <- adt_adj_mat[rownames(scler_pbmc_r[["ADT"]]), colnames(scler_pbmc_r[["ADT"]])]
+
+# Check dimensions and row/column names
+stopifnot(all(rownames(adt_adj_mat_sorted) == rownames(scler_pbmc_r[["ADT"]])))
+stopifnot(all(colnames(adt_adj_mat_sorted) == colnames(scler_pbmc_r[["ADT"]])))
+
+# Update Seurat object with DSB normalized matrix
+scler_pbmc_r[["DSB"]] <- Seurat::CreateAssayObject(data = adt_adj_mat_sorted)
+
+# Set DSB as default layer
+DefaultAssay(scler_pbmc_r) <- "DSB"
+
+# Scale DSB data
+# Get isotype controls
+isotype_ctls <- rownames(scler_pbmc_r[["DSB"]])[str_detect(rownames(scler_pbmc_r[["DSB"]]), fixed("Iso", ignore_case = TRUE))]
+# Get features from DSB layer (excluding isotype controls)
+dsb_features <- setdiff(rownames(scler_pbmc_r[["DSB"]]), isotype_ctls)
+# Set features as variable features
+VariableFeatures(scler_pbmc_r) <- dsb_features
+# Scale
+scler_pbmc_r <- scler_pbmc_r %>%
+  ScaleData()
+
+# Save Seurat object as H5
+SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_7"))
 ```
 
 Ok, so both the RNA and ADT are denoised, normalized, and scaled.
