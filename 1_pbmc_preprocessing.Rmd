@@ -718,85 +718,85 @@ Now, let's normalize the ADT data with DSB. We set denoise.counts = FALSE since 
 For this step, we use the output from cellranger multi without demultiplexing (as we did when we ran SoupX for the ambient RNA correction).
 
 ```{r}
-# Path where cellranger_count outputs are saved
-path_to_cellranger_denoise <- paste0(project_path, "data/cellranger_output/cellranger_pooled_for_denoising/")
-
-# Load (demultiplexed) Seurat object
-scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_6.h5seurat"))
-
-# Subjects
-subjects <- list.files(paste0(path_to_cellranger_denoise, "raw"))
-
-# Load data for raw and filtered wells
-raw_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_denoise, "raw/", subject))})
-filtered_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_denoise, "filtered/", subject))})
-
-# Name accordingly
-names(raw_wells) <- names(filtered_wells) <- subjects
-
-# Look at distribution of droplets for each well
-dsb_plots <- mapply(plot_dsb, raw_wells, filtered_wells,
-       SIMPLIFY = F)
-# Name accordingly
-names(dsb_plots) <- subjects
-
-# Background droplet cutoffs, chosen by manually examining dsb_plots.
-# The same cutoffs are used for every library. Sizes are log10(total counts).
-rna.size.min <- 0
-rna.size.max <- 2.5
-prot.size.min <- 2
-prot.size.max <- 3.5
-
-# Get libraries
-libraries <- unique(scler_pbmc_r$LIBRARY)
-# Reorder to match raw and filtered wells
-libraries <- libraries[match(sub("^p", "", names(raw_wells)), libraries)]
-
-# List of Seurat objects subset by library
-seurat_subsets <- lapply(libraries, function(lib){subset(scler_pbmc_r, LIBRARY == lib)}) %>%
-  setNames(libraries)
-
-# Run DSB for each well/library
-adt_adj <- mapply(run_dsb,
-                  raw_wells, filtered_wells, seurat_subsets, libraries,
-                  SIMPLIFY = F,
-                  MoreArgs = list(prot.size.min = prot.size.min,
-                                  prot.size.max = prot.size.max,
-                                  rna.size.min = rna.size.min,
-                                  rna.size.max = rna.size.max,
-                                  denoise.counts = FALSE,
-                                  define.pseudocount = TRUE,
-                                  pseudocount.use = 1))
-
-# Put adjusted ADT into one big matrix
-adt_adj_mat <- do.call(cbind, adt_adj)
-
-# Make sure order of rows and columns matches Seurat object
-adt_adj_mat_sorted <- adt_adj_mat[rownames(scler_pbmc_r[["ADT"]]), colnames(scler_pbmc_r[["ADT"]])]
-
-# Check dimensions and row/column names
-stopifnot(all(rownames(adt_adj_mat_sorted) == rownames(scler_pbmc_r[["ADT"]])))
-stopifnot(all(colnames(adt_adj_mat_sorted) == colnames(scler_pbmc_r[["ADT"]])))
-
-# Update Seurat object with DSB normalized matrix
-scler_pbmc_r[["DSB"]] <- Seurat::CreateAssayObject(data = adt_adj_mat_sorted)
-
-# Set DSB as default layer
-DefaultAssay(scler_pbmc_r) <- "DSB"
-
-# Scale DSB data
-# Get isotype controls
-isotype_ctls <- rownames(scler_pbmc_r[["DSB"]])[str_detect(rownames(scler_pbmc_r[["DSB"]]), fixed("Iso", ignore_case = TRUE))]
-# Get features from DSB layer (excluding isotype controls)
-dsb_features <- setdiff(rownames(scler_pbmc_r[["DSB"]]), isotype_ctls)
-# Set features as variable features
-VariableFeatures(scler_pbmc_r) <- dsb_features
-# Scale
-scler_pbmc_r <- scler_pbmc_r %>%
-  ScaleData()
-
-# Save Seurat object as H5
-SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_7"))
+# # Path where cellranger_count outputs are saved
+# path_to_cellranger_denoise <- paste0(project_path, "data/cellranger_output/cellranger_pooled_for_denoising/")
+# 
+# # Load (demultiplexed) Seurat object
+# scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_6.h5seurat"))
+# 
+# # Subjects
+# subjects <- list.files(paste0(path_to_cellranger_denoise, "raw"))
+# 
+# # Load data for raw and filtered wells
+# raw_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_denoise, "raw/", subject))})
+# filtered_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_denoise, "filtered/", subject))})
+# 
+# # Name accordingly
+# names(raw_wells) <- names(filtered_wells) <- subjects
+# 
+# # Look at distribution of droplets for each well
+# dsb_plots <- mapply(plot_dsb, raw_wells, filtered_wells,
+#        SIMPLIFY = F)
+# # Name accordingly
+# names(dsb_plots) <- subjects
+# 
+# # Background droplet cutoffs, chosen by manually examining dsb_plots.
+# # The same cutoffs are used for every library. Sizes are log10(total counts).
+# rna.size.min <- 0
+# rna.size.max <- 2.5
+# prot.size.min <- 2
+# prot.size.max <- 3.5
+# 
+# # Get libraries
+# libraries <- unique(scler_pbmc_r$LIBRARY)
+# # Reorder to match raw and filtered wells
+# libraries <- libraries[match(sub("^p", "", names(raw_wells)), libraries)]
+# 
+# # List of Seurat objects subset by library
+# seurat_subsets <- lapply(libraries, function(lib){subset(scler_pbmc_r, LIBRARY == lib)}) %>%
+#   setNames(libraries)
+# 
+# # Run DSB for each well/library
+# adt_adj <- mapply(run_dsb,
+#                   raw_wells, filtered_wells, seurat_subsets, libraries,
+#                   SIMPLIFY = F,
+#                   MoreArgs = list(prot.size.min = prot.size.min,
+#                                   prot.size.max = prot.size.max,
+#                                   rna.size.min = rna.size.min,
+#                                   rna.size.max = rna.size.max,
+#                                   denoise.counts = FALSE,
+#                                   define.pseudocount = TRUE,
+#                                   pseudocount.use = 1))
+# 
+# # Put adjusted ADT into one big matrix
+# adt_adj_mat <- do.call(cbind, adt_adj)
+# 
+# # Make sure order of rows and columns matches Seurat object
+# adt_adj_mat_sorted <- adt_adj_mat[rownames(scler_pbmc_r[["ADT"]]), colnames(scler_pbmc_r[["ADT"]])]
+# 
+# # Check dimensions and row/column names
+# stopifnot(all(rownames(adt_adj_mat_sorted) == rownames(scler_pbmc_r[["ADT"]])))
+# stopifnot(all(colnames(adt_adj_mat_sorted) == colnames(scler_pbmc_r[["ADT"]])))
+# 
+# # Update Seurat object with DSB normalized matrix
+# scler_pbmc_r[["DSB"]] <- Seurat::CreateAssayObject(data = adt_adj_mat_sorted)
+# 
+# # Set DSB as default layer
+# DefaultAssay(scler_pbmc_r) <- "DSB"
+# 
+# # Scale DSB data
+# # Get isotype controls
+# isotype_ctls <- rownames(scler_pbmc_r[["DSB"]])[str_detect(rownames(scler_pbmc_r[["DSB"]]), fixed("Iso", ignore_case = TRUE))]
+# # Get features from DSB layer (excluding isotype controls)
+# dsb_features <- setdiff(rownames(scler_pbmc_r[["DSB"]]), isotype_ctls)
+# # Set features as variable features
+# VariableFeatures(scler_pbmc_r) <- dsb_features
+# # Scale
+# scler_pbmc_r <- scler_pbmc_r %>%
+#   ScaleData()
+# 
+# # Save Seurat object as H5
+# SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_7"))
 ```
 
 Ok, so both the RNA and ADT are denoised, normalized, and scaled.
@@ -806,27 +806,27 @@ Ok, so both the RNA and ADT are denoised, normalized, and scaled.
 Now, we integrate the RNA data using harmony and the ADT data using RPCA to account for batch effects.
 
 ```{r}
-scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_7.h5seurat"))
-
-# Data integration
-
-# (1) RNA - Run Harmony
-# Set default assay
-DefaultAssay(scler_pbmc_r) <- "RNA"
-# Run PCA
-scler_pbmc_r <- RunPCA(scler_pbmc_r, reduction.name = "pca_rna")
-# Set dimensions
-rna_dims <- 1:30
-# Integrate with harmony
-scler_pbmc_r <- RunHarmony(scler_pbmc_r, group.by.vars = "LIBRARY", reduction.use = "pca_rna", dims.use = rna_dims, verbose = TRUE)
-
-# (2) ADT - Run RPCA
-# Set default assay
-DefaultAssay(scler_pbmc_r) <- "DSB"
-# Integrate with RPCA (Seurat integration)
-scler_pbmc_r <- run_rpca(scler_pbmc_r)
-
-# Save integrated Seurat object
-SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_8"))
+# scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_7.h5seurat"))
+# 
+# # Data integration
+# 
+# # (1) RNA - Run Harmony
+# # Set default assay
+# DefaultAssay(scler_pbmc_r) <- "RNA"
+# # Run PCA
+# scler_pbmc_r <- RunPCA(scler_pbmc_r, reduction.name = "pca_rna")
+# # Set dimensions
+# rna_dims <- 1:30
+# # Integrate with harmony
+# scler_pbmc_r <- RunHarmony(scler_pbmc_r, group.by.vars = "LIBRARY", reduction.use = "pca_rna", dims.use = rna_dims, verbose = TRUE)
+# 
+# # (2) ADT - Run RPCA
+# # Set default assay
+# DefaultAssay(scler_pbmc_r) <- "DSB"
+# # Integrate with RPCA (Seurat integration)
+# scler_pbmc_r <- run_rpca(scler_pbmc_r)
+# 
+# # Save integrated Seurat object
+# SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_8"))
 ```
 
