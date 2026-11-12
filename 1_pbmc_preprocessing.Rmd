@@ -534,7 +534,7 @@ After this filtering step, we retain 29,806 cells.
 # scler_pbmc_r$outlier_status <- NULL
 # 
 # # How many cells do we have after filtering?
-# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 30405
+# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 30406
 # 
 # # Check plots again
 # VlnPlot(scler_pbmc_r, features = c("nFeature_RNA"), pt.size = 0, group.by = "sample_id")
@@ -556,7 +556,7 @@ After this filtering step, we retain 29,806 cells.
 # scler_pbmc_r$outlier_status <- (qc.nCount_ADT | qc.nFeature_ADT)
 # 
 # # How many cells do we have before filtering?
-# print(paste0("cells before filtering: ", ncol(scler_pbmc_r))) # 30405
+# print(paste0("cells before filtering: ", ncol(scler_pbmc_r))) # 30406
 # 
 # # Remove outliers
 # scler_pbmc_r <- subset(scler_pbmc_r,
@@ -565,7 +565,7 @@ After this filtering step, we retain 29,806 cells.
 # scler_pbmc_r$outlier_status <- NULL
 # 
 # # How many cells do we have after filtering?
-# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 29805
+# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 29806
 # 
 # # Check plots again
 # VlnPlot(scler_pbmc_r, features = c("nFeature_ADT"), pt.size = 0, group.by = "sample_id")
@@ -597,7 +597,7 @@ Isotope controls do not target any specific antigen, and are used to identify "s
 # VlnPlot(scler_pbmc_r, features = c("isotype_ctl_max"), pt.size = 0, group.by = "sample_id")
 # 
 # # How many cells do we have before filtering?
-# print(paste0("cells before filtering: ", ncol(scler_pbmc_r))) # 29805
+# print(paste0("cells before filtering: ", ncol(scler_pbmc_r))) # 29806
 # 
 # # Find outliers usig adapative thresholds by library
 # qc.isotype_ctl_max <- isOutlier(scler_pbmc_r$isotype_ctl_max, log = FALSE, type = "higher", batch = scler_pbmc_r$LIBRARY)
@@ -609,7 +609,7 @@ Isotope controls do not target any specific antigen, and are used to identify "s
 # scler_pbmc_r$outlier_status <- NULL
 # 
 # # How many cells do we have after filtering?
-# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 28943
+# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 28944
 # 
 # # Check isotype_ctl_max violin plot again:
 # VlnPlot(scler_pbmc_r, features = c("isotype_ctl_max"), pt.size = 0, group.by = "sample_id")
@@ -633,7 +633,7 @@ We'll save these thresholds in a text file and as an RDS object for future refer
 # saveRDS(threshold_list, paste0(project_path, "data/qc/pbmc_thresholds.RDS"))
 # 
 # # Save as txt file
-# sink(paste0(project_path, "data/qc/pbmc_thresholds.txt"))
+# sink(paste0(project_path, "data/qc/pbmc_thresholds_r.txt"))
 # threshold_list
 # sink
 ```
