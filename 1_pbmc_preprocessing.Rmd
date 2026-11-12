@@ -740,44 +740,12 @@ dsb_plots <- mapply(plot_dsb, raw_wells, filtered_wells,
 # Name accordingly
 names(dsb_plots) <- subjects
 
-# Get data classifying cells as background/cell
-dsb_data <- mapply(dsb_md, raw_wells, filtered_wells,
-                   SIMPLIFY = F)
-# Name accordingly
-names(dsb_data) <- subjects
-
-# Get cutoffs by manually examining plots
-
-# RNA size
-rna.size_cutoffs <- list(H_r = c("lower" = 0, "higher" = 3.2),
-                         p515 = c("lower" = 0, "higher" = 3.2),
-                         p591 = c("lower" = 0, "higher" = 3.2),
-                         p594_r = c("lower" = 0, "higher" = 3.2))
-# Name accordingly
-names(rna.size_cutoffs) <- subjects
-# Get lower and upper cutoffs
-rna.lower <- lapply(rna.size_cutoffs, function(x){x[1]}); rna.higher <- lapply(rna.size_cutoffs, function(x){x[2]})
-
-# ADT size
-prot.size_cutoffs <- list(H_r = c("lower" = 0, "higher" = 3.5),
-                          p515 = c("lower" = 0, "higher" = 3.5),
-                          p591 = c("lower" = 0, "higher" = 3.5),
-                          p594_r = c("lower" = 0, "higher" = 3.5))
-# Name accordingly
-names(prot.size_cutoffs) <- subjects
-# Get lower and upper cutoffs
-prot.lower <- lapply(prot.size_cutoffs, function(x){x[1]}); prot.higher <- lapply(prot.size_cutoffs, function(x){x[2]})
-
-
-# Pct mt (mitochondrial DNA) max
-mt.prop_cutoffs <- list(H_r = c("lower" = 0, "upper" = 1),
-                        p515 = c("lower" = 0, "upper" = 1),
-                        p591 = c("lower" = 0, "upper" = 1),
-                        p594_r = c("lower" = 0, "upper" = 1))
-# Name accordingly
-names(mt.prop_cutoffs) <- subjects
-# Get lower and upper cutoffs
-mt.prop.higher <- lapply(mt.prop_cutoffs, function(x){x[2]})
+# Background droplet cutoffs, chosen by manually examining dsb_plots.
+# The same cutoffs are used for every library. Sizes are log10(total counts).
+rna.size.min <- 0
+rna.size.max <- 3.2
+prot.size.min <- 0
+prot.size.max <- 3.5
 
 # Get libraries
 libraries <- unique(scler_pbmc_r$LIBRARY)
@@ -791,13 +759,12 @@ seurat_subsets <- lapply(libraries, function(lib){subset(scler_pbmc_r, LIBRARY =
 # Run DSB for each well/library
 adt_adj <- mapply(run_dsb,
                   raw_wells, filtered_wells, seurat_subsets, libraries,
-                  prot.size.min = prot.lower,
-                  prot.size.max = prot.higher,
-                  rna.size.min = rna.lower,
-                  rna.size.max = rna.higher,
-                  mt.prop.max = mt.prop.higher,
                   SIMPLIFY = F,
-                  MoreArgs = list(denoise.counts = FALSE,
+                  MoreArgs = list(prot.size.min = prot.size.min,
+                                  prot.size.max = prot.size.max,
+                                  rna.size.min = rna.size.min,
+                                  rna.size.max = rna.size.max,
+                                  denoise.counts = FALSE,
                                   define.pseudocount = TRUE,
                                   pseudocount.use = 1))
 

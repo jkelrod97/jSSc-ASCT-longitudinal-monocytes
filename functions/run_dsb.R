@@ -45,10 +45,13 @@ run_dsb <- function(raw_counts = NULL,
   # (1) PREPARE METADATA
   
   # Rename cells in cell ranger output to match Seurat object
-  # Also make sure genes & antibodies match those in Seurat object
-  raw_counts <- mapply(match_seurat, raw_counts, list("RNA", "ADT"), MoreArgs = c(seurat_obj = seurat_obj))
+  # Also make sure antibodies match those in Seurat object (genes are left unfiltered
+  # so that rna.size matches what plot_dsb shows)
+  raw_counts <- mapply(match_seurat, raw_counts, list("RNA", "ADT"),
+                       MoreArgs = list(seurat_obj = seurat_obj, subject = subject))
   # Apply to filtered counts
-  filtered_counts <- mapply(match_seurat, filtered_counts, c("RNA", "ADT"), MoreArgs = c(seurat_obj = seurat_obj))
+  filtered_counts <- mapply(match_seurat, filtered_counts, list("RNA", "ADT"),
+                            MoreArgs = list(seurat_obj = seurat_obj, subject = subject))
   
   # Split the data into separate matrices for RNA and ADT
   prot <- raw_counts$`Antibody Capture`
@@ -200,7 +203,7 @@ dsb_md <- function(raw_counts, filtered_counts) {
 ################################################################################
 
 # Function for this step
-match_seurat <- function(mat, seurat_obj, assay){
+match_seurat <- function(mat, seurat_obj, assay, subject){
   # MATCH_SEURAT:
   # Helper function for run_dsb
   # Rename matrix from cellranger to match cell names in Seurat object
@@ -208,13 +211,16 @@ match_seurat <- function(mat, seurat_obj, assay){
   # (1) mat (matrix): counts matrix from cell ranger (can be raw or filtered)
   # (2) seurat_obj (Seurat): Seurat object
   # (3) assay (string): assay that counts matrix corresponds to in Seurat object
-  
-  # Add subject + "-" to head of colname. Remove trailing 1s.
-  colnames(mat) <- paste0(subject, "-", gsub("-1", "", colnames(mat)))
-  # Change underscores to dashes. 
+  # (4) subject (string): subject/library ID, prepended to cell barcodes
+
+  # Add subject + "-" to head of colname. Remove trailing "-1".
+  colnames(mat) <- paste0(subject, "-", sub("-1$", "", colnames(mat)))
+  # Change underscores to dashes.
   rownames(mat) <- gsub("_", "-", rownames(mat))
-  # Make sure order is the same in mat and seurat_obj
-  mat <- mat[rownames(seurat_obj[[assay]]), ]
+  # For ADT, make sure antibodies and their order match seurat_obj.
+  # RNA is left with all genes so rna.size matches what plot_dsb shows
+  # (the RNA matrix is only used for droplet QC metadata, not by DSB itself).
+  if (assay == "ADT") mat <- mat[rownames(seurat_obj[["ADT"]]), ]
   # Return mat with new colnames/rownames
   mat
   }
