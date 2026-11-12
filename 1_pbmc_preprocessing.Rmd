@@ -711,9 +711,9 @@ We've now denoised and filtered the RNA data. Lets normalize and scale it.
 # SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_6"))
 ```
 
-6) Denoise and normalize ADT data
+6) Normalize ADT data (ambient correction) with DSB
 
-Now, let's denoise and normalize the ADT data with DSB. We set denoise.counts = FALSE since our signal is weak and our ADT data is not bimodal. We also scale the data. 
+Now, let's normalize the ADT data with DSB. We set denoise.counts = FALSE since our signal is weak and our ADT data is not bimodal. We also scale the data. 
 
 For this step, we use the output from cellranger multi without demultiplexing (as we did when we ran SoupX for the ambient RNA correction).
 
