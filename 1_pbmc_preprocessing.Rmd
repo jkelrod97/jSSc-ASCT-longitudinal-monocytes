@@ -743,8 +743,8 @@ names(dsb_plots) <- subjects
 # Background droplet cutoffs, chosen by manually examining dsb_plots.
 # The same cutoffs are used for every library. Sizes are log10(total counts).
 rna.size.min <- 0
-rna.size.max <- 3.2
-prot.size.min <- 0
+rna.size.max <- 2.5
+prot.size.min <- 2
 prot.size.max <- 3.5
 
 # Get libraries
