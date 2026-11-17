@@ -41,23 +41,22 @@ We run the model on all the patient monocytes.
 
 ```{r}
 # Read in monocytes
-# (not annotated; can replace with annotated later)
-monocytes <- LoadH5Seurat(paste0(project_path, "data/h5seurat/monocytes.h5seurat"))
+monocytes_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/monocytes_r_2.h5seurat"))
 
 # Subset out patient monocytes
-SSc_monocytes <- subset(monocytes, health == "SSc")
+SSc_monocytes_r <- subset(monocytes_r, health == "SSc")
 
 # Design
 design_formula <- ~ subject + poly(timepoint)
 
 # Fit offset pseudobulk model
-pbo_monocytes <- pb_offset(
-  seurat_obj = SSc_monocytes,
+pbo_monocytes_r <- pb_offset(
+  seurat_obj = SSc_monocytes_r,
   sample_id_variable = "sample_id",
   design_formula = design_formula)
 
 # Test for significant effect of time since ASCT
-results <- test_de(pbo_monocytes$fit, `poly(timepoint)`) %>% 
+results <- test_de(pbo_monocytes_r$fit, `poly(timepoint)`) %>% 
   arrange(pval)
 
 # Save all results
@@ -90,8 +89,8 @@ term2name <- all_sets %>%
   distinct(gs_name, gs_description)
 
 # Background genes
-DefaultAssay(SSc_monocytes) <- "RNA"
-background_genes <- rownames(SSc_monocytes)
+DefaultAssay(SSc_monocytes_r) <- "RNA"
+background_genes <- rownames(SSc_monocytes_r)
 ```
 
 Let's run pathway analysis for each direction separately.
@@ -134,28 +133,28 @@ We investigate below:
 
 ```{r}
 # Subset out CD14 patient monocytes
-cd14_SSc_monocytes <- subset(SSc_monocytes, cell_type == "CD14+")
-cd16_SSc_monocytes <- subset(SSc_monocytes, cell_type == "CD16+")
+cd14_SSc_monocytes_r <- subset(SSc_monocytes_r, cell_type == "CD14+")
+cd16_SSc_monocytes_r <- subset(SSc_monocytes_r, cell_type == "CD16+")
 
 # Design (same as before)
 design_formula <- ~ subject + poly(timepoint)
 
 # Fit offset pseudobulk models
 # CD14
-pbo_CD14_monocytes <- pb_offset(
-  seurat_obj = cd14_SSc_monocytes,
+pbo_CD14_monocytes_r <- pb_offset(
+  seurat_obj = cd14_SSc_monocytes_r,
   sample_id_variable = "sample_id",
   design_formula = design_formula)
 # CD16
-pbo_CD16_monocytes <- pb_offset(
-  seurat_obj = cd16_SSc_monocytes,
+pbo_CD16_monocytes_r <- pb_offset(
+  seurat_obj = cd16_SSc_monocytes_r,
   sample_id_variable = "sample_id",
   design_formula = design_formula)
 
 # Test for significant effect of time since ASCT
-results_CD14 <- test_de(pbo_CD14_monocytes$fit, `poly(timepoint)`) %>% 
+results_CD14 <- test_de(pbo_CD14_monocytes_r$fit, `poly(timepoint)`) %>% 
   arrange(pval)
-results_CD16 <- test_de(pbo_CD16_monocytes$fit, `poly(timepoint)`) %>% 
+results_CD16 <- test_de(pbo_CD16_monocytes_r$fit, `poly(timepoint)`) %>% 
   arrange(pval)
 
 # Add direction (whether expression goes up or down over time) to results data frame
@@ -677,7 +676,7 @@ We start with decreasing genes.
 
 ```{r}
 # Plot with custom function
-gene_plots_down <- plot_pb_offset(pbo_monocytes, topgenes_down, groupBy = "subject")
+gene_plots_down <- plot_pb_offset(pbo_monocytes_r, topgenes_down, groupBy = "subject")
 
 # Put in data frame for supporting data values spreadsheet
 SuppFig4Dat <- gene_plots_down %>%
@@ -731,7 +730,7 @@ Now for increasing genes/pathways.
 
 ```{r}
 # Plot with custom function
-gene_plots_up <- plot_pb_offset(pbo_monocytes, topgenes_up, groupBy = "subject")
+gene_plots_up <- plot_pb_offset(pbo_monocytes_r, topgenes_up, groupBy = "subject")
 
 # Put in data frame for supporting data values spreadsheet
 SuppFig5Dat <- gene_plots_up %>%
@@ -788,7 +787,7 @@ Now, we make a reduced version of the downward DEGs to be included in one of the
 six_down_degs <- c("SERPINE1", "FOSL1", "SMAD3", "TAGLN2", "CDKN1C", "LYN")
 
 # Plot with custom functions
-gene_plots_down_reduced <- plot_pb_offset(pbo_monocytes, six_down_degs, groupBy = "subject")
+gene_plots_down_reduced <- plot_pb_offset(pbo_monocytes_r, six_down_degs, groupBy = "subject")
 
 # Put in data frame for supporting data values spreadsheet
 Fig3BDat <- gene_plots_down_reduced %>%
@@ -934,10 +933,10 @@ We also make a volcano plot comparing jSSc and Healthy.
 
 ```{r}
 # Make sure default assay is set to RNA
-DefaultAssay(monocytes) <- "RNA"
+DefaultAssay(monocytes_r) <- "RNA"
 
 # Run pb offset for baseline and healthy, where we are testing group membership (two-way comparison) rather than time coefficient.
-SSc_v_h_PB <- pb_offset(subset(monocytes, group %in% c("baseline", "healthy")), "sample_id", ~health)
+SSc_v_h_PB <- pb_offset(subset(monocytes_r, group %in% c("baseline", "healthy")), "sample_id", ~health)
 # Test DE
 SSc_v_h_PB_results <- SSc_v_h_PB$fit %>% test_de("healthSSc") %>% arrange(pval)
 
@@ -1011,10 +1010,10 @@ We compare the other time points to healthy as well
 
 ```{r}
 # Make sure default assay is set to RNA
-DefaultAssay(monocytes) <- "RNA"
+DefaultAssay(monocytes_r) <- "RNA"
 
 # Run pb offset for six and healthy, where we are testing group membership (two-way comparison) rather than time coefficient.
-SSc6_v_h_PB <- pb_offset(subset(monocytes, group %in% c("six", "healthy")), "sample_id", ~health)
+SSc6_v_h_PB <- pb_offset(subset(monocytes_r, group %in% c("six", "healthy")), "sample_id", ~health)
 # Test DE
 SSc6_v_h_PB_results <- SSc6_v_h_PB$fit %>% test_de("healthSSc") %>% arrange(pval)
 
@@ -1085,10 +1084,10 @@ ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/SSc6_v_hea
 
 ```{r}
 # Make sure default assay is set to RNA
-DefaultAssay(monocytes) <- "RNA"
+DefaultAssay(monocytes_r) <- "RNA"
 
 # Run pb offset for six and healthy, where we are testing group membership (two-way comparison) rather than time coefficient.
-SSc12_v_h_PB <- pb_offset(subset(monocytes, group %in% c("twelve", "healthy")), "sample_id", ~health)
+SSc12_v_h_PB <- pb_offset(subset(monocytes_r, group %in% c("twelve", "healthy")), "sample_id", ~health)
 # Test DE
 SSc12_v_h_PB_results <- SSc12_v_h_PB$fit %>% test_de("healthSSc") %>% arrange(pval)
 
@@ -1159,10 +1158,10 @@ ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/SSc12_v_he
 
 ```{r}
 # Make sure default assay is set to RNA
-DefaultAssay(monocytes) <- "RNA"
+DefaultAssay(monocytes_r) <- "RNA"
 
 # Run pb offset for six and healthy, where we are testing group membership (two-way comparison) rather than time coefficient.
-SSc24_v_h_PB <- pb_offset(subset(monocytes, group %in% c("twen4", "healthy")), "sample_id", ~health)
+SSc24_v_h_PB <- pb_offset(subset(monocytes_r, group %in% c("twen4", "healthy")), "sample_id", ~health)
 # Test DE
 SSc24_v_h_PB_results <- SSc24_v_h_PB$fit %>% test_de("healthSSc") %>% arrange(pval)
 
@@ -1388,7 +1387,7 @@ Now, we make a dotplot showing the expression of some key downward DEGs.
 ```{r}
 # Create dot plot
 down_deg_dot <-
-DotPlot(monocytes,
+DotPlot(monocytes_r,
         features = six_down_degs,
         group.by = "group",
         dot.scale = 30)
@@ -1424,7 +1423,7 @@ ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/down_deg_d
 We assign a biological annotation to each cluster
 
 ```{r}
-monocytes@meta.data <- monocytes@meta.data %>%
+monocytes_r@meta.data <- monocytes_r@meta.data %>%
   mutate(
     bio_annotation = case_when(
       seurat_clusters == 0 ~ "0. CD14+ CCL20+ TK1+",
@@ -1441,10 +1440,10 @@ monocytes@meta.data <- monocytes@meta.data %>%
   )
 
 # Break up into multiple lines for plotting
-monocytes$bio_annotation_wrapped <- str_wrap(monocytes$bio_annotation, width = 15)
+monocytes_r$bio_annotation_wrapped <- str_wrap(monocytes_r$bio_annotation, width = 15)
 
 # Lookup to map wrapped labels back to single-line versions for the legend
-label_lookup <- monocytes@meta.data %>%
+label_lookup <- monocytes_r@meta.data %>%
     distinct(bio_annotation_wrapped, bio_annotation) %>%
     { setNames(.$bio_annotation, .$bio_annotation_wrapped) }
 
@@ -1455,22 +1454,22 @@ lighten_col <- function(col, amount = 0.65) {
 }
 
 # --- Capture original color mapping WITHOUT order=9 ---
-temp_plot <- monocytes %>%
+temp_plot <- monocytes_r %>%
     DimPlot(reduction = "wnn.umap", group.by = "bio_annotation_wrapped", combine = FALSE) %>%
     pluck(1) +
-    scale_color_discrete(breaks = lapply(levels(monocytes$seurat_clusters), function(x){
-        monocytes@meta.data %>% filter(seurat_clusters == x) %>% pull(bio_annotation_wrapped) %>% unique()
+    scale_color_discrete(breaks = lapply(levels(monocytes_r$seurat_clusters), function(x){
+        monocytes_r@meta.data %>% filter(seurat_clusters == x) %>% pull(bio_annotation_wrapped) %>% unique()
     }) %>% unlist())
 
 temp_built <- ggplot_build(temp_plot)
 temp_scale <- temp_built$plot$scales$get_scales("colour")
-all_labels  <- levels(factor(monocytes$bio_annotation_wrapped))
+all_labels  <- levels(factor(monocytes_r$bio_annotation_wrapped))
 all_colours <- temp_scale$palette(length(all_labels))
 names(all_colours) <- all_labels
 
 # Build UMAP with order=9 but using manual colors to preserve original mapping
 monocyte_bio_umap <-
-    monocytes %>%
+    monocytes_r %>%
     DimPlot(
         reduction  = "wnn.umap",
         label      = TRUE,
@@ -1487,8 +1486,8 @@ monocyte_bio_umap <-
           legend.text = element_text(size = 22)) +
     scale_color_manual(
         values = all_colours,
-        breaks = lapply(levels(monocytes$seurat_clusters), function(x){
-            monocytes@meta.data %>% filter(seurat_clusters == x) %>% pull(bio_annotation_wrapped) %>% unique()
+        breaks = lapply(levels(monocytes_r$seurat_clusters), function(x){
+            monocytes_r@meta.data %>% filter(seurat_clusters == x) %>% pull(bio_annotation_wrapped) %>% unique()
         }) %>% unlist(),
         labels = function(x) unname(label_lookup[x])
     )
@@ -1517,16 +1516,16 @@ target_col      <- all_colours[target_label]
 target_col_fill <- lighten_col(target_col, amount = 0.65)
 
 # Get centroid from embeddings
-centroid <- monocytes@reductions$wnn.umap@cell.embeddings %>%
+centroid <- monocytes_r@reductions$wnn.umap@cell.embeddings %>%
     as.data.frame() %>%
-    mutate(label = monocytes$bio_annotation_wrapped) %>%
+    mutate(label = monocytes_r$bio_annotation_wrapped) %>%
     filter(label == target_label) %>%
     summarise(x = median(wnnUMAP_1), y = median(wnnUMAP_2))
 
 # Get cluster 9 cell coordinates
-cluster9_coords <- monocytes@reductions$wnn.umap@cell.embeddings %>%
+cluster9_coords <- monocytes_r@reductions$wnn.umap@cell.embeddings %>%
     as.data.frame() %>%
-    mutate(label = monocytes$bio_annotation_wrapped) %>%
+    mutate(label = monocytes_r$bio_annotation_wrapped) %>%
     filter(label == target_label)
 
 # Insert larger points, circle, and segment BEFORE the repel label layer
@@ -1591,7 +1590,7 @@ ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/bio_annota
        monocyte_bio_umap, width = 18, height = 11, bg = "white")
 
 # Save updated Seurat object with bio. annotations
-# SaveH5Seurat(monocytes, paste0(project_path, "data/h5seurat/monocytes_3.h5seurat"))
+# SaveH5Seurat(monocytes_r, paste0(project_path, "data/h5seurat/monocytes_r_3.h5seurat"))
 ```
 
 
@@ -1609,13 +1608,13 @@ bio_markers <- c("CCL20", "TK1",
                  "CCL2", "CXCL10", "IFI44L",
                  "MARCO", "CLDN5")
 
-monocytes$bio_annotation_wrapped_2 <- str_wrap(monocytes$bio_annotation, width = 20)
-dp_bio_markers <- DotPlot(monocytes, bio_markers, group.by = "bio_annotation_wrapped_2", dot.scale = 15, cols = c("lightgrey", "darkgreen")) +
+monocytes_r$bio_annotation_wrapped_2 <- str_wrap(monocytes_r$bio_annotation, width = 20)
+dp_bio_markers <- DotPlot(monocytes_r, bio_markers, group.by = "bio_annotation_wrapped_2", dot.scale = 15, cols = c("lightgrey", "darkgreen")) +
     scale_y_manual(
-        breaks = lapply(levels(monocytes$seurat_clusters), function(x){
-            monocytes@meta.data %>% filter(seurat_clusters == x) %>% pull(bio_annotation_wrapped_2) %>% unique()
+        breaks = lapply(levels(monocytes_r$seurat_clusters), function(x){
+            monocytes_r@meta.data %>% filter(seurat_clusters == x) %>% pull(bio_annotation_wrapped_2) %>% unique()
         }) %>% unlist(),
-        values = rev(as.numeric(levels(monocytes$seurat_clusters)))
+        values = rev(as.numeric(levels(monocytes_r$seurat_clusters)))
     ) +
   theme(
   axis.text.x = element_text(angle = 45, hjust = 1)
@@ -1637,11 +1636,11 @@ We find cluster 9 (subgroup of CD14+ monocytes) particularly interesting, as man
 
 ```{r}
 clus9_umap_by_group <-
-DimPlot(monocytes,
+DimPlot(monocytes_r,
         reduction = "wnn.umap",
         label = TRUE,
         split.by = "group",
-        cells.highlight = Cells(subset(monocytes, seurat_clusters == 9))) +
+        cells.highlight = Cells(subset(monocytes_r, seurat_clusters == 9))) +
   scale_color_manual(
     values = c("Unselected" = "grey80", "Group_1" = "red"),
     breaks = "Group_1",
@@ -1665,10 +1664,10 @@ We use FindMarkers to determine which genes are upregulated in cluster 9 compare
 
 ```{r}
 # Set Idents to clusters
-Idents(monocytes) <- "seurat_clusters"
+Idents(monocytes_r) <- "seurat_clusters"
 
 # Find DEGs between clus 9 and other clusters
-clus9_markers <- FindMarkers(monocytes, ident.1 = 9, assay = "RNA")
+clus9_markers <- FindMarkers(monocytes_r, ident.1 = 9, assay = "RNA")
 
 # Get signficiant markers
 sig_clus_9_markers <- clus9_markers %>% filter(p_val_adj < 0.05 & avg_log2FC > 2) %>% rownames()
@@ -1710,7 +1709,7 @@ clus9_markers_in_pathway <- clus9_markers_in_pathway %>%
   arrange(plot_name)
 
 # We use the dotplot function to get scaled averages for our heatmap
-dp <- DotPlot(monocytes, clus9_markers_in_pathway$gene, group.by = "seurat_clusters")
+dp <- DotPlot(monocytes_r, clus9_markers_in_pathway$gene, group.by = "seurat_clusters")
 # Extract data
 dp_data <- dp$data
 # Store levels of gene variable
@@ -1787,7 +1786,7 @@ We do 2 two-way comparisons: SSc baseline vs. healthy, and SSc six months vs. he
 
 ```{r}
 # Subset out cluster 9
-clus9 <- subset(monocytes, seurat_clusters == 9)
+clus9 <- subset(monocytes_r, seurat_clusters == 9)
 
 # Set idents
 Idents(clus9) <- "group"
@@ -1851,7 +1850,7 @@ We need a plot showing cluster 9 proportions by group
 # Get counts in cluster 9 by group
 clus9_counts_by_group <- clus9$group %>% table()
 # Get counts in all monocytes by group
-monocytes_counts_by_group <- monocytes$group %>% table()
+monocytes_counts_by_group <- monocytes_r$group %>% table()
 # Get proportions in cluster 9 by group
 clus9_prop_by_group <- clus9_counts_by_group / monocytes_counts_by_group 
 # Put into data frame for plotting
@@ -1895,7 +1894,7 @@ Let's also do it by library.
 # Get counts in cluster 9 by LIBRARY
 clus9_counts_by_LIBRARY <- clus9$LIBRARY %>% table()
 # Get counts in all monocytes by LIBRARY
-monocytes_counts_by_LIBRARY <- monocytes$LIBRARY %>% table()
+monocytes_counts_by_LIBRARY <- monocytes_r$LIBRARY %>% table()
 # Get proportions in cluster 9 by LIBRARY
 clus9_prop_by_LIBRARY <- clus9_counts_by_LIBRARY / monocytes_counts_by_LIBRARY 
 # Put into data frame for plotting
@@ -1936,7 +1935,7 @@ We can also split by health
 # Get counts in cluster 9 by health
 clus9_counts_by_health <- clus9$health %>% table()
 # Get counts in all monocytes by health
-monocytes_counts_by_health <- monocytes$health %>% table()
+monocytes_counts_by_health <- monocytes_r$health %>% table()
 # Get proportions in cluster 9 by health
 clus9_prop_by_health <- clus9_counts_by_health / monocytes_counts_by_health 
 # Put into data frame for plotting
