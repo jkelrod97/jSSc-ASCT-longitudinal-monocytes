@@ -43,7 +43,7 @@ update_cell_types <- function(df, cluster, cell_type = NA) {
 We load in the monocytes and cluster them. 
 
 ```{r}
-# scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_10.h5seurat"))
+# scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_11.h5seurat"))
 # monocytes_r <- subset(scler_pbmc_r, cell_type == "monocyte")
 # 
 # monocytes_r <- sub_cluster(monocytes_r,
@@ -69,14 +69,14 @@ Now we're going to annotate the monocytes.
 # }) %>% setNames(paste0("cluster_", (monocytes_r$seurat_clusters %>% levels())))
 # 
 # FeaturePlot(monocytes_r, "CD14", label = T, reduction = "wnn.umap")
-# for (clus in c(0, 1, 2, 3, 4, 7, 8)) {
+# for (clus in c(0, 1, 2, 3, 6, 7, 8)) {
 #   rna_markers %>% filter(cluster == clus & gene == "CD14") %>% rbind((
 #   adt_markers %>% filter(cluster == clus & gene == "anti-human-CD14"))) %>% print()
 #   cell_types <- update_cell_types(cell_types, clus, cell_type = "CD14+")
 # }
 # 
 # FeaturePlot(monocytes_r, "FCGR3A", label = T, reduction = "wnn.umap")
-# for (clus in c(5, 6)) {
+# for (clus in c(4, 5)) {
 #   rna_markers %>% filter(cluster == clus & gene == "FCGR3A") %>% rbind((
 #   adt_markers %>% filter(cluster == clus & gene == "anti-human-CD16"))) %>% print()
 #   cell_types <- update_cell_types(cell_types, clus, cell_type = "CD16+")
@@ -99,8 +99,6 @@ Now we're going to annotate the monocytes.
 # names(cell_type_vec) <- NULL
 # monocytes_r$cell_type <- cell_type_vec
 # 
-# # Set levels on LIBRARY
-# monocytes_r$LIBRARY <- factor(monocytes_r$LIBRARY, levels = c("H_r", "515", "591", "594_r"))
 # 
 # # Save annotated Seurat object
 # SaveH5Seurat(monocytes_r, paste0(project_path, "data/h5seurat/monocytes_r_2.h5seurat"))
@@ -356,10 +354,10 @@ counts_by_library <- table(monocytes_r$cell_type,
   as.data.frame() %>%
   setNames(c("Cell type", "Library", "Count")) %>%
   pivot_wider(names_from = "Library", values_from = "Count") %>%
-    dplyr::rename("Healthy" = "H",
+    dplyr::rename("Healthy" = "H_r",
            "NRCOS 515" = "515",
            "NRCOS 591" = "591",
-           "NRCOS 594" = "594")
+           "NRCOS 594" = "594_r")
 
 # Save as CSV
 write_csv(counts_by_timepoint, paste0(project_path, "data/cell_count_csvs/monocytes_counts_by_timepoint.csv"))
