@@ -43,67 +43,67 @@ update_cell_types <- function(df, cluster, cell_type = NA) {
 We load in the monocytes and cluster them. 
 
 ```{r}
-# scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_10.h5seurat"))
-# monocytes <- subset(scler_pbmc, cell_type == "monocyte")
+# scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_10.h5seurat"))
+# monocytes_r <- subset(scler_pbmc_r, cell_type == "monocyte")
 # 
-# monocytes <- sub_cluster(monocytes,
+# monocytes_r <- sub_cluster(monocytes_r,
 #                          res = 0.8)
-# SaveH5Seurat(monocytes, paste0(project_path, "data/h5seurat/monocytes.h5seurat"))
+# SaveH5Seurat(monocytes_r, paste0(project_path, "data/h5seurat/monocytes_r.h5seurat"))
 ```
 
 Now we're going to annotate the monocytes.
 
 ```{r}
-# monocytes <- LoadH5Seurat(paste0(project_path, "data/h5seurat/monocytes.h5seurat"))
-# cell_types <- data.frame(seurat_clusters = levels(monocytes$seurat_clusters),
+# monocytes_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/monocytes_r.h5seurat"))
+# cell_types <- data.frame(seurat_clusters = levels(monocytes_r$seurat_clusters),
 #                           cell_type = NA)
 # 
-# monocytes %>% DimPlot(reduction = "wnn.umap", label = T)
+# monocytes_r %>% DimPlot(reduction = "wnn.umap", label = T)
 # 
-# rna_markers <- FindAllMarkers(monocytes, assay = "RNA", only.pos = T)
-# adt_markers <- FindAllMarkers(monocytes, assay = "DSB", only.pos = T)
+# rna_markers <- FindAllMarkers(monocytes_r, assay = "RNA", only.pos = T)
+# adt_markers <- FindAllMarkers(monocytes_r, assay = "DSB", only.pos = T)
 # 
-# monocytes$seurat_clusters %>% levels() %>% lapply(function(clus){
+# monocytes_r$seurat_clusters %>% levels() %>% lapply(function(clus){
 #   rna_markers %>% filter(cluster == clus) %>% head() %>% rbind((
 #   adt_markers %>% filter(cluster == clus) %>% head()))
-# }) %>% setNames(paste0("cluster_", (monocytes$seurat_clusters %>% levels())))
+# }) %>% setNames(paste0("cluster_", (monocytes_r$seurat_clusters %>% levels())))
 # 
-# FeaturePlot(monocytes, "CD14", label = T, reduction = "wnn.umap")
-# for (clus in c(0, 1, 2, 3, 4, 7, 9)) {
+# FeaturePlot(monocytes_r, "CD14", label = T, reduction = "wnn.umap")
+# for (clus in c(0, 1, 2, 3, 4, 7, 8)) {
 #   rna_markers %>% filter(cluster == clus & gene == "CD14") %>% rbind((
 #   adt_markers %>% filter(cluster == clus & gene == "anti-human-CD14"))) %>% print()
 #   cell_types <- update_cell_types(cell_types, clus, cell_type = "CD14+")
 # }
 # 
-# FeaturePlot(monocytes, "FCGR3A", label = T, reduction = "wnn.umap")
+# FeaturePlot(monocytes_r, "FCGR3A", label = T, reduction = "wnn.umap")
 # for (clus in c(5, 6)) {
 #   rna_markers %>% filter(cluster == clus & gene == "FCGR3A") %>% rbind((
 #   adt_markers %>% filter(cluster == clus & gene == "anti-human-CD16"))) %>% print()
 #   cell_types <- update_cell_types(cell_types, clus, cell_type = "CD16+")
 # }
 # 
-# # Now, we just need to figure out clusters 8, 10, and 11
-# c(8, 10, 11) %>% lapply(function(clus){
+# # Now, we just need to figure out clusters 9, 10, and 11
+# c(9, 10, 11) %>% lapply(function(clus){
 #   rna_markers %>% filter(cluster == clus) %>% head() %>% rbind((
 #   adt_markers %>% filter(cluster == clus) %>% head()))
-# }) %>% setNames(paste0("cluster_", c(8, 10, 11)))
+# }) %>% setNames(paste0("cluster_", c(9, 10, 11)))
 # 
-# cell_types <- update_cell_types(cell_types, 8, "B-like")
+# cell_types <- update_cell_types(cell_types, 9, "B-like")
 # cell_types <- update_cell_types(cell_types, 10, "T-like")
 # cell_types <- update_cell_types(cell_types, 11, "NK-like")
 # 
 # # Add cell types to Seurat object
 # cell_type_vec <-
 #    setNames(as.character(cell_types$cell_type),
-#           as.character(cell_types$seurat_clusters))[as.character(monocytes$seurat_clusters)]
+#           as.character(cell_types$seurat_clusters))[as.character(monocytes_r$seurat_clusters)]
 # names(cell_type_vec) <- NULL
-# monocytes$cell_type <- cell_type_vec
+# monocytes_r$cell_type <- cell_type_vec
 # 
 # # Set levels on LIBRARY
-# monocytes$LIBRARY <- factor(monocytes$LIBRARY, levels = c("H", "515", "591", "594"))
+# monocytes_r$LIBRARY <- factor(monocytes_r$LIBRARY, levels = c("H_r", "515", "591", "594_r"))
 # 
 # # Save annotated Seurat object
-# SaveH5Seurat(monocytes, paste0(project_path, "data/h5seurat/monocytes_2.h5seurat"))
+# SaveH5Seurat(monocytes_r, paste0(project_path, "data/h5seurat/monocytes_r_2.h5seurat"))
 ```
 
 Ok, now we generate some manuscript figures. 
@@ -112,14 +112,14 @@ We start with heatmaps and dot plots showing the RNA and ADT markers for each mo
 
 ```{r}
 # Load in Seurat object
-monocytes <- LoadH5Seurat(paste0(project_path, "data/h5seurat/monocytes_2.h5seurat"))
+monocytes_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/monocytes_r_2.h5seurat"))
 
 # Set Idents to cell type
-Idents(monocytes) <- "cell_type"
+Idents(monocytes_r) <- "cell_type"
 
 # FindAllMarkers by cell type
-cell_type_markers_RNA <- FindAllMarkers(monocytes, assay = "RNA", only.pos = T)
-cell_type_markers_ADT <- FindAllMarkers(monocytes, assay = "DSB", only.pos = T)
+cell_type_markers_RNA <- FindAllMarkers(monocytes_r, assay = "RNA", only.pos = T)
+cell_type_markers_ADT <- FindAllMarkers(monocytes_r, assay = "DSB", only.pos = T)
 
 # CD14 markers
 CD14_rna_markers <- c("CD14")
@@ -156,12 +156,12 @@ adt_cell_type_markers <- c(CD14_adt_markers,
                  NK_like_adt_markers)
 
 # Order cell types to match order of markers
-monocytes$cell_type <- factor(monocytes$cell_type,
-                              levels = unique(monocytes$cell_type))
+monocytes_r$cell_type <- factor(monocytes_r$cell_type,
+                              levels = unique(monocytes_r$cell_type))
 
 # Heatmap showing RNA markers
 rna_marker_heatmap <-
-    DoHeatmap(subset(monocytes, downsample = 60),
+    DoHeatmap(subset(monocytes_r, downsample = 60),
               features = rna_cell_type_markers,
               assay = "RNA",
               group.bar.height = 0,
@@ -180,7 +180,7 @@ ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/monocytes_rna
 label_map <- setNames(gsub("^anti-human-", "", adt_cell_type_markers), adt_cell_type_markers)
 # Heatmap showing ADT markers
 adt_marker_heatmap <-
-    DoHeatmap(subset(monocytes, downsample = 60),
+    DoHeatmap(subset(monocytes_r, downsample = 60),
               features = adt_cell_type_markers,
               assay = "DSB",
               group.bar.height = 0,
@@ -200,7 +200,7 @@ ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/monocytes_adt
 
 # Dotplot showing RNA markers
 rna_marker_dotplot <-
-  DotPlot(monocytes,
+  DotPlot(monocytes_r,
           features = rna_cell_type_markers,
           group.by = "cell_type",
           assay = "RNA") +
@@ -212,7 +212,7 @@ ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/monocytes_rna
 
 # Dotplot showing ADT markers
 adt_marker_dotplot <-
-  DotPlot(monocytes,
+  DotPlot(monocytes_r,
           features = adt_cell_type_markers,
           group.by = "cell_type",
           assay = "DSB",
@@ -230,7 +230,7 @@ Now we generate some UMAPs.
 ```{r}
 # All jSSc and HC monocytes
 monocyte_dim_plot <-
-  monocytes %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3"))) +
+  monocytes_r %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3"))) +
   labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
   theme(legend.position = "none",
         plot.title = element_blank())
@@ -239,7 +239,7 @@ ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_heal
 
 # By group (jSSc time points and HC)
 monocyte_dim_plot_by_group <-
-  monocytes %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3")), split.by = "group") +
+  monocytes_r %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3")), split.by = "group") +
   labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
   theme(plot.title = element_blank()) +
   facet_wrap(~group, labeller = labeller(group = c(
@@ -254,7 +254,7 @@ ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_heal
 
 # By health (jSSc vs. HC)
 monocyte_dim_plot_by_health <-
-  monocytes %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3")), split.by = "health") +
+  monocytes_r %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3")), split.by = "health") +
   labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
   theme(plot.title = element_blank()) +
   facet_wrap(~health, labeller = labeller(health = c(
@@ -267,7 +267,7 @@ ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_heal
 # By library (3 patients and HC)
 # We relabel H as HC, and turn into a factor for desired ordering
 monocyte_dim_plot_by_library <-
-  monocytes %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3")), split.by = "LIBRARY") +
+  monocytes_r %>% DimPlot(reduction = "wnn.umap", label = T, group.by = "cell_type", cols = rev(brewer.pal(8, "Set3")), split.by = "LIBRARY") +
   labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
   theme(plot.title = element_blank()) +
   facet_wrap(~LIBRARY, labeller = labeller(LIBRARY = c(
@@ -285,13 +285,13 @@ Now, we make a plot of monocyte subtype proportions.
 ```{r}
 # Cell type proportions plot
 # Add a blank level between HC and SSc baseline
-monocytes@meta.data$group_spaced <- factor(
-  monocytes@meta.data$group,
-  levels = c(levels(monocytes@meta.data$group)[1], "", 
-             levels(monocytes@meta.data$group)[2:5])
+monocytes_r@meta.data$group_spaced <- factor(
+  monocytes_r@meta.data$group,
+  levels = c(levels(monocytes_r@meta.data$group)[1], "", 
+             levels(monocytes_r@meta.data$group)[2:5])
 )
 
-monocytes_prop_by_group <- ggplot(monocytes@meta.data, aes(y = group_spaced, fill = cell_type)) +
+monocytes_prop_by_group <- ggplot(monocytes_r@meta.data, aes(y = group_spaced, fill = cell_type)) +
     geom_bar(position = "fill", color = "black") +
     scale_fill_manual(values = rev(brewer.pal(8, "Set3")), name = "Cell type") +
     scale_y_discrete(labels = c("Healthy", "", "SSc baseline", "SSc 6 mo.", "SSc 12 mo.", "SSc 24 mo."),
@@ -317,9 +317,9 @@ For biological annotation of monocyte sub-clusters:
 
 ```{r}
 # Set idents
-Idents(monocytes) <- "seurat_clusters"
+Idents(monocytes_r) <- "seurat_clusters"
 # Get RNA markers
-rna_markers <- FindAllMarkers(monocytes, assay = "RNA", only.pos = T)
+rna_markers <- FindAllMarkers(monocytes_r, assay = "RNA", only.pos = T)
 # Only get signifiant markers
 rna_markers_sig <- rna_markers %>% filter(avg_log2FC > 0.5 & p_val < 0.05)
 # Split rna marker df by cluster
@@ -327,7 +327,7 @@ rna_marker_list <- split(rna_markers_sig, rna_markers_sig$cluster)
 # Save as separate CSVs
 lapply(names(rna_marker_list), function(clus){
   # Get cell type
-  cell_type <- monocytes@meta.data %>% filter(seurat_clusters == clus) %>% pull(cell_type) %>% unique()
+  cell_type <- monocytes_r@meta.data %>% filter(seurat_clusters == clus) %>% pull(cell_type) %>% unique()
   # Cell type directory
   save_dir <- paste0(project_path, "data/annotation_deg_CSVs/monocyte_annotation/", cell_type)
   # Does directory for this cell type exist? If not create it
@@ -340,8 +340,8 @@ lapply(names(rna_marker_list), function(clus){
 Now, we generate some cell type counts tables for the manuscript. 
 
 ```{r}
-counts_by_timepoint <- table(monocytes$cell_type,
-                       monocytes$group) %>%
+counts_by_timepoint <- table(monocytes_r$cell_type,
+                       monocytes_r$group) %>%
   as.data.frame() %>%
   setNames(c("Cell type", "Time point", "Count")) %>%
   pivot_wider(names_from = "Time point", values_from = "Count") %>%
@@ -351,8 +351,8 @@ counts_by_timepoint <- table(monocytes$cell_type,
            "jSSc 12 months" = "twelve",
            "jSSc 24 months" = "twen4")
 
-counts_by_library <- table(monocytes$cell_type,
-                       monocytes$LIBRARY) %>%
+counts_by_library <- table(monocytes_r$cell_type,
+                       monocytes_r$LIBRARY) %>%
   as.data.frame() %>%
   setNames(c("Cell type", "Library", "Count")) %>%
   pivot_wider(names_from = "Library", values_from = "Count") %>%
