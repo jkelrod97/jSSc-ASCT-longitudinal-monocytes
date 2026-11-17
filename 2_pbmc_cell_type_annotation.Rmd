@@ -72,7 +72,7 @@ Now, we load in the Seurat object we generated in the previous notebook.
 # # Cluster using SLM algorithm (3)
 # scler_pbmc_r <- FindClusters(scler_pbmc_r, graph.name = "wsnn",
 #                   algorithm = 3,
-#                   resolution = 0.3,
+#                   resolution = 0.7,
 #                   random.seed = 1990)
 # 
 # # Save as H5
@@ -113,14 +113,12 @@ Now we annotate each cluster based on canonical RNA and protein markers.
 #                          cell_type = NA)
 # ################################################################################
 # #  CLUSTER 0                                                                   #
-# #  TYPE: MONOCYTE                                                        #
+# #  TYPE: MONOCYTE                                                              #
 # #  RNA MARKERS: CD14, LYZ                                                      #
 # #  ADT MARKERS:                                                                #
 # ################################################################################
 # # # Look at top markers for each layer
 # display_top(rna_de, 0); display_top(dsb_de, 0)
-# # Look at CD14
-# rna_de %>% filter(gene == "CD14" & cluster == 0)
 # # Update cell_types
 # cell_types <- update_cell_types(cell_types, 0, cell_type = "monocyte")
 # ################################################################################
@@ -147,110 +145,172 @@ Now we annotate each cluster based on canonical RNA and protein markers.
 # cell_types <- update_cell_types(cell_types, 2, cell_type = "CD4+ T cell")
 # ################################################################################
 # #  CLUSTER 3                                                                   #
-# #  TYPE: MONOCYTE                                                        #
-# #  RNA MARKERS: FCGR3A                                                         #
-# #  ADT MARKERS: CD16                                                           #
+# #  TYPE: B CELL                                                                #
+# #  RNA MARKERS: CD79A, MS4A1, BANK1, IGHM                                      #
+# #  ADT MARKERS: IgD, CD21, CD19, IgM, CD20                                     #
 # ################################################################################
 # # Look at top markers for each layer
 # display_top(rna_de, 3); display_top(dsb_de, 3)
-# # Look at FCGR3A (CD16)
-# rna_de %>% filter(cluster == 3 & gene == "FCGR3A")
 # # Update cell_types
-# cell_types <- update_cell_types(cell_types, 3, cell_type = "monocyte")
+# cell_types <- update_cell_types(cell_types, 3, cell_type = "B cell")
 # ################################################################################
 # #  CLUSTER 4                                                                   #
-# #  TYPE: NATURAL KILLER                                                        #
-# #  RNA MARKERS: GNLY, NKG7, GZMA, GZMB, KLRB1, KLRG1                           #
-# #  ADT MARKERS: CD56, CD16                                                     #
+# #  TYPE: MONOCYTE                                                              #
+# #  RNA MARKERS: FCGR3A                                                         #
+# #  ADT MARKERS: CD16                                                           #
 # ################################################################################
 # # # Look at top markers for each layer
 # display_top(rna_de, 4); display_top(dsb_de, 4)
 # # Update cell_types
-# cell_types <- update_cell_types(cell_types, 4, cell_type = "natural killer")
+# cell_types <- update_cell_types(cell_types, 4, cell_type = "monocyte")
 # ################################################################################
 # #  CLUSTER 5                                                                   #
-# #  TYPE: CD8+ T CELL                                                           #
-# #  RNA MARKERS: CD3E, CD3D, CD8B, CD8A, CD7                                    #
-# #  ADT MARKERS: CD2, CD8, CD3, CD5, CD7                                        #
-# ################################################################################
-# # # Look at top markers for each layer
-# display_top(rna_de, 5); display_top(dsb_de, 5)
-# # Update cell_types
-# cell_types <- update_cell_types(cell_types, 5, cell_type = "CD8+ T cell")
-# ################################################################################
-# #  CLUSTER 6                                                                   #
-# #  TYPE: CD4+ T CELL                                                           #
-# #  RNA MARKERS: CD3E, CD4                                                      #
-# #  ADT MARKERS: CD4                                                            #
-# ################################################################################
-# # # Look at top markers for each layer
-# display_top(rna_de, 6); display_top(dsb_de, 6)
-# rna_de %>% filter(cluster == 6 & gene == "CD4")
-# # Update cell_types
-# cell_types <- update_cell_types(cell_types, 6, cell_type = "CD4+ T cell")
-# ################################################################################
-# #  CLUSTER 7                                                                   #
-# #  TYPE: B CELL                                                                #
-# #  RNA MARKERS: BANK1, MS4A1, IGHM, IGHD                                       #
-# #  ADT MARKERS: CD19, IgM, CD21, CD20, IgD                                     #
-# ################################################################################
-# # Look at top markers for each layer
-# display_top(rna_de, 7); display_top(dsb_de, 7)
-# # Update cell_types
-# cell_types <- update_cell_types(cell_types, 7, cell_type = "B cell")
-# ################################################################################
-# #  CLUSTER 8                                                                   #
-# #  TYPE: B CELL                                                                #
+# #  TYPE: MONOCYTE                                                              #
 # #  RNA MARKERS: LYZ, CD14                                                      #
 # #  ADT MARKERS:                                                                #
 # ################################################################################
 # # # Look at top markers for each layer
-# display_top(rna_de, 8); display_top(dsb_de, 8)
-# rna_de %>% filter(cluster == 8 & gene == "CD14")
+# display_top(rna_de, 5); display_top(dsb_de, 5)
+# # Look at CD14
+# rna_de %>% filter(cluster == 5 & gene == "CD14")
 # # Update cell_types
-# cell_types <- update_cell_types(cell_types, 8, cell_type = "monocyte")
+# cell_types <- update_cell_types(cell_types, 5, cell_type = "monocyte")
+# ################################################################################
+# #  CLUSTER 6                                                                   #
+# #  TYPE: NATURAL KILLER                                                        #
+# #  RNA MARKERS: GNLY, NKG7, KLRD1, FCGR3A                                      #
+# #  ADT MARKERS: CD15, CD56                                                     #
+# ################################################################################
+# # # Look at top markers for each layer
+# display_top(rna_de, 6); display_top(dsb_de, 6)
+# # Update cell_types
+# cell_types <- update_cell_types(cell_types, 6, cell_type = "natural killer")
+# ################################################################################
+# #  CLUSTER 7                                                                   #
+# #  TYPE: MONOCYTE                                                              #
+# #  RNA MARKERS: CD14                                                           #
+# #  ADT MARKERS: CD14                                                           #
+# ################################################################################
+# # Look at top markers for each layer
+# display_top(rna_de, 7); display_top(dsb_de, 7)
+# rna_de %>% filter(cluster == 7 & gene == "CD14")
+# dsb_de %>% filter(cluster == 7 & gene == "anti-human-CD14")
+# # Update cell_types
+# cell_types <- update_cell_types(cell_types, 7, cell_type = "monocyte")
+# ################################################################################
+# #  CLUSTER 8                                                                   #
+# #  TYPE: CD8+ T CELL                                                           #
+# #  RNA MARKERS: CD8A, CD8B, CD3E                                               #
+# #  ADT MARKERS: CD3, CD8                                                       #
+# ################################################################################
+# # # Look at top markers for each layer
+# display_top(rna_de, 8); display_top(dsb_de, 8)
+# # Update cell_types
+# cell_types <- update_cell_types(cell_types, 8, cell_type = "CD8+ T cell")
 # ################################################################################
 # #  CLUSTER 9                                                                   #
+# #  TYPE: B CELL                                                                #
+# #  RNA MARKERS: BANK1, CD79A, MS4A1                                            #
+# #  ADT MARKERS: CD19, IgM, CD21, CD20                                          #
+# ################################################################################
+# # # Look at top markers for each layer
+# display_top(rna_de, 9); display_top(dsb_de, 9)
+# # Update cell_types
+# cell_types <- update_cell_types(cell_types, 9, cell_type = "B cell")
+# ################################################################################
+# #  CLUSTER 10                                                                   #
 # #  TYPE: mDC                                                                   #
 # #  RNA MARKERS: CD1C                                                           #
 # #  ADT MARKERS: CD1C                                                           #
 # ################################################################################
 # # Look at top markers for each layer
-# display_top(rna_de, 9); display_top(dsb_de, 9)
+# display_top(rna_de, 10); display_top(dsb_de, 10)
 # # Look at CD1C
-# rna_de %>% filter(cluster == 9 & gene == "CD1C"); dsb_de %>% filter(cluster == 9 & gene == "anti-human-CD1c")
+# rna_de %>% filter(cluster == 10 & gene == "CD1C"); dsb_de %>% filter(cluster == 10 & gene == "anti-human-CD1c")
 # # Update cell_types
-# cell_types <- update_cell_types(cell_types, 9, cell_type = "mDC")
+# cell_types <- update_cell_types(cell_types, 10, cell_type = "mDC")
 # ################################################################################
-# #  CLUSTER 10                                                                  #
+# #  CLUSTER 11                                                                  #
+# #  TYPE: CD8+ T CELL                                                           #
+# #  RNA MARKERS: CD8A, CD8B, CD3E                                               #
+# #  ADT MARKERS: CD8, CD3                                                       #
+# ################################################################################
+# # Look at top markers for each layer
+# display_top(rna_de, 11); display_top(dsb_de, 11)
+# # Update cell_types
+# cell_types <- update_cell_types(cell_types, 11, cell_type = "CD8+ T cell")
+# ################################################################################
+# #  CLUSTER 12                                                                  #
+# #  TYPE: CD4+ T CELL                                                           #
+# #  RNA MARKERS: CD3E, CD4                                                      #
+# #  ADT MARKERS: CD3, CD4                                                       #
+# ################################################################################
+# # Look at top markers for each layer
+# display_top(rna_de, 12); display_top(dsb_de, 12)
+# # Look at CD4
+# rna_de %>% filter(cluster == 12 & gene == "CD4")
+# # Update cell_types
+# cell_types <- update_cell_types(cell_types, 12, cell_type = "CD4+ T cell")
+# ################################################################################
+# #  CLUSTER 13                                                                  #
 # #  TYPE:  T/B BIPHENOTYPIC                                                     #
 # #  RNA MARKERS: CD7, CD3E, CD79A, IGHM, MS4A1                                  #
 # #  ADT MARKERS: CD19, CD21, IgD, CD20, IgM, CD2, CD5, CD3                      #
 # ################################################################################
 # # Look at top markers for each layer
-# display_top(rna_de, 10); display_top(dsb_de, 10)
+# display_top(rna_de, 13); display_top(dsb_de, 13)
 # # Update cell_types
-# cell_types <- update_cell_types(cell_types, 10, cell_type = "T/B biphenotypic")
+# cell_types <- update_cell_types(cell_types, 13, cell_type = "T/B biphenotypic")
 # #
 # # Since this is an unusual cell type, let's see whether these are mainly patient cells
-# clus10_counts_by_group <- scler_pbmc_r@meta.data %>% filter(seurat_clusters == 10) %>% pull(group) %>% table()
+# clus13_counts_by_group <- scler_pbmc_r@meta.data %>% filter(seurat_clusters == 13) %>% pull(group) %>% table()
 # all_counts_by_group <- scler_pbmc_r@meta.data %>% pull(group) %>% table()
-# clus10_prop_by_group <- clus10_counts_by_group / all_counts_by_group
-# clus10_prop_by_group
+# clus13_prop_by_group <- clus13_counts_by_group / all_counts_by_group
+# clus13_prop_by_group
 # # Yes, this cluster includes a greater proportion of patient cells at all patient time
 # # points than healthy cells.
 # ################################################################################
-# #  CLUSTER 11                                                                  #
-# #  TYPE:  B CELL                                                               #
-# #  RNA MARKERS: BANK1, MS4A1                                                   #
-# #  ADT MARKERS: CD20, CD19, IgM, IgD                                           #
+# #  CLUSTER 14                                                                  #
+# #  TYPE: NATURAL KILLER                                                        #
+# #  RNA MARKERS: GNLY, NKG7, GZMK, KLRD1                                        #
+# #  ADT MARKERS: CD56                                                           #
 # ################################################################################
 # # Look at top markers for each layer
-# display_top(rna_de, 11); display_top(dsb_de, 11)
+# display_top(rna_de, 14); display_top(dsb_de, 14)
 # # Update cell_types
-# cell_types <- update_cell_types(cell_types, 11, cell_type = "B cell")
+# cell_types <- update_cell_types(cell_types, 14, cell_type = "natural killer")
 # ################################################################################
-# #  CLUSTER 12                                                                  #
+# #  CLUSTER 15                                                                  #
+# #  TYPE: NATURAL KILLER                                                        #
+# #  RNA MARKERS: GNLY, NKG7, GZMB, KLRD1                                        #
+# #  ADT MARKERS: CD56                                                           #
+# ################################################################################
+# # Look at top markers for each layer
+# display_top(rna_de, 15); display_top(dsb_de, 15)
+# # Update cell_types
+# cell_types <- update_cell_types(cell_types, 15, cell_type = "natural killer")
+# ################################################################################
+# #  CLUSTER 16                                                                  #
+# #  TYPE: MONOCYTE                                                              #
+# #  RNA MARKERS: CD14, LYZ                                                      #
+# #  ADT MARKERS: CD14                                                           #
+# ################################################################################
+# # Look at top markers for each layer
+# display_top(rna_de, 16); display_top(dsb_de, 16)
+# # Update cell_types
+# cell_types <- update_cell_types(cell_types, 16, cell_type = "monocyte")
+# ################################################################################
+# #  CLUSTER 17                                                                  #
+# #  TYPE: B CELL                                                                #
+# #  RNA MARKERS: BANK1, IGHM, MS4A1                                             #
+# #  ADT MARKERS: CD20, CD19, IgM, IgD, CD21                                     #
+# ################################################################################
+# # Look at top markers for each layer
+# display_top(rna_de, 17); display_top(dsb_de, 17)
+# # Update cell_types
+# cell_types <- update_cell_types(cell_types, 17, cell_type = "B cell")
+# ################################################################################
+# #  CLUSTER 18                                                                  #
 # #  Source for pDC markers:                                                     #
 # #  https://www.beckman.com/resources/cell-types/blood-cells/leukocytes/        #
 # #  dendritic-cells/plasmacytoid-cells                                          #
@@ -259,62 +319,63 @@ Now we annotate each cluster based on canonical RNA and protein markers.
 # #  ADT MARKERS: CD123                                                          #
 # ################################################################################
 # # Look at top markers for each layer
-# display_top(rna_de, 12); display_top(dsb_de, 12)
+# display_top(rna_de, 18); display_top(dsb_de, 18)
 # # Look at IL3RA
-# rna_de %>% filter(cluster == 12 & gene == "IL3RA")
+# rna_de %>% filter(cluster == 18 & gene == "IL3RA")
 # # Update cell_types
-# cell_types <- update_cell_types(cell_types, 12, cell_type = "pDC")
+# cell_types <- update_cell_types(cell_types, 18, cell_type = "pDC")
 # ################################################################################
-# #  CLUSTER 13                                                                  #
+# #  CLUSTER 19                                                                  #
 # #  TYPE: NATURAL KILLER/T CELL                                                 #
 # #  RNA MARKERS: NCAM1                                                          #
 # #  ADT MARKERS: CD7, CD2, CD3, CD5                                             #
 # ################################################################################
 # # # Look at top markers for each layer
-# display_top(rna_de, 13); display_top(dsb_de, 13)
-# rna_de %>% filter(cluster == 13 & gene == "NCAM1")
+# display_top(rna_de, 19); display_top(dsb_de, 19)
+# rna_de %>% filter(cluster == 19 & gene == "NCAM1")
 # # Update cell_types
-# cell_types <- update_cell_types(cell_types, 13, cell_type = "natural killer/T cell")
+# cell_types <- update_cell_types(cell_types, 19, cell_type = "natural killer/T cell")
 # ################################################################################
-# #  CLUSTER 14                                                                  #
+# #  CLUSTER 20                                                                  #
 # #  TYPE: HSPC                                                                  #
 # #  RNA MARKERS: CD34, MYB                                                      #
 # #  ADT MARKERS:                                                                #
 # ################################################################################
 # # Look at top markers for each layer
-# display_top(rna_de, 14); display_top(dsb_de, 14)
+# display_top(rna_de, 20); display_top(dsb_de, 20)
 # # CD34 and MYB are HSPC markers
 # hspc_genes <- c("CD34", "MYB")
 # # Violin plot
 # VlnPlot(scler_pbmc_r, hspc_genes)
 # # Update cell_types
-# cell_types <- update_cell_types(cell_types, 14, cell_type = "HSPC")
+# cell_types <- update_cell_types(cell_types, 20, cell_type = "HSPC")
 # ################################################################################
-# #  CLUSTER 15                                                                  #
+# #  CLUSTER 21                                                                  #
 # #  TYPE: PLATELET                                                              #
 # #  RNA MARKERS: PF4, PPBP, TUBB1, GP1BA, THBS1                                 #
 # #  ADT MARKERS: CD41                                                           #
 # ################################################################################
 # # Look at top markers for each layer
-# display_top(rna_de, 15); display_top(dsb_de, 15)
+# display_top(rna_de, 21); display_top(dsb_de, 21)
 # # Define platelet markers
 # platelet_genes <- c("PF4", "PPBP", "TUBB1", "GP1BA", "THBS1")
 # # Visualize with violin plot
 # VlnPlot(scler_pbmc_r, features = platelet_genes)
 # # Update cell_types
-# cell_types <- update_cell_types(cell_types, 15, cell_type = "platelet")
+# cell_types <- update_cell_types(cell_types, 21, cell_type = "platelet")
 # ################################################################################
-# #  CLUSTER 16                                                                  #
+# #  CLUSTER 22                                                                  #
 # #  TYPE: NATURAL KILLER                                                        #
 # #  RNA MARKERS: NCAM1                                                          #
 # #  ADT MARKERS: CD56, CD16                                                     #
 # ################################################################################
 # # Look at top markers for each layer
-# display_top(rna_de, 16); display_top(dsb_de, 16)
+# display_top(rna_de, 22); display_top(dsb_de, 22)
 # # Look at NCAM1
-# rna_de %>% filter(cluster == 16 & gene == "NCAM1")
+# rna_de %>% filter(cluster == 22 & gene == "NCAM1")
 # # Update cell_types
-# cell_types <- update_cell_types(cell_types, 16, cell_type = "natural killer")
+# cell_types <- update_cell_types(cell_types, 22, cell_type = "natural killer")
+# 
 # 
 # # Add cell types to Seurat object
 # cell_type_vec <-
