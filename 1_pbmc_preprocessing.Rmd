@@ -349,37 +349,37 @@ Multiplets form within a single 10x lane (GEM well), and each library (515, 591,
 First, for each library, we extract the RNA and ADT counts matrices, filter out genes with > 50% zeroes (within that library), and save both matrices as mtx files, along with the cell names so predictions can be matched back by name.
 
 ```{r}
-# Extract RNA and ADT
-rna <- scler_pbmc_r@assays$RNA@counts
-adt <- scler_pbmc_r@assays$ADT@counts
-
-# Folder for per-library COMPOSITE input/output
-composite_dir <- paste0(project_path, "data/composite/by_library/")
-dir.create(composite_dir, showWarnings = FALSE, recursive = TRUE)
-
-# Libraries (one 10x lane each)
-libraries <- unique(scler_pbmc_r$LIBRARY)
-
-for (lib in libraries) {
-  # Cells in this library
-  lib_cells <- colnames(scler_pbmc_r)[scler_pbmc_r$LIBRARY == lib]
-  rna_lib <- rna[, lib_cells]
-  adt_lib <- adt[, lib_cells]
-
-  # Filter out genes with > 50% zeroes in this library
-  # (rna_lib > 0 stays sparse, unlike rna_lib == 0)
-  rna_prop_zero <- 1 - Matrix::rowSums(rna_lib > 0) / ncol(rna_lib)
-  rna_lib <- rna_lib[rna_prop_zero < 0.5, ]
-  print(paste0(lib, ": ", ncol(rna_lib), " cells, ", nrow(rna_lib), " genes kept for COMPOSITE"))
-
-  # Write to mtx files (features x cells)
-  writeMM(rna_lib, file = paste0(composite_dir, "RNA_", lib, ".mtx"))
-  writeMM(adt_lib, file = paste0(composite_dir, "ADT_", lib, ".mtx"))
-  # Write cell names (same order as the mtx columns)
-  write.csv(data.frame(cell_id = lib_cells),
-            paste0(composite_dir, "cells_", lib, ".csv"),
-            row.names = FALSE)
-}
+# # Extract RNA and ADT
+# rna <- scler_pbmc_r@assays$RNA@counts
+# adt <- scler_pbmc_r@assays$ADT@counts
+# 
+# # Folder for per-library COMPOSITE input/output
+# composite_dir <- paste0(project_path, "data/composite/by_library/")
+# dir.create(composite_dir, showWarnings = FALSE, recursive = TRUE)
+# 
+# # Libraries (one 10x lane each)
+# libraries <- unique(scler_pbmc_r$LIBRARY)
+# 
+# for (lib in libraries) {
+#   # Cells in this library
+#   lib_cells <- colnames(scler_pbmc_r)[scler_pbmc_r$LIBRARY == lib]
+#   rna_lib <- rna[, lib_cells]
+#   adt_lib <- adt[, lib_cells]
+# 
+#   # Filter out genes with > 50% zeroes in this library
+#   # (rna_lib > 0 stays sparse, unlike rna_lib == 0)
+#   rna_prop_zero <- 1 - Matrix::rowSums(rna_lib > 0) / ncol(rna_lib)
+#   rna_lib <- rna_lib[rna_prop_zero < 0.5, ]
+#   print(paste0(lib, ": ", ncol(rna_lib), " cells, ", nrow(rna_lib), " genes kept for COMPOSITE"))
+# 
+#   # Write to mtx files (features x cells)
+#   writeMM(rna_lib, file = paste0(composite_dir, "RNA_", lib, ".mtx"))
+#   writeMM(adt_lib, file = paste0(composite_dir, "ADT_", lib, ".mtx"))
+#   # Write cell names (same order as the mtx columns)
+#   write.csv(data.frame(cell_id = lib_cells),
+#             paste0(composite_dir, "cells_", lib, ".csv"),
+#             row.names = FALSE)
+# }
 ```
 
 Composite is implemented in Python in the file, 1a_composite_pbmc.py, which loops over the libraries.
@@ -388,50 +388,49 @@ See https://github.com/CHPGenetics/COMPOSITE
 
 We import the per-library multiplet predictions as CSV files and match them to cells by name.
 
-We detect [UPDATE AFTER RERUN] multiplets ([UPDATE]%).
+We detect 9686 multiplets (21.666%).
 
-After removing multiplets, [UPDATE AFTER RERUN] cells remain.
+After removing multiplets, 35020 cells remain.
 
 ```{r}
-# Import per-library sccomposite multiplet predictions
-composite_dir <- paste0(project_path, "data/composite/by_library/")
-libraries <- unique(scler_pbmc_r$LIBRARY)
-multiplet_df <- do.call(rbind, lapply(libraries, function(lib) {
-  read.csv(paste0(composite_dir, "multiplet_prediction_", lib, ".csv"))
-}))
-
-# Every cell should have exactly one prediction
-stopifnot(!anyDuplicated(multiplet_df$cell_id),
-          setequal(multiplet_df$cell_id, colnames(scler_pbmc_r)))
-
-# Add sccomposite labels to Seurat object (matched by cell name, not position)
-scler_pbmc_r$multiplet_label <- multiplet_df$multiplet_classification[
-  match(colnames(scler_pbmc_r), multiplet_df$cell_id)]
-
-# How many multiplets?
-scler_pbmc_r$multiplet_label %>% sum()
-
-# What percentage of all cells are multiplets?
-mean(scler_pbmc_r$multiplet_label) * 100
-
-# Percentage of multiplets by library and by sample (sanity check: should be
-# modest, and should roughly increase with the number of cells loaded per lane)
-round(tapply(scler_pbmc_r$multiplet_label, scler_pbmc_r$LIBRARY, mean) * 100, 1)
-round(tapply(scler_pbmc_r$multiplet_label, scler_pbmc_r$sample_id, mean) * 100, 1)
-
-# Remove multiplets
-scler_pbmc_r <- subset(scler_pbmc_r, subset = multiplet_label == 0)
-
-# How many remaining cells?
-ncol(scler_pbmc_r)
-
-# Remove multiplet_label (all zero now)
-scler_pbmc_r$multiplet_label <- NULL
-
-# Save as H5
-SaveH5Seurat(scler_pbmc_r,
-             paste0(project_path, "data/h5seurat/scler_pbmc_r_2"),
-             overwrite = TRUE)
+# # Import per-library sccomposite multiplet predictions
+# composite_dir <- paste0(project_path, "data/composite/by_library/")
+# libraries <- unique(scler_pbmc_r$LIBRARY)
+# multiplet_df <- do.call(rbind, lapply(libraries, function(lib) {
+#   read.csv(paste0(composite_dir, "multiplet_prediction_", lib, ".csv"))
+# }))
+# 
+# # Every cell should have exactly one prediction
+# stopifnot(!anyDuplicated(multiplet_df$cell_id),
+#           setequal(multiplet_df$cell_id, colnames(scler_pbmc_r)))
+# 
+# # Add sccomposite labels to Seurat object (matched by cell name, not position)
+# scler_pbmc_r$multiplet_label <- multiplet_df$multiplet_classification[
+#   match(colnames(scler_pbmc_r), multiplet_df$cell_id)]
+# 
+# # How many multiplets?
+# scler_pbmc_r$multiplet_label %>% sum()
+# 
+# # What percentage of all cells are multiplets?
+# mean(scler_pbmc_r$multiplet_label) * 100
+# 
+# # Percentage of multiplets by library and by sample (sanity check: should be
+# # modest, and should roughly increase with the number of cells loaded per lane)
+# round(tapply(scler_pbmc_r$multiplet_label, scler_pbmc_r$LIBRARY, mean) * 100, 1)
+# round(tapply(scler_pbmc_r$multiplet_label, scler_pbmc_r$sample_id, mean) * 100, 1)
+# 
+# # Remove multiplets
+# scler_pbmc_r <- subset(scler_pbmc_r, subset = multiplet_label == 0)
+# 
+# # How many remaining cells?
+# ncol(scler_pbmc_r)
+# 
+# # Remove multiplet_label (all zero now)
+# scler_pbmc_r$multiplet_label <- NULL
+# 
+# # Save as H5
+# SaveH5Seurat(scler_pbmc_r,
+#              paste0(project_path, "data/h5seurat/scler_pbmc_r_2"))
 ```
 
 
@@ -440,15 +439,15 @@ SaveH5Seurat(scler_pbmc_r,
 We remove 3 cells, resulting in 34,135 remaining.
 
 ```{r}
-# # # Path where pooled cellranger multi outputs are saved
-# # path_to_cellranger_denoise <- paste0(project_path, "data/cellranger_output/cellranger_pooled_for_denoising/")
-# # 
-# # # Load (demultiplexed) Seurat object
-# # scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_2.h5seurat"))
-# # 
-# # # Subjects
-# # subjects <- list.files(paste0(path_to_cellranger_denoise, "raw"))
-# # 
+# # Path where pooled cellranger multi outputs are saved
+# path_to_cellranger_denoise <- paste0(project_path, "data/cellranger_output/cellranger_pooled_for_denoising/")
+# 
+# # Load (demultiplexed) Seurat object
+# scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_2.h5seurat"))
+# 
+# # Subjects
+# subjects <- list.files(paste0(path_to_cellranger_denoise, "raw"))
+# 
 # # # Load data for raw and filtered wells
 # # raw_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_denoise, "raw/", subject))})
 # # filtered_wells <- lapply(subjects, function(subject){Read10X(paste0(path_to_cellranger_denoise, "filtered/", subject))})
@@ -519,7 +518,7 @@ We remove 3 cells, resulting in 34,135 remaining.
 
 Now, we perform some basic quality control, removing cells which express outlier quantities of unique genes, unique antibodies, total transcripts, total antibodies, percentage of mitochondrial DNA, or percentage of ribosomal DNA than the other sampled cells.
 
-After this filtering step, we retain 29,806 cells.
+After this filtering step, we retain 30,154 cells.
 
 ```{r}
 # # ################################################################################
@@ -559,7 +558,7 @@ After this filtering step, we retain 29,806 cells.
 # scler_pbmc_r$outlier_status <- (qc.nCount_RNA | qc.nFeature_RNA | qc.percent.mt | qc.percent.ribo)
 # 
 # # How many cells do we have before filtering?
-# print(paste0("cells before filtering: ", ncol(scler_pbmc_r))) # 34135
+# print(paste0("cells before filtering: ", ncol(scler_pbmc_r))) # 35017
 # 
 # # Remove outliers
 # scler_pbmc_r <- subset(scler_pbmc_r,
@@ -568,7 +567,7 @@ After this filtering step, we retain 29,806 cells.
 # scler_pbmc_r$outlier_status <- NULL
 # 
 # # How many cells do we have after filtering?
-# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 30406
+# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 30943
 # 
 # # Check plots again
 # VlnPlot(scler_pbmc_r, features = c("nFeature_RNA"), pt.size = 0, group.by = "sample_id")
@@ -590,7 +589,7 @@ After this filtering step, we retain 29,806 cells.
 # scler_pbmc_r$outlier_status <- (qc.nCount_ADT | qc.nFeature_ADT)
 # 
 # # How many cells do we have before filtering?
-# print(paste0("cells before filtering: ", ncol(scler_pbmc_r))) # 30406
+# print(paste0("cells before filtering: ", ncol(scler_pbmc_r))) # 30943
 # 
 # # Remove outliers
 # scler_pbmc_r <- subset(scler_pbmc_r,
@@ -599,14 +598,14 @@ After this filtering step, we retain 29,806 cells.
 # scler_pbmc_r$outlier_status <- NULL
 # 
 # # How many cells do we have after filtering?
-# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 29806
+# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 30154
 # 
 # # Check plots again
 # VlnPlot(scler_pbmc_r, features = c("nFeature_ADT"), pt.size = 0, group.by = "sample_id")
 # VlnPlot(scler_pbmc_r, features = c("nCount_ADT"), pt.size = 0, group.by = "sample_id")
 ```
 
-Isotope controls do not target any specific antigen, and are used to identify "sticky" cells. We filter out sticky cells that express too many of these non-specific antibodies. We retain 28,944 cells after this step.
+Isotype controls do not target any specific antigen, and are used to identify "sticky" cells. We filter out sticky cells that express too many of these non-specific antibodies. We retain 29,569 cells after this step.
 
 ```{r}
 # # Extract ADT counts matrix
@@ -631,7 +630,7 @@ Isotope controls do not target any specific antigen, and are used to identify "s
 # VlnPlot(scler_pbmc_r, features = c("isotype_ctl_max"), pt.size = 0, group.by = "sample_id")
 # 
 # # How many cells do we have before filtering?
-# print(paste0("cells before filtering: ", ncol(scler_pbmc_r))) # 29806
+# print(paste0("cells before filtering: ", ncol(scler_pbmc_r))) # 30154
 # 
 # # Find outliers usig adapative thresholds by library
 # qc.isotype_ctl_max <- isOutlier(scler_pbmc_r$isotype_ctl_max, log = FALSE, type = "higher", batch = scler_pbmc_r$LIBRARY)
@@ -643,7 +642,7 @@ Isotope controls do not target any specific antigen, and are used to identify "s
 # scler_pbmc_r$outlier_status <- NULL
 # 
 # # How many cells do we have after filtering?
-# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 28944
+# print(paste0("cells after filtering: ", ncol(scler_pbmc_r))) # 29569
 # 
 # # Check isotype_ctl_max violin plot again:
 # VlnPlot(scler_pbmc_r, features = c("isotype_ctl_max"), pt.size = 0, group.by = "sample_id")
@@ -717,14 +716,14 @@ We only consider expression in patients, as we do not include healthy controls i
 # # Subset RNA assay
 # scler_pbmc_r[["RNA"]] <- subset(scler_pbmc_r[["RNA"]], features = keep_genes)
 # 
-# # How many genes after filtering? 17163
+# # How many genes after filtering? 17198
 # print(paste0("Genes after filtering: ", nrow(scler_pbmc_r[["RNA"]])))
 # 
 # # Save H5
 # SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_5"))
 ```
 
-After filtering, we have 17,163 genes.
+After filtering, we have 17,198 genes.
 
 5) Normalize & scale RNA data
 
