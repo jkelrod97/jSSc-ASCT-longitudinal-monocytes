@@ -344,60 +344,94 @@ Now, we begin preprocessing
 
 1) Multimodal multiplet detection with COMPOSITE.
 
-First, we extract the RNA and ADT counts matrices, filter out genes with > 50% zeroes, and save both matrices as mtx files.
+Multiplets form within a single 10x lane (GEM well), and each library (515, 591, 594_r, H_r) is its own lane with its own loading density and sequencing depth. We therefore run COMPOSITE separately for each library. (Previously, COMPOSITE was run on all libraries pooled together. Removal rates then tracked library-level ADT depth rather than lane loading: 58% of 594_r cells and 33% of H_r cells were called multiplets, vs. 10-14% for 515 and 591, even though 594_r was the least-loaded lane.)
+
+First, for each library, we extract the RNA and ADT counts matrices, filter out genes with > 50% zeroes (within that library), and save both matrices as mtx files, along with the cell names so predictions can be matched back by name.
 
 ```{r}
-# # Extract RNA and ADT
-# rna <- scler_pbmc_r@assays$RNA@counts
-# adt <- scler_pbmc_r@assays$ADT@counts
-# 
-# # Filter out genes with > 50% zeroes.
-# # Starting with 38606 genes
-# # Calculate proportion of zeros for each gene
-# rna_prop_zero <- (rna == 0) %>% rowMeans()
-# # Filter out genes with more than 50% zeros
-# rna <- rna[names(which(rna_prop_zero < 0.5)), ]
-# 
-# # Write to mtx files
-# rna %>% writeMM(file = paste0(project_path, "data/composite/RNA.mtx"))
-# adt %>% writeMM(file = paste0(project_path, "data/composite/ADT.mtx"))
+# Extract RNA and ADT
+rna <- scler_pbmc_r@assays$RNA@counts
+adt <- scler_pbmc_r@assays$ADT@counts
+
+# Folder for per-library COMPOSITE input/output
+composite_dir <- paste0(project_path, "data/composite/by_library/")
+dir.create(composite_dir, showWarnings = FALSE, recursive = TRUE)
+
+# Libraries (one 10x lane each)
+libraries <- unique(scler_pbmc_r$LIBRARY)
+
+for (lib in libraries) {
+  # Cells in this library
+  lib_cells <- colnames(scler_pbmc_r)[scler_pbmc_r$LIBRARY == lib]
+  rna_lib <- rna[, lib_cells]
+  adt_lib <- adt[, lib_cells]
+
+  # Filter out genes with > 50% zeroes in this library
+  # (rna_lib > 0 stays sparse, unlike rna_lib == 0)
+  rna_prop_zero <- 1 - Matrix::rowSums(rna_lib > 0) / ncol(rna_lib)
+  rna_lib <- rna_lib[rna_prop_zero < 0.5, ]
+  print(paste0(lib, ": ", ncol(rna_lib), " cells, ", nrow(rna_lib), " genes kept for COMPOSITE"))
+
+  # Write to mtx files (features x cells)
+  writeMM(rna_lib, file = paste0(composite_dir, "RNA_", lib, ".mtx"))
+  writeMM(adt_lib, file = paste0(composite_dir, "ADT_", lib, ".mtx"))
+  # Write cell names (same order as the mtx columns)
+  write.csv(data.frame(cell_id = lib_cells),
+            paste0(composite_dir, "cells_", lib, ".csv"),
+            row.names = FALSE)
+}
 ```
 
-Composite is implemented in Python in the file, composite_pbmc.py.
+Composite is implemented in Python in the file, 1a_composite_pbmc.py, which loops over the libraries.
 
 See https://github.com/CHPGenetics/COMPOSITE
 
-We import the multiplet predictions as a CSV file.
+We import the per-library multiplet predictions as CSV files and match them to cells by name.
 
-We detect 10,568 multiplets (23.6%).
+We detect [UPDATE AFTER RERUN] multiplets ([UPDATE]%).
 
-After removing multiplets, 34,138 cells remain.
+After removing multiplets, [UPDATE AFTER RERUN] cells remain.
 
 ```{r}
-# # Import sccomposite multiplet predictions
-# composite_path <- paste0(project_path, "data/composite/multiplet_prediction.csv")
-# 
-# # Add sccomposite labels to Seurat object
-# scler_pbmc_r$multiplet_label <- read.csv(composite_path) %>% pull(multiplet_classification)
-# 
-# # How many multiplets? 10,568
-# scler_pbmc_r$multiplet_label %>% sum()
-# 
-# # What percentage of all cells are multiplets? 23.6%
-# (scler_pbmc_r$multiplet_label %>% sum()) / (scler_pbmc_r$multiplet_label %>% length()) * 100
-# 
-# # Remove multiplets
-# scler_pbmc_r <- subset(scler_pbmc_r, subset = multiplet_label == 0)
-# 
-# # How many remaining cells? 34,138
-# scler_pbmc_r$multiplet_label %>% length()
-# 
-# # Remove multiplet_label (all zero now)
-# scler_pbmc_r$multiplet_label <- NULL
-# 
-# # Save as H5
-# SaveH5Seurat(scler_pbmc_r,
-#              paste0(project_path, "data/h5seurat/scler_pbmc_r_2"))
+# Import per-library sccomposite multiplet predictions
+composite_dir <- paste0(project_path, "data/composite/by_library/")
+libraries <- unique(scler_pbmc_r$LIBRARY)
+multiplet_df <- do.call(rbind, lapply(libraries, function(lib) {
+  read.csv(paste0(composite_dir, "multiplet_prediction_", lib, ".csv"))
+}))
+
+# Every cell should have exactly one prediction
+stopifnot(!anyDuplicated(multiplet_df$cell_id),
+          setequal(multiplet_df$cell_id, colnames(scler_pbmc_r)))
+
+# Add sccomposite labels to Seurat object (matched by cell name, not position)
+scler_pbmc_r$multiplet_label <- multiplet_df$multiplet_classification[
+  match(colnames(scler_pbmc_r), multiplet_df$cell_id)]
+
+# How many multiplets?
+scler_pbmc_r$multiplet_label %>% sum()
+
+# What percentage of all cells are multiplets?
+mean(scler_pbmc_r$multiplet_label) * 100
+
+# Percentage of multiplets by library and by sample (sanity check: should be
+# modest, and should roughly increase with the number of cells loaded per lane)
+round(tapply(scler_pbmc_r$multiplet_label, scler_pbmc_r$LIBRARY, mean) * 100, 1)
+round(tapply(scler_pbmc_r$multiplet_label, scler_pbmc_r$sample_id, mean) * 100, 1)
+
+# Remove multiplets
+scler_pbmc_r <- subset(scler_pbmc_r, subset = multiplet_label == 0)
+
+# How many remaining cells?
+ncol(scler_pbmc_r)
+
+# Remove multiplet_label (all zero now)
+scler_pbmc_r$multiplet_label <- NULL
+
+# Save as H5
+SaveH5Seurat(scler_pbmc_r,
+             paste0(project_path, "data/h5seurat/scler_pbmc_r_2"),
+             overwrite = TRUE)
 ```
 
 
