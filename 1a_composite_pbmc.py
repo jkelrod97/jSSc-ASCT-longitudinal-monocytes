@@ -12,11 +12,14 @@
 #
 # COMPOSITE prints an RNA and ADT goodness-of-fit score for each library
 # (<3: poor fit, 3~5: moderate fit, >5: good fit). Record them here after running:
-#   515:   RNA = , ADT =
-#   591:   RNA = , ADT =
-#   594_r: RNA = , ADT =
-#   H_r:   RNA = , ADT =
-
+#   515:   RNA = 4.072238426809591, ADT = 16.94280660434057
+#          3167 of 14108 cells called multiplets (22.4%)
+#   591:   RNA = 4.233873713824228, ADT = 16.50062916412321
+#          2881 of 14006 cells called multiplets (20.6%)
+#   594_r: RNA = 3.475623729239279, ADT = 17.216725953108618
+#          594_r: 1528 of 7089 cells called multiplets (21.6%)
+#   H_r:   RNA = 4.020984544736223, ADT = 19.29861016781617
+#          2110 of 9503 cells called multiplets (22.2%)
 # Load packages
 # See https://github.com/CHPGenetics/COMPOSITE
 import sccomposite
