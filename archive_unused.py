@@ -31,8 +31,8 @@ Archived {date} by archive_unused.py.
 These files are not used by the pipeline described in the repository README
 (0_A ... 6_*). They were moved here before the sample-label correction and
 were NOT relabelled: anything named H1-H4 / H here may actually be patient 594
-(baseline/six/twelve/twen4), and vice versa. See sample_swap.csv in the
-repository for the mapping. Do not use these files without applying it.
+(baseline/six/twelve/twen4), and vice versa. Do not use these files without
+correcting the labels first.
 """
 
 

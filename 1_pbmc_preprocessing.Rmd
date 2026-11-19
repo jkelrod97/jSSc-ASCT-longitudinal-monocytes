@@ -457,7 +457,7 @@ We remove 3 cells, resulting in 34,135 remaining.
 # # 
 # # # Run soup for each well individually
 # # # (Re-enabled 2026-11-03: the cached PBMC_soup.RDS was built with the H <-> 594
-# # # pool labels swapped and must be regenerated. See sample_swap.csv.)
+# # # pool labels swapped and must be regenerated.)
 # # soup_wells <- mapply(run_soup,
 # #                     raw_counts = raw_wells,
 # #                     filtered_counts = filtered_wells,
