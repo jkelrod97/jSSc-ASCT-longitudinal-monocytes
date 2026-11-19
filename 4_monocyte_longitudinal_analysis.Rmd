@@ -797,7 +797,18 @@ Now, we make a reduced version of the downward DEGs to be included in one of the
 
 ```{r}
 # Select group of decreasing DEGs to show
-six_down_degs <- c("SERPINE1", "FOSL1", "SMAD3", "TAGLN2", "CDKN1C", "LYN")
+# 1) CDKN1A. 279 hits on PubTator with SSc. Upregulated in SSc skin.
+# 2) FOSL1. Of interest to Torok lab. AP-1 Transcription Factor. Related to proteins in JUN family. 67 hits on PubTator with SSc. Association with SSc somewhat unclear.
+# 3) SMAD3. 1118 hits on PubTator with SSc. Upregulated in SSc.
+# 4) PPARG. 847 hits on PubTator with SSc. Circulating levels elevated in SSc.
+# 5) CTNNB1. 1128 hits on PubTator with SSc. Upregulated
+# 6) EMP1. One of the top statistically significant genes. 12 hits on PubTator with SSc.
+six_down_degs <- c("CDKN1A",
+                   "FOSL1",
+                   "SMAD3",
+                   "PPARG",
+                   "CTNNB1",
+                   "EMP1")
 
 # Plot with custom functions
 gene_plots_down_reduced <- plot_pb_offset(pbo_monocytes_r, six_down_degs, groupBy = "subject")
@@ -961,7 +972,7 @@ write_csv(top50_up_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_he
 write_csv(top50_down_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc_v_healthy_monocytes_DOWN.csv"))
 
 # Genes to highlight (biologically interesting)
-ssc_v_h_up_highlight <- c("HLA-DRB5", "FOLR3", "THBS1", "TMEM176B", "EREG", "SNHG5", "PLCB1", "TEX14", "LYZ", "KIF9", "PLAUR", "FOS", "SLC2A3", "TMEM170B", "CCNL1", "KLF6", "BRK1")
+ssc_v_h_up_highlight <- c("PIK3R1", "IL15RA", "GAB1", "MEF2A", "MAP3K3", "GRB2", "CXXC5", "GPR35", "LBR", "CDKN2D", "PICALM", "CELF2")
 ssc_v_h_down_highlight <- c("LINC03078", "ANK2", "HFM1", "RETN", "SLCO5A1", "TPTEP1", "CDKN1C", "PIGK", "RHOC", "POLR2J3", "TALAM1", "LILRB1", "HSPB1", "CTSL", "RRAS", "RPS26", "WARS1", "CD81", "RPL41","CRIP1")
 
 # Create new data frame for plotting (mutation of results from pb offset)
