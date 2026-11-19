@@ -181,9 +181,9 @@ CD16_match_total <- 0
 # Track names of matches between broad monocyte results and CD16+ results
 CD16_match_list <- c()
 
-# Loop over all significant genes in broad monocyte modl
+# Loop over all significant genes in broad monocyte model
 for (sig_gene in results_sig$name) {
-  # Check if significant in CD14+ model & if the directino is the same
+  # Check if significant in CD14+ model & if the direction is the same
   if (sig_gene %in% results_CD14_sig$name && results_CD14_sig[which(results_CD14_sig$name == sig_gene), "direction"] == results_sig[which(results_sig$name == sig_gene), "direction"]) {
     # Add to match count
     CD14_match_total <- CD14_match_total + 1
@@ -391,10 +391,9 @@ down_pathways_to_show <- data.frame(full_name = c("HALLMARK_TNFA_SIGNALING_VIA_N
 # Create data frame including results for these pathways
 gsea_down_df <- down_pathways_to_show %>%
   inner_join(
-    gsea$DOWN@result %>% select(ID, p.adjust),
+    gsea$DOWN@result %>% select(ID, p.adjust, pvalue, FoldEnrichment),
     by = c("full_name" = "ID")
-  ) %>%
-  filter(p.adjust < 0.05)
+  )
 
 # Bar chart
 gsea_down_plot <- ggplot(data = gsea_down_df, 
@@ -405,7 +404,7 @@ gsea_down_plot <- ggplot(data = gsea_down_df,
   scale_fill_brewer(palette = "Blues") +
   theme_bw() +
   ylab("Gene set") +
-  xlab(expression("-log"[10]*"p-value")) +
+  xlab(expression("-log"[10]*"adjusted p-value")) +
   theme(
     text = element_text(face = "bold"),
     axis.text = element_text(color = "black", size = 13),
@@ -436,10 +435,9 @@ up_pathways_to_show <- data.frame(full_name = c("GOBP_CELLULAR_RESPIRATION",
 # Create data frame including results for these pathways
 gsea_up_df <- up_pathways_to_show %>%
   inner_join(
-    gsea$UP@result %>% select(ID, p.adjust),
+    gsea$UP@result %>% select(ID, p.adjust, pvalue, FoldEnrichment),
     by = c("full_name" = "ID")
-  ) %>%
-  filter(p.adjust < 0.05)
+  )
 
 # Bar chart
 gsea_up_plot <- ggplot(data = gsea_up_df, 
@@ -450,8 +448,7 @@ gsea_up_plot <- ggplot(data = gsea_up_df,
   scale_fill_brewer(palette = "Reds") +
   theme_bw() +
   ylab("Gene set") +
-  xlab(expression("-log"[10]*"p-value")) +
-  #ggtitle(str_wrap("Gene sets with increased activity \nin jSSc monocytes over time since ASCT", 40)) +
+  xlab(expression("-log"[10]*"adjusted p-value")) +
   theme(
     text = element_text(face = "bold"),
     axis.text = element_text(color = "black", size = 13),
