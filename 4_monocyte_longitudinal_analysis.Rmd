@@ -545,6 +545,14 @@ heat_df_down$plot_name <- factor(
 gsea_plot_with_genes_down <- 
   ggplot(heat_df_down, aes(x = gene, y = plot_name, fill = fill_color)) +
     geom_tile(color = "black") +
+    # Thick outline around full columns of bolded genes (adjacent columns share one box)
+    geom_rect(
+      data = data.frame(x = sort(match(genes_to_bold, levels(heat_df_down$gene)))) %>%
+        group_by(run = x - row_number()) %>% # consecutive positions share the same run id
+        summarise(xmin = min(x) - 0.5, xmax = max(x) + 0.5),
+      aes(xmin = xmin, xmax = xmax, ymin = 0.5, ymax = nlevels(heat_df_down$plot_name) + 0.5),
+      inherit.aes = FALSE, fill = NA, color = "black", linewidth = 2.5
+    ) +
     theme_minimal() +
   scale_fill_identity() +
     theme(
@@ -647,6 +655,14 @@ gene_labels <- heat_df_up %>%
 gsea_plot_with_genes_up <- 
   ggplot(heat_df_up, aes(x = gene, y = plot_name, fill = fill_color)) +
     geom_tile(color = "black") +
+    # Thick outline around full columns of bolded genes (adjacent columns share one box)
+    geom_rect(
+      data = data.frame(x = sort(match(genes_to_bold, levels(heat_df_up$gene)))) %>%
+        group_by(run = x - row_number()) %>% # consecutive positions share the same run id
+        summarise(xmin = min(x) - 0.5, xmax = max(x) + 0.5),
+      aes(xmin = xmin, xmax = xmax, ymin = 0.5, ymax = nlevels(heat_df_up$plot_name) + 0.5),
+      inherit.aes = FALSE, fill = NA, color = "black", linewidth = 2.5
+    ) +
     theme_minimal() +
   scale_fill_identity() +
     theme(
