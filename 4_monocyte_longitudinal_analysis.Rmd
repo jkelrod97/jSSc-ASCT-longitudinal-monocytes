@@ -1446,6 +1446,8 @@ ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/down_deg_d
 
 We assign a biological annotation to each cluster
 
+PICK UP HERE. NEED TO REDO.
+
 ```{r}
 monocytes_r@meta.data <- monocytes_r@meta.data %>%
   mutate(
