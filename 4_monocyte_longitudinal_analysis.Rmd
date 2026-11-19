@@ -559,7 +559,7 @@ gsea_plot_with_genes_down <-
     xlab("Gene") +
   scale_y_discrete(labels = function(x) str_wrap(x, width = 25)) +
   scale_x_discrete(labels = gene_labels) +
-  theme(axis.text.x = element_markdown(angle = 45, hjust = 1, size = 11))
+  theme(axis.text.x.bottom = element_markdown(angle = 45, hjust = 1, size = 11))
 
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/gsea_down_plot_with_genes.png"), gsea_plot_with_genes_down, width = 7, height = 5, bg = "white")
 ```
@@ -662,7 +662,7 @@ gsea_plot_with_genes_up <-
     xlab("Gene") +
   scale_y_discrete(labels = function(x) str_wrap(x, width = 25)) +
   scale_x_discrete(labels = gene_labels) +
-  theme(axis.text.x = element_markdown(angle = 45, hjust = 1, size = 11))
+  theme(axis.text.x.bottom = element_markdown(angle = 45, hjust = 1, size = 11))
 
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/gsea_up_plot_with_genes.png"), gsea_plot_with_genes_up, width = 7, height = 5, bg = "white")
 ```
