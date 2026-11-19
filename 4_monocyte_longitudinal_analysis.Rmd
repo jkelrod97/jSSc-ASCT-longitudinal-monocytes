@@ -972,8 +972,8 @@ write_csv(top50_up_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_he
 write_csv(top50_down_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc_v_healthy_monocytes_DOWN.csv"))
 
 # Genes to highlight (biologically interesting)
-ssc_v_h_up_highlight <- c("PIK3R1", "IL15RA", "GAB1", "MEF2A", "MAP3K3", "GRB2", "CXXC5", "GPR35", "LBR", "CDKN2D", "PICALM", "CELF2")
-ssc_v_h_down_highlight <- c("LINC03078", "ANK2", "HFM1", "RETN", "SLCO5A1", "TPTEP1", "CDKN1C", "PIGK", "RHOC", "POLR2J3", "TALAM1", "LILRB1", "HSPB1", "CTSL", "RRAS", "RPS26", "WARS1", "CD81", "RPL41","CRIP1")
+ssc_v_h_up_highlight <- c("CARD19", "PIK3R1", "IL15RA", "GAB1", "MEF2A", "MAP3K3", "GRB2", "CXXC5", "GPR35", "LBR", "CDKN2D", "PICALM", "CELF2", "NINJ1")
+ssc_v_h_down_highlight <- c("FARSA", "CARD9", "MS4A7", "PLD4", "UBE2S", "HLA-DRB1", "DUSP2", "GADD45B", "F13A1", "BAIAP2", "TIAM1", "FLCN", "ANG", "PARP1", "RNASEH2B", "EIF2S1", "ABCC5")
 
 # Create new data frame for plotting (mutation of results from pb offset)
 SSc_v_h_PB_volc_results <- SSc_v_h_PB_results %>%
