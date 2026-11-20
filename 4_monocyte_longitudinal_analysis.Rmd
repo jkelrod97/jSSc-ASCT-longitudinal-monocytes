@@ -1558,7 +1558,7 @@ marker_boxes <- tibble(cluster = names(bio_marker_groups), n = lengths(bio_marke
            xmin = xmax - n,
            y    = rev(seq_along(kept_clusters))[match(cluster, kept_clusters)])
 
-dp_bio_markers <- DotPlot(cd14_cd16_monocytes, bio_markers, group.by = "bio_annotation_wrapped_2", cols = c("lightgrey", "darkred", scale = 8)) +
+dp_bio_markers <- DotPlot(cd14_cd16_monocytes, bio_markers, group.by = "bio_annotation_wrapped_2", cols = c("lightgrey", "darkred"), dot.scale = 10) +
     scale_y_manual(
         breaks = lapply(kept_clusters, function(x){
             cd14_cd16_monocytes@meta.data %>% filter(seurat_clusters == x) %>% pull(bio_annotation_wrapped_2) %>% unique()
@@ -1567,7 +1567,7 @@ dp_bio_markers <- DotPlot(cd14_cd16_monocytes, bio_markers, group.by = "bio_anno
     ) +
     # Box each cluster's own markers in that cluster's row
     geom_rect(data = marker_boxes, aes(xmin = xmin, xmax = xmax, ymin = y - 0.5, ymax = y + 0.5),
-              inherit.aes = FALSE, fill = NA, colour = "black", alpha = 0.3, linewidth = 0.8) +
+              inherit.aes = FALSE, fill = NA, colour = "black", linewidth = 0.8) +
   theme(
   axis.text.x = element_text(angle = 45, hjust = 1)
 ) +
