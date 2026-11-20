@@ -1446,8 +1446,6 @@ ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/down_deg_d
 
 We assign a biological annotation to each cluster
 
-PICK UP HERE. NEED TO REDO.
-
 ```{r}
 monocytes_r@meta.data <- monocytes_r@meta.data %>%
   mutate(
@@ -1466,160 +1464,64 @@ monocytes_r@meta.data <- monocytes_r@meta.data %>%
     )
   )
 
-# Break up into multiple lines for plotting
-monocytes_r$bio_annotation_wrapped <- str_wrap(monocytes_r$bio_annotation, width = 15)
-
-# Lookup to map wrapped labels back to single-line versions for the legend
-label_lookup <- monocytes_r@meta.data %>%
-    distinct(bio_annotation_wrapped, bio_annotation) %>%
-    { setNames(.$bio_annotation, .$bio_annotation_wrapped) }
-
-# Blend a colour toward white; amount = 0 is unchanged, 1 is pure white
-lighten_col <- function(col, amount = 0.65) {
-    rgb_vals <- grDevices::col2rgb(col) / 255
-    grDevices::rgb(t(rgb_vals + (1 - rgb_vals) * amount))
-}
-
-# --- Capture original color mapping WITHOUT order=9 ---
-temp_plot <- monocytes_r %>%
-    DimPlot(reduction = "wnn.umap", group.by = "bio_annotation_wrapped", combine = FALSE) %>%
-    pluck(1) +
-    scale_color_discrete(breaks = lapply(levels(monocytes_r$seurat_clusters), function(x){
-        monocytes_r@meta.data %>% filter(seurat_clusters == x) %>% pull(bio_annotation_wrapped) %>% unique()
-    }) %>% unlist())
-
-temp_built <- ggplot_build(temp_plot)
-temp_scale <- temp_built$plot$scales$get_scales("colour")
-all_labels  <- levels(factor(monocytes_r$bio_annotation_wrapped))
-all_colours <- temp_scale$palette(length(all_labels))
-names(all_colours) <- all_labels
-
-# Build UMAP with order=9 but using manual colors to preserve original mapping
-monocyte_bio_umap <-
-    monocytes_r %>%
-    DimPlot(
-        reduction  = "wnn.umap",
-        label      = TRUE,
-        group.by   = "bio_annotation_wrapped",
-        pt.size    = 1,
-        label.box  = TRUE,
-        repel      = TRUE,
-        combine    = FALSE,
-        order      = 9
-    ) %>%
-    pluck(1) +
-    ggtitle("") +
-    theme(plot.title = element_text(size = 18),
-          legend.text = element_text(size = 22)) +
-    scale_color_manual(
-        values = all_colours,
-        breaks = lapply(levels(monocytes_r$seurat_clusters), function(x){
-            monocytes_r@meta.data %>% filter(seurat_clusters == x) %>% pull(bio_annotation_wrapped) %>% unique()
-        }) %>% unlist(),
-        labels = function(x) unname(label_lookup[x])
-    )
-
-# Find and style the label layer
-label_idx <- which(sapply(
-    monocyte_bio_umap$layers,
-    function(l) inherits(l$geom, "GeomLabelRepel")
-))
-monocyte_bio_umap$layers[[label_idx]]$aes_params$fill      <- "white"
-monocyte_bio_umap$layers[[label_idx]]$aes_params$alpha     <- NULL
-monocyte_bio_umap$layers[[label_idx]]$aes_params$fontface  <- "bold"
-monocyte_bio_umap$layers[[label_idx]]$aes_params$size      <- 6.5
-monocyte_bio_umap$layers[[label_idx]]$aes_params$linewidth <- 0.4
-monocyte_bio_umap$layers[[label_idx]]$aes_params$colour    <- "black"
-
-# Cluster to circle on the UMAP
+# Cluster to highlight: drawn on top with larger points, circled, and labelled off to the side
 target_cluster <- 7
-target_label <- monocytes_r@meta.data %>%
-    filter(seurat_clusters == target_cluster) %>%
-    pull(bio_annotation_wrapped) %>%
-    unique()
+callout_pos    <- c(x = -5.0, y = 3.7)   # centre of the target's label box, in UMAP coordinates (read off the axes)
 
-# Remove target label from repel layer
-monocyte_bio_umap$layers[[label_idx]]$data <-
-    monocyte_bio_umap$layers[[label_idx]]$data %>%
-    filter(bio_annotation_wrapped != target_label)
+# Annotations in cluster order (sets legend order and colours)
+annotation_levels <- monocytes_r@meta.data %>%
+    distinct(seurat_clusters, bio_annotation) %>%
+    arrange(seurat_clusters) %>%
+    pull(bio_annotation)
+annotation_cols <- setNames(scales::hue_pal()(length(annotation_levels)), annotation_levels)
 
-# Get target colour from the named vector (no ambiguity)
-target_col      <- all_colours[target_label]
-target_col_fill <- lighten_col(target_col, amount = 0.65)
-
-# Get centroid from embeddings
-centroid <- monocytes_r@reductions$wnn.umap@cell.embeddings %>%
+# One row per cell; target cluster sorted last so it is drawn on top
+umap_df <- Embeddings(monocytes_r, "wnn.umap") %>%
     as.data.frame() %>%
-    mutate(label = monocytes_r$bio_annotation_wrapped) %>%
-    filter(label == target_label) %>%
-    summarise(x = median(wnnUMAP_1), y = median(wnnUMAP_2))
+    mutate(annotation = factor(monocytes_r$bio_annotation, levels = annotation_levels),
+           is_target  = monocytes_r$seurat_clusters == target_cluster) %>%
+    arrange(is_target)
 
-# Get target cluster cell coordinates
-target_coords <- monocytes_r@reductions$wnn.umap@cell.embeddings %>%
-    as.data.frame() %>%
-    mutate(label = monocytes_r$bio_annotation_wrapped) %>%
-    filter(label == target_label)
+# One label per cluster, placed at the median of its cells
+label_df <- umap_df %>%
+    group_by(annotation, is_target) %>%
+    summarise(x = median(wnnUMAP_1), y = median(wnnUMAP_2), .groups = "drop") %>%
+    mutate(label = str_wrap(annotation, width = 15))
+target <- filter(label_df, is_target)
 
-# Insert larger points, circle, and segment BEFORE the repel label layer
-# so that labels always render on top
-new_layers <- list(
-    geom_point(
-        data   = target_coords,
-        aes(x  = wnnUMAP_1, y = wnnUMAP_2),
-        size   = 2,
-        colour = target_col,
-        inherit.aes = FALSE
-    ),
-    annotate(
-        "point",
-        x      = centroid$x,
-        y      = centroid$y,
-        size   = 40,
-        shape  = 21,
-        fill   = NA,
-        colour = "black",
-        stroke = 1.2
-    ),
-    annotate(
-        "segment",
-        x         = centroid$x - 3,
-        xend      = centroid$x,
-        y         = centroid$y + 4,
-        yend      = centroid$y,
-        colour    = "black",
-        linewidth = 0.5
-    )
+# Label boxes: white for most clusters, a lighter shade of the cluster colour for the target.
+# Blank rows for a sample of target cells make ggrepel keep the other labels off them.
+set.seed(42)
+repel_df <- bind_rows(
+    label_df %>% mutate(fill = ifelse(is_target, colorRampPalette(c(annotation_cols[[as.character(target$annotation)]], "white"))(100)[66], "white")),
+    umap_df %>% filter(is_target) %>% slice_sample(n = 300) %>%
+        transmute(x = wnnUMAP_1, y = wnnUMAP_2, label = "", fill = "white", is_target = FALSE)
 )
 
-# Insert before the repel label layer so labels sit on top
-monocyte_bio_umap$layers <- append(
-    monocyte_bio_umap$layers,
-    new_layers,
-    after = label_idx - 1
-)
+monocyte_bio_umap <-
+    ggplot(umap_df, aes(wnnUMAP_1, wnnUMAP_2, colour = annotation)) +
+    geom_point(aes(size = is_target)) +
+    # Circle the target cluster
+    annotate("point", x = target$x, y = target$y, size = 52, shape = 21, colour = "black", stroke = 3) +
+    # All labels in one layer so none overlap; the target's label is nudged out with a pointer back to the cluster
+    geom_label_repel(data = repel_df, aes(x, y, label = label, fill = fill), inherit.aes = FALSE,
+                     nudge_x = ifelse(repel_df$is_target, callout_pos["x"] - target$x, 0),
+                     nudge_y = ifelse(repel_df$is_target, callout_pos["y"] - target$y, 0),
+                     max.overlaps = Inf, seed = 42, box.padding = 0.5, max.time = 5, max.iter = 1e5,
+                     fontface = "bold", size = 6.5, linewidth = 1, segment.size = 2) +
+    scale_fill_identity() +
+    scale_colour_manual(values = annotation_cols, name = NULL) +
+    scale_size_manual(values = c(`FALSE` = 1, `TRUE` = 2), guide = "none") +
+    guides(colour = guide_legend(override.aes = list(size = 4))) +
+    cowplot::theme_cowplot() +
+    theme(legend.text = element_text(size = 22),
+          axis.title = element_text(size = 22))
 
-# Update label_idx since we inserted layers before it
-label_idx <- label_idx + length(new_layers)
-
-# Add target cluster label last so it renders on top of everything
-monocyte_bio_umap <- monocyte_bio_umap +
-    annotate(
-        "label",
-        x          = centroid$x - 3,
-        y          = centroid$y + 4,
-        label      = target_label,
-        size       = 6.5,
-        fill       = target_col_fill,
-        fontface   = "bold",
-        colour     = "black",
-        label.size = 0.4
-    )
-
-monocyte_bio_umap
+# monocyte_bio_umap
 
 # Save as PNG
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/bio_annotation_umap.png"),
-       monocyte_bio_umap, width = 18, height = 11, bg = "white")
+       monocyte_bio_umap, width = 21, height = 13, bg = "white")
 
 # Save updated Seurat object with bio. annotations
 # SaveH5Seurat(monocytes_r, paste0(project_path, "data/h5seurat/monocytes_r_3.h5seurat"))
