@@ -1584,19 +1584,19 @@ ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/bio_annota
 
 
 
-We find cluster 9 (subgroup of CD14+ monocytes) particularly interesting, as many of are key decreasing genes are expressed in this cluster. We make some plots to illustrate this.
+We find cluster 7 (subgroup of CD14+ monocytes) particularly interesting, as many of are key decreasing genes are expressed in this cluster. We make some plots to illustrate this.
 
 ```{r}
-clus9_umap_by_group <-
+clus7_umap_by_group <-
 DimPlot(monocytes_r,
         reduction = "wnn.umap",
         label = TRUE,
         split.by = "group",
-        cells.highlight = Cells(subset(monocytes_r, seurat_clusters == 9))) +
+        cells.highlight = Cells(subset(monocytes_r, seurat_clusters == 7))) +
   scale_color_manual(
     values = c("Unselected" = "grey80", "Group_1" = "red"),
     breaks = "Group_1",
-    labels = "CD14+ MARCO+CCL2+ CLDN5+"
+    labels = "CD14+ CCL2+ PPARG+ CCL7+ TNFRSF12A+ CD109+"
   ) +
   labs(color = NULL) +
   theme(legend.position = "bottom",
@@ -1609,59 +1609,59 @@ DimPlot(monocytes_r,
     "twen4" = "24 mo."
   )), ncol = 1)
 # Save as PNG
-ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_umap_by_group.png"), width = 4, height = 11)
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus7_umap_by_group.png"), width = 4, height = 11)
 ```
 
-We use FindMarkers to determine which genes are upregulated in cluster 9 compared to other clusters. Then, we identify genes which are upregulated in cluster 9 and also involved in one of our gene sets of interest (decreasing pathways, which makes sense since cluster 9 disappears over time).
+We use FindMarkers to determine which genes are upregulated in cluster 7 compared to other clusters. Then, we identify genes which are upregulated in cluster 7 and also involved in one of our gene sets of interest (decreasing pathways, which makes sense since cluster 7 disappears over time).
 
 ```{r}
 # Set Idents to clusters
 Idents(monocytes_r) <- "seurat_clusters"
 
-# Find DEGs between clus 9 and other clusters
-clus9_markers <- FindMarkers(monocytes_r, ident.1 = 9, assay = "RNA")
+# Find DEGs between clus 7 and other clusters
+clus7_markers <- FindMarkers(monocytes_r, ident.1 = 7, assay = "RNA")
 
 # Get signficiant markers
-sig_clus_9_markers <- clus9_markers %>% filter(p_val_adj < 0.05 & avg_log2FC > 2) %>% rownames()
+sig_clus_7_markers <- clus7_markers %>% filter(p_val_adj < 0.05 & avg_log2FC > 2) %>% rownames()
 
 # Now, we see which markers appear in our pathways of interest.
-cluster_9_markers_per_pathway <- lapply(fav_gene_sets_down, function(gs){gs[gs %in% sig_clus_9_markers]})
+cluster_7_markers_per_pathway <- lapply(fav_gene_sets_down, function(gs){gs[gs %in% sig_clus_7_markers]})
 
-# Subset out cluster 9 markers in our pathways
-clus9_markers_in_pathway <- clus9_markers[rownames(clus9_markers) %in% unique(unlist(cluster_9_markers_per_pathway)), ]
+# Subset out cluster 7 markers in our pathways
+clus7_markers_in_pathway <- clus7_markers[rownames(clus7_markers) %in% unique(unlist(cluster_7_markers_per_pathway)), ]
 
 # We will label with top pathway
-clus9_markers_in_pathway$pathway <- NA
+clus7_markers_in_pathway$pathway <- NA
 
 # Create gene column
-clus9_markers_in_pathway$gene <- rownames(clus9_markers_in_pathway)
+clus7_markers_in_pathway$gene <- rownames(clus7_markers_in_pathway)
 
 # Add pathway (each gene is assigned to the most significant pathway it appears in)
-for (pathway in names(cluster_9_markers_per_pathway)) {
-  for (gene in clus9_markers_in_pathway$gene) {
-    if (clus9_markers_in_pathway[gene, ]$pathway %>% is.na) {
-      if (gene %in% cluster_9_markers_per_pathway[[pathway]]) {
-        clus9_markers_in_pathway[gene, ]$pathway <- pathway
+for (pathway in names(cluster_7_markers_per_pathway)) {
+  for (gene in clus7_markers_in_pathway$gene) {
+    if (clus7_markers_in_pathway[gene, ]$pathway %>% is.na) {
+      if (gene %in% cluster_7_markers_per_pathway[[pathway]]) {
+        clus7_markers_in_pathway[gene, ]$pathway <- pathway
       }
     }
   }
 }
 
 # Add pathway names for plotting
-clus9_markers_in_pathway <-
-clus9_markers_in_pathway %>%
+clus7_markers_in_pathway <-
+clus7_markers_in_pathway %>%
     left_join(
         down_pathways_to_show %>% select(full_name, plot_name),
         by = c("pathway" = "full_name")
     )
 
 # Group by pathway
-clus9_markers_in_pathway <- clus9_markers_in_pathway %>%
+clus7_markers_in_pathway <- clus7_markers_in_pathway %>%
   mutate(plot_name = factor(plot_name, levels = down_gb$layout$panel_params[[1]]$y$breaks)) %>%
   arrange(plot_name)
 
 # We use the dotplot function to get scaled averages for our heatmap
-dp <- DotPlot(monocytes_r, clus9_markers_in_pathway$gene, group.by = "seurat_clusters")
+dp <- DotPlot(monocytes_r, clus7_markers_in_pathway$gene, group.by = "seurat_clusters")
 # Extract data
 dp_data <- dp$data
 # Store levels of gene variable
@@ -1669,7 +1669,7 @@ lvls <- levels(dp_data$features.plot)
 # Join
 dp_data <- dp_data %>%
   left_join(
-    clus9_markers_in_pathway %>%
+    clus7_markers_in_pathway %>%
       select(gene, plot_name),
     by = c("features.plot" = "gene")
   ) %>%
@@ -1681,7 +1681,7 @@ strip_fills <- rep(c("grey90", "white"),
                    length.out = length(levels(forcats::fct_rev(dp_data$pathway))))
 
 # Heatmap
-clus9_heatmap <-
+clus7_heatmap <-
     ggplot(dp_data, aes(y = features.plot, x = id, fill = avg.exp.scaled)) +
     geom_tile() +
     scale_fill_distiller(palette = "RdYlBu") +
@@ -1712,7 +1712,7 @@ clus9_heatmap <-
     )
 
 # Build the gtable
-g <- ggplotGrob(clus9_heatmap)
+g <- ggplotGrob(clus7_heatmap)
 
 # Find left-axis cells (these hold the gene name labels)
 axis_idx <- grep("^axis-l", g$layout$name)
@@ -1728,34 +1728,34 @@ for (i in seq_along(axis_idx)) {
 grid.newpage(); grid.draw(g)
 
 # Save as PNG
-ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_heatmap.png"), g, width = 6, height = 11)
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus7_heatmap.png"), g, width = 6, height = 11)
 ```
 
 
-Now, we want to compare patients to HC *within cluster 9*.
+Now, we want to compare patients to HC *within cluster 7*.
 
 We do 2 two-way comparisons: SSc baseline vs. healthy, and SSc six months vs. healthy
 
 ```{r}
-# Subset out cluster 9
-clus9 <- subset(monocytes_r, seurat_clusters == 9)
+# Subset out cluster 7
+clus7 <- subset(monocytes_r, seurat_clusters == 7)
 
 # Set idents
-Idents(clus9) <- "group"
+Idents(clus7) <- "group"
 
 # Baseline SSc vs. healthy
-baseline_v_h_clus9 <- FindAllMarkers(subset(clus9, group %in% c("healthy", "baseline")), only.pos = T) %>%
+baseline_v_h_clus7 <- FindAllMarkers(subset(clus7, group %in% c("healthy", "baseline")), only.pos = T) %>%
   select("p_val", "avg_log2FC", "p_val_adj", "group" = "cluster", "gene")
-rownames(baseline_v_h_clus9) <- NULL
+rownames(baseline_v_h_clus7) <- NULL
 
 # Six months SSc vs. healthy
-six_v_h_clus9 <- FindAllMarkers(subset(clus9, group %in% c("healthy", "six")), only.pos = T) %>%
+six_v_h_clus7 <- FindAllMarkers(subset(clus7, group %in% c("healthy", "six")), only.pos = T) %>%
   select("p_val", "avg_log2FC", "p_val_adj", "group" = "cluster", "gene")
-rownames(six_v_h_clus9) <- NULL
+rownames(six_v_h_clus7) <- NULL
 
 # Save as CSV
-write_csv(baseline_v_h_clus9, paste0(results_dir, "baseline_v_h_clus9.csv"))
-write_csv(baseline_v_h_clus9, paste0(results_dir, "six_v_h_clus9.csv"))
+write_csv(baseline_v_h_clus7, paste0(results_dir, "baseline_v_h_clus7.csv"))
+write_csv(baseline_v_h_clus7, paste0(results_dir, "six_v_h_clus7.csv"))
 
 
 ```
@@ -1763,12 +1763,12 @@ write_csv(baseline_v_h_clus9, paste0(results_dir, "six_v_h_clus9.csv"))
 We will run GSEA on genes upregulated in jSSc at baseline (compared to healthy controls) and then separately on genes upregulated in healthy controls (compared to jSSc at baseline).
 
 ```{r}
-clus9_jSSc_bas_genes <- baseline_v_h_clus9 %>% filter(group == "baseline") %>% pull("gene")
-clus9_healthy_genes <- baseline_v_h_clus9 %>% filter(group == "healthy") %>% pull("gene")
+clus7_jSSc_bas_genes <- baseline_v_h_clus7 %>% filter(group == "baseline") %>% pull("gene")
+clus7_healthy_genes <- baseline_v_h_clus7 %>% filter(group == "healthy") %>% pull("gene")
 
 # GSEA
-gsea_clus9_jSSc_bas <- enricher(
-                  gene = clus9_jSSc_bas_genes,
+gsea_clus7_jSSc_bas <- enricher(
+                  gene = clus7_jSSc_bas_genes,
                   TERM2GENE = term2gene,
                   TERM2NAME = term2name,
                   universe = background_genes,
@@ -1778,10 +1778,10 @@ gsea_clus9_jSSc_bas <- enricher(
                   maxGSSize = 500)
 
 # View results
-gsea_clus9_jSSc_bas@result %>% pull(ID) %>% head(30)
+gsea_clus7_jSSc_bas@result %>% pull(ID) %>% head(30)
 
-gsea_clus9_healthy <- enricher(
-                  gene = clus9_healthy_genes,
+gsea_clus7_healthy <- enricher(
+                  gene = clus7_healthy_genes,
                   TERM2GENE = term2gene,
                   TERM2NAME = term2name,
                   universe = background_genes,
@@ -1791,22 +1791,22 @@ gsea_clus9_healthy <- enricher(
                   maxGSSize = 500)
 
 # View results
-gsea_clus9_healthy@result %>% pull(ID) %>% head(30)
+gsea_clus7_healthy@result %>% pull(ID) %>% head(30)
 ```
 
 
 
-We need a plot showing cluster 9 proportions by group
+We need a plot showing cluster 7 proportions by group
 
 ```{r}
-# Get counts in cluster 9 by group
-clus9_counts_by_group <- clus9$group %>% table()
+# Get counts in cluster 7 by group
+clus7_counts_by_group <- clus7$group %>% table()
 # Get counts in all monocytes by group
 monocytes_counts_by_group <- monocytes_r$group %>% table()
-# Get proportions in cluster 9 by group
-clus9_prop_by_group <- clus9_counts_by_group / monocytes_counts_by_group 
+# Get proportions in cluster 7 by group
+clus7_prop_by_group <- clus7_counts_by_group / monocytes_counts_by_group 
 # Put into data frame for plotting
-clus9_prop_by_group_df <- clus9_prop_by_group %>% as.data.frame() %>% select("Group" = ".", "Proportion" = "Freq") %>%
+clus7_prop_by_group_df <- clus7_prop_by_group %>% as.data.frame() %>% select("Group" = ".", "Proportion" = "Freq") %>%
   mutate(Group = case_when(
     Group == "healthy" ~ "Healthy",
     Group == "baseline" ~ "SSc. baseline",
@@ -1814,8 +1814,8 @@ clus9_prop_by_group_df <- clus9_prop_by_group %>% as.data.frame() %>% select("Gr
     Group == "twelve" ~ "SSc. 12 mo.",
     Group == "twen4" ~ "SSc. 24 mo."
   ))
-clus9_prop_by_group_df$Group <- factor(clus9_prop_by_group_df$Group, levels = clus9_prop_by_group_df$Group)
-clus9_prop_by_group_df <- clus9_prop_by_group_df %>% mutate(
+clus7_prop_by_group_df$Group <- factor(clus7_prop_by_group_df$Group, levels = clus7_prop_by_group_df$Group)
+clus7_prop_by_group_df <- clus7_prop_by_group_df %>% mutate(
   Health = case_when(
     Group == "Healthy" ~ "Healthy",
     TRUE ~ "SSc"
@@ -1823,7 +1823,7 @@ clus9_prop_by_group_df <- clus9_prop_by_group_df %>% mutate(
 )
 
 # Bar plot
-clus9_prop_plot <- ggplot(aes(y = Proportion, x = Group, fill = Health), data = clus9_prop_by_group_df) +
+clus7_prop_plot <- ggplot(aes(y = Proportion, x = Group, fill = Health), data = clus7_prop_by_group_df) +
   geom_col() +
   scale_fill_manual(values = c(
     "Healthy" = "#377EB8",
@@ -1834,29 +1834,29 @@ clus9_prop_plot <- ggplot(aes(y = Proportion, x = Group, fill = Health), data = 
         text = element_text(size = 28),
           axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  labs(y = str_wrap("Proportion of CD14+ MARCO+ CCL2+ CLDN5+ monocytes", width = 25))
+  labs(y = str_wrap("Proportion of CD14+ CCL2+ PPARG+ CCL7+ TNFRSF12A+ CD109+ monocytes", width = 25))
 
 # Save as PNG
-ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_prop_plot.png"), clus9_prop_plot, width = 7, height = 7)
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus7_prop_plot.png"), clus7_prop_plot, width = 7, height = 7)
 ```
 
 Let's also do it by library. 
 
 ```{r}
-# Get counts in cluster 9 by LIBRARY
-clus9_counts_by_LIBRARY <- clus9$LIBRARY %>% table()
+# Get counts in cluster 7 by LIBRARY
+clus7_counts_by_LIBRARY <- clus7$LIBRARY %>% table()
 # Get counts in all monocytes by LIBRARY
 monocytes_counts_by_LIBRARY <- monocytes_r$LIBRARY %>% table()
-# Get proportions in cluster 9 by LIBRARY
-clus9_prop_by_LIBRARY <- clus9_counts_by_LIBRARY / monocytes_counts_by_LIBRARY 
+# Get proportions in cluster 7 by LIBRARY
+clus7_prop_by_LIBRARY <- clus7_counts_by_LIBRARY / monocytes_counts_by_LIBRARY 
 # Put into data frame for plotting
-clus9_prop_by_LIBRARY_df <- clus9_prop_by_LIBRARY %>% as.data.frame() %>% select("Library" = ".", "Proportion" = "Freq") %>%
+clus7_prop_by_LIBRARY_df <- clus7_prop_by_LIBRARY %>% as.data.frame() %>% select("Library" = ".", "Proportion" = "Freq") %>%
   mutate(Library = case_when(
     Library == "H" ~ "Healthy",
     TRUE ~ Library
   ))
-clus9_prop_by_LIBRARY_df$Library <- factor(clus9_prop_by_LIBRARY_df$Library, levels = clus9_prop_by_LIBRARY_df$Library)
-clus9_prop_by_LIBRARY_df <- clus9_prop_by_LIBRARY_df %>% mutate(
+clus7_prop_by_LIBRARY_df$Library <- factor(clus7_prop_by_LIBRARY_df$Library, levels = clus7_prop_by_LIBRARY_df$Library)
+clus7_prop_by_LIBRARY_df <- clus7_prop_by_LIBRARY_df %>% mutate(
   Health = case_when(
     Library == "Healthy" ~ "Healthy",
     TRUE ~ "SSc"
@@ -1864,7 +1864,7 @@ clus9_prop_by_LIBRARY_df <- clus9_prop_by_LIBRARY_df %>% mutate(
 )
 
 # Bar plot
-clus9_prop_plot_lib <- ggplot(aes(y = Proportion, x = Library, fill = Health), data = clus9_prop_by_LIBRARY_df) +
+clus7_prop_plot_lib <- ggplot(aes(y = Proportion, x = Library, fill = Health), data = clus7_prop_by_LIBRARY_df) +
   geom_col() +
   scale_fill_manual(values = c(
     "Healthy" = "#377EB8",
@@ -1875,30 +1875,30 @@ clus9_prop_plot_lib <- ggplot(aes(y = Proportion, x = Library, fill = Health), d
         text = element_text(size = 28),
           axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  labs(y = str_wrap("Proportion of CD14+ MARCO+ CCL2+ CLDN5+ monocytes", width = 25))
+  labs(y = str_wrap("Proportion of CD14+ CCL2+ PPARG+ CCL7+ TNFRSF12A+ CD109+ monocytes", width = 25))
 
 # Save as PNG
-ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_prop_plot_lib.png"), clus9_prop_plot_lib, width = 7, height = 7)
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus7_prop_plot_lib.png"), clus7_prop_plot_lib, width = 7, height = 7)
 ```
 
 We can also split by health
 
 ```{r}
-# Get counts in cluster 9 by health
-clus9_counts_by_health <- clus9$health %>% table()
+# Get counts in cluster 7 by health
+clus7_counts_by_health <- clus7$health %>% table()
 # Get counts in all monocytes by health
 monocytes_counts_by_health <- monocytes_r$health %>% table()
-# Get proportions in cluster 9 by health
-clus9_prop_by_health <- clus9_counts_by_health / monocytes_counts_by_health 
+# Get proportions in cluster 7 by health
+clus7_prop_by_health <- clus7_counts_by_health / monocytes_counts_by_health 
 # Put into data frame for plotting
-clus9_prop_by_health_df <- clus9_prop_by_health %>% as.data.frame() %>% select("Health" = ".", "Proportion" = "Freq") %>%
+clus7_prop_by_health_df <- clus7_prop_by_health %>% as.data.frame() %>% select("Health" = ".", "Proportion" = "Freq") %>%
   mutate(Health = case_when(
     Health == "healthy" ~ "Healthy",
     TRUE ~ Health
   ))
 
 # Bar plot
-clus9_prop_plot_health <- ggplot(aes(y = Proportion, x = Health, fill = Health), data = clus9_prop_by_health_df) +
+clus7_prop_plot_health <- ggplot(aes(y = Proportion, x = Health, fill = Health), data = clus7_prop_by_health_df) +
   geom_col() +
   scale_fill_manual(values = c(
     "Healthy" = "#377EB8",
@@ -1909,10 +1909,10 @@ clus9_prop_plot_health <- ggplot(aes(y = Proportion, x = Health, fill = Health),
         text = element_text(size = 28),
           axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  labs(y = str_wrap("Proportion of CD14+ MARCO+ CCL2+ CLDN5+ monocytes", width = 25))
+  labs(y = str_wrap("Proportion of CD14+ CCL2+ PPARG+ CCL7+ TNFRSF12A+ CD109+ monocytes", width = 25))
 
 # Save as PNG
-ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus9_prop_plot_health.png"), clus9_prop_plot_health, width = 7, height = 7)
+ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/clus7_prop_plot_health.png"), clus7_prop_plot_health, width = 7, height = 7)
 ```
 
 We want to investigate the amount of overlap between each of the decreasing gene sets to aid our interpretation.
