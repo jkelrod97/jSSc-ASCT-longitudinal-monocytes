@@ -1532,24 +1532,42 @@ Now we make a dotplot showing these markers:
 
 ```{r}
 # Markers to show
-bio_markers <- c("CXCL8", "TNFAIP6", "IL1B", "TNFAIP3", "PADI4",      # 0
-                 "S100A12", "CSF3R", "NCF1", "ALOX5AP", "TREM1",      # 1
-                 "S100A8", "S100A9", "RNASE2", "RETN",                # 2
-                 "CCL3", "F13A1", "EREG", "FCER1A",                   # 3
-                 "CDKN1C", "SIGLEC10", "C1QA",                        # 4
-                 "HLA-DPB1", "HLA-DRB1", "CD74", "HLA-DQA1",          # 5
-                 "CD99", "LGALS2", "SERPINE1", "IGFBP7",              # 6
-                 "CCL2", "PPARG", "CCL7", "TNFRSF12A", "CD109",       # 7
-                 "IFI44L", "SIGLEC1", "RSAD2", "IRF7", "TNFSF13B")    # 8
+# Marker genes per cluster (names = cluster numbers)
+bio_marker_groups <- list(
+    "0" = c("CXCL8", "TNFAIP6", "IL1B", "TNFAIP3", "PADI4"),
+    "1" = c("S100A12", "CSF3R", "NCF1", "ALOX5AP", "TREM1"),
+    "2" = c("S100A8", "S100A9", "RNASE2", "RETN"),
+    "3" = c("CCL3", "F13A1", "EREG", "FCER1A"),
+    "4" = c("CDKN1C", "SIGLEC10", "C1QA"),
+    "5" = c("HLA-DPB1", "HLA-DRB1", "CD74", "HLA-DQA1"),
+    "6" = c("CD99", "LGALS2", "SERPINE1", "IGFBP7"),
+    "7" = c("CCL2", "PPARG", "CCL7", "TNFRSF12A", "CD109"),
+    "8" = c("IFI44L", "SIGLEC1", "RSAD2", "IRF7", "TNFSF13B")
+)
+bio_markers <- unlist(bio_marker_groups, use.names = FALSE)
 
 monocytes_r$bio_annotation_wrapped_2 <- str_wrap(monocytes_r$bio_annotation, width = 20)
-dp_bio_markers <- DotPlot(monocytes_r, bio_markers, group.by = "bio_annotation_wrapped_2", dot.scale = 15, cols = c("lightgrey", "darkgreen")) +
+
+# Only CD14+ and CD16+ clusters (drop B-like, T-like, NK-like)
+cd14_cd16_monocytes <- subset(monocytes_r, cell_type %in% c("CD14+", "CD16+"))
+kept_clusters <- levels(droplevels(cd14_cd16_monocytes$seurat_clusters))
+
+# One box per cluster: x spans its markers (in bio_markers order), y is its row
+marker_boxes <- tibble(cluster = names(bio_marker_groups), n = lengths(bio_marker_groups)) %>%
+    mutate(xmax = cumsum(n) + 0.5,
+           xmin = xmax - n,
+           y    = rev(seq_along(kept_clusters))[match(cluster, kept_clusters)])
+
+dp_bio_markers <- DotPlot(cd14_cd16_monocytes, bio_markers, group.by = "bio_annotation_wrapped_2", cols = c("lightgrey", "darkred", scale = 8)) +
     scale_y_manual(
-        breaks = lapply(levels(monocytes_r$seurat_clusters), function(x){
-            monocytes_r@meta.data %>% filter(seurat_clusters == x) %>% pull(bio_annotation_wrapped_2) %>% unique()
+        breaks = lapply(kept_clusters, function(x){
+            cd14_cd16_monocytes@meta.data %>% filter(seurat_clusters == x) %>% pull(bio_annotation_wrapped_2) %>% unique()
         }) %>% unlist(),
-        values = rev(as.numeric(levels(monocytes_r$seurat_clusters)))
+        values = rev(seq_along(kept_clusters))   # cluster 0 at the top
     ) +
+    # Box each cluster's own markers in that cluster's row
+    geom_rect(data = marker_boxes, aes(xmin = xmin, xmax = xmax, ymin = y - 0.5, ymax = y + 0.5),
+              inherit.aes = FALSE, fill = NA, colour = "black", alpha = 0.3, linewidth = 0.8) +
   theme(
   axis.text.x = element_text(angle = 45, hjust = 1)
 ) +
