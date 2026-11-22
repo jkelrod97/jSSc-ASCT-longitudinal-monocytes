@@ -11,8 +11,9 @@
 data/
 figures/
 
-# Archive folder
+# Archive folders
 archive/
+_archive*/
 
 # Other
 *.html
