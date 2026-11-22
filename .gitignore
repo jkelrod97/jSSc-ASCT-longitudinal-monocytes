@@ -15,5 +15,8 @@ figures/
 archive/
 _archive*/
 
+# Temp folder
+tmp/
+
 # Other
 *.html
