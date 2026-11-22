@@ -146,7 +146,7 @@ current_row <- 3  # first block starts below the caption
 
 # map raw library codes to display labels
 lib_labels <- c("515" = "Patient 515", "591" = "Patient 591",
-                "594" = "Patient 594", "H" = "Healthy")
+                "594_r" = "Patient 594", "H_r" = "Healthy")
 
 for (nm in names(threshold_list)) {
   m  <- threshold_list[[nm]]
@@ -329,10 +329,10 @@ counts_by_library <- table(scler_pbmc_r$cell_type,
   as.data.frame() %>%
   setNames(c("Cell type", "Library", "Count")) %>%
   pivot_wider(names_from = "Library", values_from = "Count") %>%
-    dplyr::rename("Healthy" = "H",
+    dplyr::rename("Healthy" = "H_r",
            "NRCOS 515" = "515",
            "NRCOS 591" = "591",
-           "NRCOS 594" = "594")%>%
+           "NRCOS 594" = "594_r")%>%
   dplyr::mutate(`Cell type` = as.character(`Cell type`)) %>%
   {rbind(.,
          c("Total by library", colSums(sapply(.[, -1], as.numeric))),
@@ -472,7 +472,7 @@ wb <- wb %>%
 6. Add proportions for monocyte subtypes.
 
 ```{r}
-counts_by_timepoint_monocytes <- table(monoc$cell_type,
+counts_by_timepoint_monocytes <- table(monocytes_r$cell_type,
                        monocytes_r$group) %>%
   as.data.frame() %>%
   setNames(c("Cell type", "Time point", "Count")) %>%
@@ -499,10 +499,10 @@ counts_by_library_monocytes <- table(monocytes_r$cell_type,
   as.data.frame() %>%
   setNames(c("Cell type", "Library", "Count")) %>%
   pivot_wider(names_from = "Library", values_from = "Count") %>%
-    dplyr::rename("Healthy" = "H",
+    dplyr::rename("Healthy" = "H_r",
            "NRCOS 515" = "515",
            "NRCOS 591" = "591",
-           "NRCOS 594" = "594")%>%
+           "NRCOS 594" = "594_r")%>%
   dplyr::mutate(`Cell type` = as.character(`Cell type`)) %>%
   {rbind(.,
          c("Total by library", colSums(sapply(.[, -1], as.numeric))),
