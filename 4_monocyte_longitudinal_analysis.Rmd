@@ -972,7 +972,7 @@ SSc_v_h_PB_results <- SSc_v_h_PB$fit %>% test_de("healthSSc") %>% arrange(pval)
 
 # We save the top 50 upregulated DEGs and top 50 downregulated DEGs as CSV
 top50_up_results <- SSc_v_h_PB_results %>% filter(lfc > 0.5) %>% head(50)
-top50_down_results <- SSc_v_h_PB_results %>% filter(lfc < 0.5) %>% head(50)
+top50_down_results <- SSc_v_h_PB_results %>% filter(lfc < -0.5) %>% head(50)
 # Write CSV
 write_csv(top50_up_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc_v_healthy_monocytes_UP.csv"))
 write_csv(top50_down_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc_v_healthy_monocytes_DOWN.csv"))
@@ -1049,7 +1049,7 @@ SSc6_v_h_PB_results <- SSc6_v_h_PB$fit %>% test_de("healthSSc") %>% arrange(pval
 
 # We save the top 50 upregulated DEGs and top 50 downregulated DEGs as CSV
 top50_up_results <- SSc6_v_h_PB_results %>% filter(lfc > 0.5) %>% head(50)
-top50_down_results <- SSc6_v_h_PB_results %>% filter(lfc < 0.5) %>% head(50)
+top50_down_results <- SSc6_v_h_PB_results %>% filter(lfc < -0.5) %>% head(50)
 # Write CSV
 write_csv(top50_up_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc6_v_healthy_monocytes_UP.csv"))
 write_csv(top50_down_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc6_v_healthy_monocytes_DOWN.csv"))
@@ -1129,7 +1129,7 @@ SSc12_v_h_PB_results <- SSc12_v_h_PB_results %>% filter(abs(lfc) < 10)
 
 # We save the top 50 upregulated DEGs and top 50 downregulated DEGs as CSV
 top50_up_results <- SSc12_v_h_PB_results %>% filter(lfc > 0.5) %>% head(50)
-top50_down_results <- SSc12_v_h_PB_results %>% filter(lfc < 0.5) %>% head(50)
+top50_down_results <- SSc12_v_h_PB_results %>% filter(lfc < -0.5) %>% head(50)
 # Write CSV
 write_csv(top50_up_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc12_v_healthy_monocytes_UP.csv"))
 write_csv(top50_down_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc12_v_healthy_monocytes_DOWN.csv"))
@@ -1203,7 +1203,7 @@ SSc24_v_h_PB_results <- SSc24_v_h_PB$fit %>% test_de("healthSSc") %>% arrange(pv
 
 # We save the top 50 upregulated DEGs and top 50 downregulated DEGs as CSV
 top50_up_results <- SSc24_v_h_PB_results %>% filter(lfc > 0.5) %>% head(50)
-top50_down_results <- SSc24_v_h_PB_results %>% filter(lfc < 0.5) %>% head(50)
+top50_down_results <- SSc24_v_h_PB_results %>% filter(lfc < -0.5) %>% head(50)
 # Write CSV
 write_csv(top50_up_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc24_v_healthy_monocytes_UP.csv"))
 write_csv(top50_down_results, paste0(project_path, "data/DEG_pathway_CSVs/SSc_v_healthy/top50_SSc24_v_healthy_monocytes_DOWN.csv"))
