@@ -1121,6 +1121,12 @@ SSc12_v_h_PB <- pb_offset(subset(monocytes_r, group %in% c("twelve", "healthy"))
 # Test DE
 SSc12_v_h_PB_results <- SSc12_v_h_PB$fit %>% test_de("healthSSc") %>% arrange(pval)
 
+# Remove genes whose LFC hit test_de's cap (max_lfc = 10). These genes are essentially
+# undetected in one group (12 mo. has the fewest monocytes), so their fold change is not
+# estimable and they would otherwise sit in a column at log2FC = -10 on the volcano plot.
+# This only affects the 12 mo. comparison; the other comparisons have no capped genes.
+SSc12_v_h_PB_results <- SSc12_v_h_PB_results %>% filter(abs(lfc) < 10)
+
 # We save the top 50 upregulated DEGs and top 50 downregulated DEGs as CSV
 top50_up_results <- SSc12_v_h_PB_results %>% filter(lfc > 0.5) %>% head(50)
 top50_down_results <- SSc12_v_h_PB_results %>% filter(lfc < 0.5) %>% head(50)
