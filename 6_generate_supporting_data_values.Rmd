@@ -91,6 +91,9 @@ wb <- wb %>%
 ```{r}
 dat <- readRDS(paste0(project_path, "data/supporting_data_values/3B.RDS"))
 
+# Display patient 594 without the internal "_r" (sample-swap corrected) suffix
+dat <- dat %>% mutate(subject = recode(subject, "594_r" = "594"))
+
 # Set sheet name
 sheet_name <- paste0("Fig. 3B")
 
@@ -147,6 +150,9 @@ wb <- wb %>%
 ```{r}
 dat <- readRDS(paste0(project_path, "data/supporting_data_values/Supp4.RDS"))
 
+# Display patient 594 without the internal "_r" (sample-swap corrected) suffix
+dat <- dat %>% mutate(subject = recode(subject, "594_r" = "594"))
+
 # Set sheet name
 sheet_name <- paste0("S Fig. 4")
 
@@ -160,6 +166,9 @@ wb <- wb %>%
 
 ```{r}
 dat <- readRDS(paste0(project_path, "data/supporting_data_values/Supp5.RDS"))
+
+# Display patient 594 without the internal "_r" (sample-swap corrected) suffix
+dat <- dat %>% mutate(subject = recode(subject, "594_r" = "594"))
 
 # Set sheet name
 sheet_name <- paste0("S Fig. 5")
