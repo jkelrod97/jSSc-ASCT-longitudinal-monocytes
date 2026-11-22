@@ -560,7 +560,7 @@ ggsave(paste0(project_path, "figures/2_pbmc_cell_type_annotation/adt_marker_dotp
 scler_pbmc_r$LIBRARY <- factor(scler_pbmc_r$LIBRARY, levels = c("H_r", "515", "591", "594_r"))
 
 # We also save the Seurat object to update the reordering of cell types
-SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_11.h5seurat"))
+# SaveH5Seurat(scler_pbmc_r, paste0(project_path, "data/h5seurat/scler_pbmc_r_11.h5seurat"))
 ```
 
 Below we generate some UMAPs.
