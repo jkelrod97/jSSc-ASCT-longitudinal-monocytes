@@ -1755,7 +1755,7 @@ rownames(six_v_h_clus7) <- NULL
 
 # Save as CSV
 write_csv(baseline_v_h_clus7, paste0(results_dir, "baseline_v_h_clus7.csv"))
-write_csv(baseline_v_h_clus7, paste0(results_dir, "six_v_h_clus7.csv"))
+write_csv(six_v_h_clus7, paste0(results_dir, "six_v_h_clus7.csv"))
 
 
 ```
