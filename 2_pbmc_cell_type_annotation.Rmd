@@ -612,10 +612,10 @@ scler_pbmc_r %>% DimPlot(label = T, cols = brewer.pal(12, "Set3"), repel = T, sp
   theme(legend.position = "none") +
   labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
   facet_wrap(~LIBRARY, labeller = labeller(LIBRARY = c(
-    "H" = "Healthy",
+    "H_r" = "Healthy",
     "515" = "515",
     "591" = "591",
-    "594" = "594"
+    "594_r" = "594"
   )), nrow = 1)
 # Save as PNG
 ggsave(paste0(project_path, "figures/2_pbmc_cell_type_annotation/all_umap_by_library.png"), all_umap_by_library, width = 14, height = 5.72)

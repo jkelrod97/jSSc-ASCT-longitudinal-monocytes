@@ -269,10 +269,10 @@ monocyte_dim_plot_by_library <-
   labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
   theme(plot.title = element_blank()) +
   facet_wrap(~LIBRARY, labeller = labeller(LIBRARY = c(
-    "H" = "Healthy",
+    "H_r" = "Healthy",
     "515" = "515",
     "591" = "591",
-    "594" = "594"
+    "594_r" = "594"
   )), nrow = 1)
 # Save as PNG
 ggsave(paste0(project_path, "figures/3_monocyte_subtype_annotation/jSSc_and_healthy_monocytes_by_library_umap.png"), height = 3, width = 10)

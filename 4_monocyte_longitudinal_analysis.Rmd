@@ -699,13 +699,17 @@ rownames(SuppFig4Dat) <- NULL
 # Save as RDS
 saveRDS(SuppFig4Dat, paste0(project_path, "data/supporting_data_values/Supp4.RDS"))
 
+# Legend labels for subject: show "594" instead of the internal sample-swap-corrected "594_r".
+# Used by all gene trend plots in this notebook.
+drop_r_suffix <- function(x) sub("_r$", "", x)
+
 # Arrange plots
 gene_plots_down_clean <- lapply(seq_along(gene_plots_down), function(i) {
   p <- gene_plots_down[[i]]
   nrow <- 7; ncol <- 3
   row <- (i - 1) %/% ncol
   col <- (i - 1) %% ncol
-  p <- p + theme(
+  p <- p + scale_colour_discrete(labels = drop_r_suffix) + theme(
     axis.title.x = element_blank(),
     axis.title.y = element_blank(),
     plot.title = element_text(size = 30)
@@ -759,7 +763,7 @@ gene_plots_up_clean <- lapply(seq_along(gene_plots_up), function(i) {
   nrow <- 4; ncol <- 3
   row <- (i - 1) %/% ncol
   col <- (i - 1) %% ncol
-  p <- p + theme(
+  p <- p + scale_colour_discrete(labels = drop_r_suffix) + theme(
     axis.title.x = element_blank(),
     axis.title.y = element_blank(),
     plot.title = element_text(size = 30)
@@ -825,7 +829,7 @@ saveRDS(Fig3BDat, paste0(project_path, "data/supporting_data_values/3B.RDS"))
 
 # Clean individual plots
 gene_plots_down_reduced_clean <- lapply(seq_along(gene_plots_down_reduced), function(i) {
-  gene_plots_down_reduced[[i]] + theme(
+  gene_plots_down_reduced[[i]] + scale_colour_discrete(labels = drop_r_suffix) + theme(
     axis.title.x = element_blank(),
     axis.title.y = element_blank(),
     plot.title = element_text(size = 30),
@@ -1862,7 +1866,8 @@ clus7_prop_by_LIBRARY <- clus7_counts_by_LIBRARY / monocytes_counts_by_LIBRARY
 # Put into data frame for plotting
 clus7_prop_by_LIBRARY_df <- clus7_prop_by_LIBRARY %>% as.data.frame() %>% select("Library" = ".", "Proportion" = "Freq") %>%
   mutate(Library = case_when(
-    Library == "H" ~ "Healthy",
+    Library == "H_r" ~ "Healthy",
+    Library == "594_r" ~ "594",
     TRUE ~ Library
   ))
 clus7_prop_by_LIBRARY_df$Library <- factor(clus7_prop_by_LIBRARY_df$Library, levels = clus7_prop_by_LIBRARY_df$Library)
