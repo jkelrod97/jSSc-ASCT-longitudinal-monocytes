@@ -184,22 +184,22 @@ for (nm in names(threshold_list)) {
 
 ```{r}
 # Load in Seurat object
-scler_pbmc <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_11.h5seurat"))
+scler_pbmc_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/scler_pbmc_r_11.h5seurat"))
 
 # Get top 100 RNA markers for each cell type
-RNA_markers <- FindAllMarkers(scler_pbmc, assay = "RNA", group.by = "cell_type", only.pos = T) %>%
+RNA_markers <- FindAllMarkers(scler_pbmc_r, assay = "RNA", group.by = "cell_type", only.pos = T) %>%
   group_by(cluster) %>%
   slice_min(order_by = p_val, n = 100, with_ties = FALSE) %>%
   split(~ cluster)
 
 # Get top 20 ADT markers for each cell type
-ADT_markers <- FindAllMarkers(scler_pbmc, assay = "DSB", group.by = "cell_type", only.pos = T) %>%
+ADT_markers <- FindAllMarkers(scler_pbmc_r, assay = "DSB", group.by = "cell_type", only.pos = T) %>%
   group_by(cluster) %>%
   slice_min(order_by = p_val, n = 20, with_ties = FALSE) %>%
   split(~ cluster)
 
 # Get cluster #s for each cell type
-cluster_nums <- scler_pbmc$cell_type %>% levels() %>% lapply(function(CELLTYPE){scler_pbmc@meta.data %>% filter(cell_type == CELLTYPE) %>% pull(seurat_clusters) %>% unique() %>% sort()}) %>% setNames(levels(scler_pbmc$cell_type))
+cluster_nums <- scler_pbmc_r$cell_type %>% levels() %>% lapply(function(CELLTYPE){scler_pbmc_r@meta.data %>% filter(cell_type == CELLTYPE) %>% pull(seurat_clusters) %>% unique() %>% sort()}) %>% setNames(levels(scler_pbmc_r$cell_type))
 
 # Get annotation markers
 RNA_annotation <- list(
@@ -302,8 +302,8 @@ wb <- wb %>%
 4. Now, let's also add the cell type counts 
 
 ```{r}
-counts_by_timepoint <- table(scler_pbmc$cell_type,
-                       scler_pbmc$group) %>%
+counts_by_timepoint <- table(scler_pbmc_r$cell_type,
+                       scler_pbmc_r$group) %>%
   as.data.frame() %>%
   setNames(c("Cell type", "Time point", "Count")) %>%
   pivot_wider(names_from = "Time point", values_from = "Count") %>%
@@ -324,8 +324,8 @@ pct_by_timepoint <- counts_by_timepoint %>%
     x / x[length(x)] * 100
   }))
 
-counts_by_library <- table(scler_pbmc$cell_type,
-                       scler_pbmc$LIBRARY) %>%
+counts_by_library <- table(scler_pbmc_r$cell_type,
+                       scler_pbmc_r$LIBRARY) %>%
   as.data.frame() %>%
   setNames(c("Cell type", "Library", "Count")) %>%
   pivot_wider(names_from = "Library", values_from = "Count") %>%
@@ -396,23 +396,23 @@ wb <- wb %>%
 
 ```{r}
 # Load in Seurat object
-monocytes <- LoadH5Seurat(paste0(project_path, "data/h5seurat/monocytes_3.h5seurat"))
+monocytes_r <- LoadH5Seurat(paste0(project_path, "data/h5seurat/monocytes_r_3.h5seurat"))
 
 # Get top 100 RNA markers for each cell type
-RNA_markers <- FindAllMarkers(monocytes, assay = "RNA", group.by = "cell_type", only.pos = T) %>%
+RNA_markers <- FindAllMarkers(monocytes_r, assay = "RNA", group.by = "cell_type", only.pos = T) %>%
   group_by(cluster) %>%
   slice_min(order_by = p_val, n = 100, with_ties = FALSE) %>%
   split(~ cluster)
 
 # Get top 20 ADT markers for each cell type
-ADT_markers <- FindAllMarkers(monocytes, assay = "DSB", group.by = "cell_type", only.pos = T) %>%
+ADT_markers <- FindAllMarkers(monocytes_r, assay = "DSB", group.by = "cell_type", only.pos = T) %>%
   group_by(cluster) %>%
   slice_min(order_by = p_val, n = 20, with_ties = FALSE) %>%
   split(~ cluster)
 
 # Get cluster #s for each cell type
-monocytes$cell_type <- factor(monocytes$cell_type, unique(monocytes$cell_type))
-cluster_nums <- monocytes$cell_type %>% levels() %>% lapply(function(CELLTYPE){monocytes@meta.data %>% filter(cell_type == CELLTYPE) %>% pull(seurat_clusters) %>% unique() %>% sort()}) %>% setNames(levels(monocytes$cell_type))
+monocytes_r$cell_type <- factor(monocytes_r$cell_type, unique(monocytes_r$cell_type))
+cluster_nums <- monocytes_r$cell_type %>% levels() %>% lapply(function(CELLTYPE){monocytes_r@meta.data %>% filter(cell_type == CELLTYPE) %>% pull(seurat_clusters) %>% unique() %>% sort()}) %>% setNames(levels(monocytes_r$cell_type))
 
 # Get annotation markers
 RNA_annotation <- list(
@@ -472,8 +472,8 @@ wb <- wb %>%
 6. Add proportions for monocyte subtypes.
 
 ```{r}
-counts_by_timepoint_monocytes <- table(monocytes$cell_type,
-                       monocytes$group) %>%
+counts_by_timepoint_monocytes <- table(monoc$cell_type,
+                       monocytes_r$group) %>%
   as.data.frame() %>%
   setNames(c("Cell type", "Time point", "Count")) %>%
   pivot_wider(names_from = "Time point", values_from = "Count") %>%
@@ -494,8 +494,8 @@ pct_by_timepoint_monocytes <- counts_by_timepoint_monocytes %>%
     x / x[length(x)] * 100
   }))
 
-counts_by_library_monocytes <- table(monocytes$cell_type,
-                       monocytes$LIBRARY) %>%
+counts_by_library_monocytes <- table(monocytes_r$cell_type,
+                       monocytes_r$LIBRARY) %>%
   as.data.frame() %>%
   setNames(c("Cell type", "Library", "Count")) %>%
   pivot_wider(names_from = "Library", values_from = "Count") %>%
@@ -926,7 +926,7 @@ mono_dfs <- csv_files_ordered |>
   map(read.csv)
 
 # Get annotations and put in order
-annos <- monocytes$bio_annotation %>% unique()
+annos <- monocytes_r$bio_annotation %>% unique()
 annos <- annos[order(as.integer(str_extract(annos, "^\\d+")))]
 
 # Extract top 50 genes only (by LFC, since this is how we picked markers)
