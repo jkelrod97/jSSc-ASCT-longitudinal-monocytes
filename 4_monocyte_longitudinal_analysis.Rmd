@@ -766,8 +766,10 @@ gene_plots_up_clean <- lapply(seq_along(gene_plots_up), function(i) {
   )
   p
 })
+# Number of grid rows needed for 3 columns (avoids empty rows that push the caption down)
+n_rows_up <- ceiling(length(gene_plots_up_clean) / 3)
 # Customize
-gene_plots_up_combined <- wrap_plots(gene_plots_up_clean, nrow = 4, ncol = 3) +
+gene_plots_up_combined <- wrap_plots(gene_plots_up_clean, nrow = n_rows_up, ncol = 3) +
   plot_layout(guides = "collect") +
   plot_annotation(
     caption = "Months since transplant"
@@ -790,7 +792,7 @@ gene_plots_up_combined <- wrap_elements(full = gene_plots_up_combined) +
 theme(plot.title = element_text(size = 30, face = "bold"))
 # Save as PNG
 ggsave(paste0(project_path, "figures/4_monocyte_longitudinal_analysis/gene_plots_up_combined.png"), 
-       gene_plots_up_combined, width = 14, height = 18, bg = "white")
+       gene_plots_up_combined, width = 14, height = 4.5 * n_rows_up, bg = "white")
 ```
 
 Now, we make a reduced version of the downward DEGs to be included in one of the main figures.
