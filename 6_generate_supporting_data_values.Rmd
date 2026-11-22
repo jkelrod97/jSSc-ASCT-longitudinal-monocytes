@@ -179,34 +179,6 @@ wb <- wb %>%
   wb_add_table(sheet = sheet_name, x = dat)
 ```
 
-9. Supplemental figure 6A
-
-```{r}
-dat <- readRDS(paste0(project_path, "data/supporting_data_values/Supp6A.RDS"))
-
-# Set sheet name
-sheet_name <- paste0("S Fig. 6A")
-
-# Add to workbook
-wb <- wb %>%
-  wb_add_worksheet(sheet_name) %>%
-  wb_add_table(sheet = sheet_name, x = dat)
-```
-
-10. Supplemental figure 6B
-
-```{r}
-dat <- readRDS(paste0(project_path, "data/supporting_data_values/Supp6B.RDS"))
-
-# Set sheet name
-sheet_name <- paste0("S Fig. 6B")
-
-# Add to workbook
-wb <- wb %>%
-  wb_add_worksheet(sheet_name) %>%
-  wb_add_table(sheet = sheet_name, x = dat)
-```
-
 Format and save the workbook
 
 ```{r}

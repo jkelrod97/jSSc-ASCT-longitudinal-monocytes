@@ -1344,8 +1344,12 @@ nfkb_df <- nfkb_df %>%
                                         "SSc 24 mo vs. healthy")),
          neg_log_p = -log10(p.adjust))
 rownames(nfkb_df) <- NULL
-# Save as RDS for supporting data values
-saveRDS(nfkb_df, paste0(project_path, "data/supporting_data_values/Supp6A.RDS"))
+# NOTE: This was previously S Fig. 6A. Before the sample-swap correction,
+# TNF-α signaling via NF-κB was significantly enriched in SSc vs. healthy
+# monocytes (p.adjust 1.5e-12 at baseline, 7.7e-12 at 6 mo., 0.005 at 12 mo.).
+# After the correction it is not significant at any time point
+# (p.adjust 0.69–0.98), so the figure was removed from the manuscript and
+# its supporting data values are no longer saved.
 
 # Plot it
 nfkb_plot <-
@@ -1379,8 +1383,12 @@ inflammation_df <- inflammation_df %>%
                                         "SSc 24 mo vs. healthy")),
          neg_log_p = -log10(p.adjust))
 rownames(inflammation_df) <- NULL
-# Save as RDS for supporting data values
-saveRDS(inflammation_df, paste0(project_path, "data/supporting_data_values/Supp6B.RDS"))
+# NOTE: This was previously S Fig. 6B. Before the sample-swap correction,
+# the inflammatory response pathway was significantly enriched in SSc
+# baseline vs. healthy monocytes (p.adjust 0.029). After the correction it
+# is not significant at any time point (p.adjust 0.63–0.81), so the figure
+# was removed from the manuscript and its supporting data values are no
+# longer saved.
 
 # Plot it
 inflammation_plot <-
