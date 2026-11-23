@@ -1448,7 +1448,8 @@ down_deg_dot$layers[[1]] <-
 down_deg_dot <-
   down_deg_dot +
     coord_flip() +
-    scale_fill_gradient2(low = "steelblue", mid = "white", high = "darkred", midpoint = 0) +
+    scale_fill_gradient2(low = "steelblue", mid = "white", high = "darkred", midpoint = 0,
+                         name = "Average Expression") +
     ylab("Timepoint") +
     xlab("Gene") +
     theme(plot.caption = element_text(size = 9, hjust = 0)) +
@@ -1533,6 +1534,7 @@ monocyte_bio_umap <-
     scale_colour_manual(values = annotation_cols, name = NULL) +
     scale_size_manual(values = c(`FALSE` = 1, `TRUE` = 2), guide = "none") +
     guides(colour = guide_legend(override.aes = list(size = 4))) +
+    labs(x = "WNN UMAP 1", y = "WNN UMAP 2") +
     cowplot::theme_cowplot() +
     theme(legend.text = element_text(size = 22),
           axis.title = element_text(size = 22))
@@ -1616,9 +1618,10 @@ DimPlot(monocytes_r,
   scale_color_manual(
     values = c("Unselected" = "grey80", "Group_1" = "red"),
     breaks = "Group_1",
-    labels = "CD14+ CCL2+ PPARG+ CCL7+ TNFRSF12A+ CD109+"
+    # Wrap onto two lines so the legend fits within the 4-inch-wide figure
+    labels = str_wrap("CD14+ CCL2+ PPARG+ CCL7+ TNFRSF12A+ CD109+", width = 25)
   ) +
-  labs(color = NULL) +
+  labs(color = NULL, x = "WNN UMAP 1", y = "WNN UMAP 2") +
   theme(legend.position = "bottom",
         legend.text = element_text(size = 13)) +
   facet_wrap(~group, labeller = as_labeller(c(
@@ -1829,10 +1832,10 @@ clus7_prop_by_group <- clus7_counts_by_group / monocytes_counts_by_group
 clus7_prop_by_group_df <- clus7_prop_by_group %>% as.data.frame() %>% select("Group" = ".", "Proportion" = "Freq") %>%
   mutate(Group = case_when(
     Group == "healthy" ~ "Healthy",
-    Group == "baseline" ~ "SSc. baseline",
-    Group == "six" ~ "SSc. 6 mo.",
-    Group == "twelve" ~ "SSc. 12 mo.",
-    Group == "twen4" ~ "SSc. 24 mo."
+    Group == "baseline" ~ "SSc baseline",
+    Group == "six" ~ "SSc 6 mo.",
+    Group == "twelve" ~ "SSc 12 mo.",
+    Group == "twen4" ~ "SSc 24 mo."
   ))
 clus7_prop_by_group_df$Group <- factor(clus7_prop_by_group_df$Group, levels = clus7_prop_by_group_df$Group)
 clus7_prop_by_group_df <- clus7_prop_by_group_df %>% mutate(
